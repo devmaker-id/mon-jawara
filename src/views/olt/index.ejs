@@ -1,0 +1,224 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+    
+    <p>
+      SAYA GUNAKAN OLT: HISFOCUS 4P1GM
+    </p>
+    <ul>
+      <li>Olt dan mikrotik bisa saling ping</li>
+      <li>Teruskan olt ke vpn</li>
+      <li>Jangan gunakan ip, .1 dan .254</li>
+    </ul>
+    
+    <% if (dataOlt.length > 0) { %>
+    <div class="card mb-3">
+      <div class="card-header bg-primary text-white">
+        Data OLT Terhubung
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped align-middle text-nowrap">
+          <thead class="thead-light">
+            <tr>
+              <th>Nama OLT</th>
+              <th>Host</th>
+              <th>Port</th>
+              <th>VPN</th>
+              <th>VPN Host</th>
+              <th>VPN Gateway</th>
+              <th>Status</th>
+              <th>Expired</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+            <tbody>
+              <% dataOlt.forEach(olt => { %>
+                <tr>
+                  <td><%= olt.olt_name %></td>
+                  <td><%= olt.olt_host %></td>
+                  <td><%= olt.olt_port %></td>
+                  <td><%= olt.server_name %> (<%= olt.type_vpn %>)</td>
+                  <td><%= olt.server_host %></td>
+                  <td><%= olt.gateway %></td>
+                  <td><%= olt.status %></td>
+                  <td>
+                    <%= olt.expired_at ? new Date(olt.expired_at).toLocaleString('id-ID') : 'Unlimited' %>
+                  </td>
+                  <td class="text-nowrap">
+
+                    <a href="/oltmgmn/settings/<%= olt.olt_user_id %>/<%= olt.olt_id %>" class="btn btn-sm btn-secondary">
+                      <span class="bi bi-gear"></span>
+                      Setting
+                    </a>
+
+                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeleteOlt(<%= olt.olt_id %>, '<%= olt.olt_name %>')">
+                      <span class="bi bi-trash"></span> Hapus
+                    </button>
+
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } else {%>
+    
+    <div class="card mb-3">
+      <div class="card-header bg-info text-white">
+        Tidak ada olt yang ditambahkan
+      </div>
+      <div class="card-body">
+        <form
+          action="/oltmgmn/tambaholt"
+          method="POST"
+          class="needs-validation"
+          novalidate
+        >
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              name="name"
+              placeholder="nama olt"
+              required
+            />
+            <div class="invalid-feedback">Nama Olt wajib diisi!</div>
+          </div>
+          
+          <div class="mb-3">
+            <label>Olt ada di mikrotik mana</label>
+            <select class="form-control" id="mikrotik" name="mikrotik" required>
+              <option value="">pilih mikrotik</option>
+              
+              <% if (mikrotik && mikrotik.length > 0) { %>
+              <% mikrotik.forEach(mk => { %>
+              <option value="<%= mk.id %>">
+                <%= mk.name %>, Ros <%= mk.ros %>
+              </option>
+              <% }); %> <% } else { %>
+              <option value="">belum punya mikrotik / sudah digunakan</option>
+              <% } %>
+              
+            </select>
+            <div class="invalid-feedback">
+              posisi OLT ada dimana ??
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label>ip local olt</label>
+            <input
+              type="text"
+              class="form-control"
+              id="host"
+              name="host"
+              placeholder="host/ip telnet"
+              required
+            />
+            <div class="invalid-feedback">Host telnet wajib di isi!</div>
+          </div>
+
+          <input type="hidden" id="port" name="port" value="21">
+          
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              placeholder="username telnet"
+              required
+            />
+            <div class="invalid-feedback">username telnet wajib di isi!</div>
+          </div>
+          
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="password"
+              name="password"
+              placeholder="password telnet"
+              required
+            />
+            <div class="invalid-feedback">password telnet wajib di isi!</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-check-circle"></i> Tambah Olt
+          </button>
+        </form>
+        
+      </div>
+    </div>
+    
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    "use strict";
+    let forms = document.querySelectorAll(".needs-validation");
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+  
+  function confirmDeleteOlt(oltId, name) {
+    Swal.fire({
+      title: `${name}`,
+      text: "Olt ini akan dihapus, dan tidak bisa dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.post(`/oltmgmn/hapusolt`, {id:oltId})
+          .then(res => {
+            if(res.data.success) {
+              Swal.fire('Berhasil', res.data.msg, 'success').then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire('Gagal', res.data.msg, 'error');
+            }
+          })
+          .catch(error => {
+            Swal.fire('Gagal', error.response?.data?.message || 'Terjadi kesalahan.', 'error');
+          });
+      }
+    });
+  }
+  
+</script>

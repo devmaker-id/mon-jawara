@@ -1,0 +1,292 @@
+<section class="content mt-3">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4><i class="bi bi-receipt-cutoff me-2"></i> Closing Penjualan</h4>
+      <a class="btn btn-success btn-sm" href="/kasir/tambah-penjualan">
+        <i class="bi bi-plus-circle"></i> Tambah Penjualan
+      </a>
+    </div>
+
+    <!-- Ringkasan -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 text-bg-primary">
+          <div class="card-body d-flex align-items-center">
+            <i class="bi bi-cash-stack fs-2 me-3"></i>
+            <div>
+              <small>Total Penjualan</small>
+              <h5 class="mb-0">Rp <%= rupiah(summary.total_penjualan) %></h5>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 text-bg-success">
+          <div class="card-body d-flex align-items-center">
+            <i class="bi bi-box-seam fs-2 me-3"></i>
+            <div>
+              <small>Produk Terjual</small>
+              <h5 class="mb-0"><%= summary.total_produk %> pcs</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 text-bg-warning">
+          <div class="card-body d-flex align-items-center">
+            <i class="bi bi-receipt-cutoff fs-2 me-3"></i>
+            <div>
+              <small>Jumlah Transaksi</small>
+              <h5 class="mb-0"><%= summary.total_transaksi %></h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel Transaksi -->
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-table me-1"></i> Daftar Transaksi Terbaru</h6>
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Tanggal</th>
+              <th>Seller</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (sales && sales.length > 0) { %>
+              <% sales.forEach((trx, idx) => { 
+                   const invoiceNo = `INV-${trx.tanggal.replace(/-/g,"")}-${String(trx.sales_id).padStart(4,'0')}`;
+              %>
+                <tr>
+                  <td><%= idx + 1 %></td>
+                  <td><%= trx.tanggal %></td>
+                  <td><%= trx.nama_seller %></td>
+                  <td>Rp <%= rupiah(trx.grand_total) %></td>
+                  <td>
+                    <% if (trx.status === "lunas") { %>
+                      <span class="badge bg-success">Lunas</span>
+                    <% } else { %>
+                      <span class="badge bg-danger">Belum</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <button 
+                      class="btn btn-sm btn-info btnDetail" 
+                      data-id="<%= trx.sales_id %>"
+                      data-seller="<%= trx.nama_seller %>"
+                      data-tanggal="<%= trx.tanggal %>"
+                      data-total="<%= rupiah(trx.grand_total) %>"
+                      data-invoice="<%= invoiceNo %>">
+                      <i class="bi bi-eye"></i> Detail
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="6" class="text-center">Belum ada transaksi</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Detail -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detail Transaksi</h5>
+            <div class="ms-auto d-flex gap-2">
+              <button id="btnPrintNota" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Print
+              </button>
+              <button id="btnPdfClient" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <div class="nota-header d-print-block text-center mb-3 border-bottom pb-2">
+              <h5 class="fw-bold mb-0">BIBITNET</h5>
+              <small>Network solusi, harga hemat internet ga lambat</small><br>
+              <small>Kp. Nanggela, Cipanas, Lebak - Banten</small><br>
+              <small>Kontak: 0878-8662-8289</small>
+              <hr>
+              <h6 class="mt-2">Nota Penjualan</h6>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+              <strong>Invoice:</strong> <span id="detailInvoice"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <strong>Seller:</strong> <span id="detailSeller"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <strong>Tanggal:</strong> <span id="detailTanggal"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <strong>Total:</strong> <span id="detailTotal"></span>
+            </div>
+
+            <div id="qrCode" class="text-center my-3"></div>
+
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>Produk</th>
+                    <th>Qty</th>
+                    <th>Harga</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="detailProdukBody">
+                  <tr><td colspan="5" class="text-center text-muted">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="text-center mt-4">
+              <p class="mb-1"><strong>Terima kasih telah bertransaksi di BIBITNET!</strong></p>
+              <small>Semoga layanan kami memuaskan 😊</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Style -->
+<style>
+  @media (max-width: 768px) {
+    .table th, .table td { font-size: 1rem; }
+    .card-body h5 { font-size: 1rem; }
+  }
+
+@media print {
+  body * { visibility: hidden; }
+  #detailModal, #detailModal * { visibility: visible; }
+
+  #detailModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%; /* Lebar penuh */
+    max-width: 100%; /* Override max modal Bootstrap */
+    margin: 0;
+    padding: 0;
+  }
+
+  #detailModal .modal-dialog {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  #detailModal .modal-content {
+    border: none;
+  }
+
+  #detailModal .btn,
+  #detailModal .modal-title,
+  #detailModal .btn-close {
+    display: none !important;
+  }
+  
+  #detailModal table {
+    width: 100% !important;
+    table-layout: fixed;
+    word-wrap: break-word;
+  }
+  #detailModal th, #detailModal td {
+    padding: 2px 4px;
+    font-size: 9pt;
+  }
+}
+
+</style>
+
+<!-- QRCodeJS -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<!-- html2canvas & jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  let qrcode;
+  $(function(){
+    $(document).on("click", ".btnDetail", function(){
+      const id = $(this).data("id");
+      const seller = $(this).data("seller");
+      const tanggal = $(this).data("tanggal");
+      const total = $(this).data("total");
+      const invoice = $(this).data("invoice");
+
+      $("#detailInvoice").text(invoice);
+      $("#detailSeller").text(seller);
+      $("#detailTanggal").text(tanggal);
+      $("#detailTotal").text("Rp " + total);
+      $("#detailProdukBody").html('<tr><td colspan="5" class="text-center text-muted">Memuat data...</td></tr>');
+
+      if (qrcode) qrcode.clear();
+      qrcode = new QRCode("qrCode", { text: invoice, width: 80, height: 80 });
+
+      $("#detailModal").modal("show");
+
+      $.getJSON(`/kasir/transaksi-detail/${id}`, function(data){
+        if (data.success && data.items.length > 0) {
+          let rows = "";
+          data.items.forEach((item, idx) => {
+            rows += `
+              <tr>
+                <td>${idx + 1}</td>
+                <td>${item.nama_produk}</td>
+                <td>${item.qty}</td>
+                <td>${Number(item.harga).toLocaleString('id-ID')}</td>
+                <td>${Number(item.subtotal).toLocaleString('id-ID')}</td>
+              </tr>`;
+          });
+          $("#detailProdukBody").html(rows);
+        } else {
+          $("#detailProdukBody").html('<tr><td colspan="5" class="text-center text-muted">Tidak ada data produk</td></tr>');
+        }
+      });
+    });
+
+    $("#btnPrintNota").on("click", () => window.print());
+
+    $("#btnPdfClient").on("click", async () => {
+      const modalBody = document.querySelector("#detailModal .modal-body");
+      const invoice = document.getElementById("detailInvoice").innerText || "nota";
+      const canvas = await html2canvas(modalBody, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      pdf.save(`${invoice}.pdf`);
+    });
+  });
+</script>

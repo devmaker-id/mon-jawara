@@ -1,0 +1,381 @@
+<style>
+  /* ====== Table Modern ====== */
+  table.dataTable {
+    border-collapse: separate;
+    border-spacing: 0 0.6rem; /* jarak antar row */
+  }
+
+  table.dataTable thead th {
+    background: #17a2b8; /* biru info */
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  table.dataTable tbody tr {
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+  }
+
+  table.dataTable tbody tr:hover {
+    transform: scale(1.01);
+    background: #f8f9fa;
+  }
+
+  table.dataTable td {
+    vertical-align: middle;
+    border: none;
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* ====== Pagination Modern ====== */
+  .dataTables_wrapper .dataTables_paginate .pagination {
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .page-link {
+    border-radius: 8px;
+    font-size: 1rem;
+    padding: 0.5rem 0.9rem;
+    color: #17a2b8;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .page-link:hover {
+    background: #17a2b8;
+    color: #fff;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+    background: #17a2b8;
+    border-color: #17a2b8;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ====== Search Box Modern ====== */
+  .dataTables_filter input {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 0.4rem 0.8rem;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  .dataTables_filter input:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 4px rgba(23,162,184,0.3);
+  }
+
+  /* ====== Length Select ====== */
+  .dataTables_length select {
+    border-radius: 6px;
+    padding: 0.3rem;
+    border: 1px solid #ccc;
+  }
+</style>
+
+<section class="content mt-3">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+    <!-- Ringkasan Status ONU Modern -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-success text-white">
+            <div><i class="bi bi-wifi me-2"></i> Online</div>
+            <strong><%= summary.online %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-secondary text-white">
+            <div><i class="bi bi-wifi-off me-2"></i> Offline</div>
+            <strong><%= summary.offline %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-warning text-dark">
+            <div><i class="bi bi-question-circle me-2"></i> Tidak Terdaftar</div>
+            <strong><%= summary.unknown %></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel Daftar ONU -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i> Daftar Router ONU</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="routerTable" class="table table-bordered table-hover align-middle text-nowrap">
+            <thead class="table-info">
+              <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>No Internet</th>
+                <th>Optic</th>
+                <th>Regis</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="routerBody">
+              <% if (routers.length > 0) { %>
+                <% routers.forEach((router, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= router.nama %></td>
+                    <td><%= router.no_internet %></td>
+                    <td>
+                      <% if (router.optic_status === 'linkup') { %>
+                        <span class="badge bg-success">linkup</span>
+                      <% } else { %>
+                        <span class="badge bg-warning text-dark"><%= router.optic_status %></span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (router.status === 'active') { %>
+                        <span class="badge bg-success">Activated</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary"><%= router.status %></span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-warning btn-edit"
+                        data-id="<%= router.id %>"
+                        data-nama="<%= router.nama %>"
+                        data-no_internet="<%= router.no_internet %>"
+                        data-lokasi="<%= router.lokasi || '' %>"
+                        data-odp="<%= router.id_odp || '' %>">
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger btn-delete" data-id="<%= router.id %>" data-name="<%= router.nama %>"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Tidak ada data ONU</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- Modal Edit ONU -->
+<div class="modal fade" id="editOnuModal" tabindex="-1" aria-labelledby="editOnuModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow">
+      <form id="formEditOnu" method="POST">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="editOnuModalLabel">
+            <i class="bi bi-pencil-square me-2"></i> Edit Data ONU
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+
+        <div class="modal-body row g-3">
+          <div class="col-md-12">
+            <label for="editLocation" class="form-label">
+              Odp Port
+            </label>
+            <select name="odp_id" id="odpEditList" class="form-control">
+              <option value="">---PILIH ODP---</option>
+              <% if (odpData.length > 0) { %>
+                <% odpData.forEach(odp => { %>
+                  <option value="<%= odp.id %>"><%= odp.name %> (Port: <%= odp.used %>/<%= odp.capacity %>)</option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="editHostname" class="form-label">Hostname</label>
+            <input type="text" class="form-control" id="editHostname" name="hostname" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="editNoInternet" class="form-label">No Internet</label>
+            <input type="text" class="form-control" id="editNoInternet" name="no_internet" required>
+          </div>
+
+          <div class="col-md-12">
+            <label for="editLocation" class="form-label">Lokasi</label>
+            <input type="text" class="form-control" id="editLocation" name="location" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning text-white">
+            <i class="bi bi-save"></i> Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function () {
+  // ====================================
+  // 1. INIT DATATABLES
+  // ====================================
+  const table = $('#routerTable').DataTable({
+    responsive: true,
+    lengthChange: true,
+    paging: true,
+    info: true,
+    ordering: true,
+    searching: true,
+    language: {
+      search: "🔍 Cari:",
+      lengthMenu: "Tampilkan _MENU_ data per halaman",
+      info: "Menampilkan _START_ sampai _END_ dari total _TOTAL_ data",
+      paginate: {
+        first: "Awal",
+        last: "Akhir",
+        next: "›",
+        previous: "‹"
+      },
+      emptyTable: "Tidak ada data tersedia"
+    },
+    dom: `
+      <'row mb-3'
+        <'col-sm-12 col-md-6'l>
+        <'col-sm-12 col-md-6'f>
+      >
+      <'table-responsive't>
+      <'row mt-3'
+        <'col-sm-12 col-md-5'i>
+        <'col-sm-12 col-md-7'p>
+      >
+    `,
+    drawCallback: function () {
+      $(".dataTables_paginate .pagination").addClass("justify-content-center");
+      $(".dataTables_paginate .pagination li:first-child").addClass("me-auto");
+      $(".dataTables_paginate .pagination li:last-child").addClass("ms-auto");
+    }
+  });
+
+  // ====================================
+  // 2. HANDLER TOMBOL EDIT
+  // ====================================
+  $(document).on("click", ".btn-edit", function () {
+    const id = $(this).data("id");
+    const nama = $(this).data("nama");
+    const noInternet = $(this).data("no_internet");
+    const lokasi = $(this).data("lokasi");
+    const odpId  = $(this).data("odp");
+
+    $("#editHostname").val(nama);
+    $("#editNoInternet").val(noInternet);
+    $("#editLocation").val(lokasi);
+    $("#odpEditList").val(odpId);
+    $("#formEditOnu").attr("action", `/admin/edit-onu/${id}`);
+
+    $("#editOnuModal").modal("show");
+  });
+
+  // ====================================
+  // 3. SUBMIT FORM EDIT
+  // ====================================
+  $(document).on("submit", "#formEditOnu", function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const actionUrl = form.attr("action");
+    const data = form.serialize();
+  
+    $.ajax({
+      url: actionUrl,
+      type: "POST",
+      data: data,
+      dataType: "json",
+      success: function (res) {
+        console.log(res);
+  
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Data ONU berhasil diperbarui",
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          // update row DataTable / reload
+          location.reload();
+        });
+      },
+      error: function (xhr, status, err) {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: "Terjadi kesalahan saat menyimpan data."
+        });
+        console.error("Edit ONU error:", err, xhr.responseText);
+      }
+    });
+  });
+
+
+  // ====================================
+  // 4. HANDLER TOMBOL DELETE
+  // ====================================
+  $(document).on("click", ".btn-delete", function () {
+    const id = $(this).data("id");
+    const name = $(this).data("name");
+
+    Swal.fire({
+      title: `Hapus ONU '${name}'?`,
+      text: "Tindakan ini tidak dapat dibatalkan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/onu/delete/${id}`,
+          type: "DELETE",
+          success: function () {
+            Swal.fire({
+              icon: "success",
+              title: "Berhasil",
+              text: `Data ONU '${name}' berhasil dihapus`,
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => location.reload());
+          },
+          error: function () {
+            Swal.fire({
+              icon: "error",
+              title: "Gagal",
+              text: "Terjadi kesalahan saat menghapus data."
+            });
+          }
+        });
+      }
+    });
+  });
+});
+</script>

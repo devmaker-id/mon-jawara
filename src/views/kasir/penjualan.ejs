@@ -1,0 +1,184 @@
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+
+<div class="container mt-4">
+  <h3 class="mb-3">📊 Data Penjualan</h3>
+
+  <div class="row mb-3">
+    <div class="col-md-4 mb-2">
+      <input type="date" id="startDate" class="form-control">
+    </div>
+    <div class="col-md-4 mb-2">
+      <input type="date" id="endDate" class="form-control">
+    </div>
+    <div class="col-md-4 mb-2">
+      <button id="filterBtn" class="btn btn-primary w-100">Filter Tanggal</button>
+    </div>
+  </div>
+
+  <table id="penjualanTable" class="table table-bordered table-striped table-hover shadow-sm nowrap" style="width:100%">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Tanggal</th>
+        <th>Seller</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% sales.forEach((trx, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= trx.tanggal %></td>
+          <td><%= trx.nama_seller %></td>
+          <td>Rp <%= trx.grand_total.toLocaleString("id-ID") %></td>
+          <td>
+            <% if (trx.status.toLowerCase() === "lunas") { %>
+              <span class="badge bg-success">Lunas</span>
+            <% } else { %>
+              <span class="badge bg-warning text-dark">Pending</span>
+            <% } %>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-info btn-detail"
+                    data-sales-id="<%= trx.sales_id %>"
+                    data-tanggal="<%= trx.tanggal %>"
+                    data-seller="<%= trx.nama_seller %>">
+              Detail
+            </button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <!-- Modal Detail Produk -->
+  <div class="modal fade" id="detailProdukModal" tabindex="-1" aria-labelledby="detailProdukLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detailProdukLabel">Detail Produk</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Info transaksi -->
+          <div class="mb-3">
+            <strong>Tanggal:</strong> <span id="modalTanggal"></span> &nbsp; | &nbsp;
+            <strong>Seller:</strong> <span id="modalSeller"></span>
+          </div>
+
+          <!-- Tabel produk -->
+          <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Produk</th>
+                <th>Qty</th>
+                <th>Harga</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="detailProdukBody">
+              <tr><td colspan="5" class="text-center text-muted">Memuat data...</td></tr>
+            </tbody>
+            <tfoot id="detailProdukFooter"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script>
+$(document).ready(function () {
+  const table = $('#penjualanTable').DataTable({
+    responsive: true,
+    dom: 'Bfrtip',
+    buttons: [
+      { extend: 'excel', text: 'Export Excel', className: 'btn btn-success btn-sm' },
+      { extend: 'pdf', text: 'Export PDF', className: 'btn btn-danger btn-sm' },
+      { extend: 'print', text: 'Print', className: 'btn btn-secondary btn-sm' }
+    ],
+    order: [[1, 'desc']],
+  });
+
+  // Filter tanggal (mengabaikan waktu)
+  $.fn.dataTable.ext.search.push(function (settings, data) {
+    const start = $('#startDate').val();
+    const end = $('#endDate').val();
+    const date = data[1].split(' ')[0]; // ambil YYYY-MM-DD saja
+    if (!start && !end) return true;
+    if (start && date < start) return false;
+    if (end && date > end) return false;
+    return true;
+  });
+
+  $('#filterBtn').on('click', function () {
+    table.draw();
+  });
+
+  // Tombol Detail pakai data-* attributes
+  $('#penjualanTable').on('click', '.btn-detail', function() {
+    const btn = $(this);
+    const salesId = btn.data('sales-id');
+    const tanggal = btn.data('tanggal');
+    const seller = btn.data('seller');
+
+    $('#modalTanggal').text(tanggal);
+    $('#modalSeller').text(seller);
+    $('#detailProdukModal').modal('show');
+
+    // loader
+    $('#detailProdukBody').html('<tr><td colspan="5" class="text-center py-2"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Memuat data...</td></tr>');
+    $('#detailProdukFooter').html('');
+
+    // ambil detail produk
+    $.getJSON(`/kasir/transaksi-detail/${salesId}`, function(data){
+      if (data.success && data.items.length > 0) {
+        let rows = "";
+        let totalQty = 0;
+        let totalSubtotal = 0;
+        data.items.forEach((item, idx) => {
+          rows += `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>${item.nama_produk}</td>
+              <td>${item.qty}</td>
+              <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
+              <td>Rp ${Number(item.subtotal).toLocaleString('id-ID')}</td>
+            </tr>`;
+          totalQty += item.qty;
+          totalSubtotal += Number(item.subtotal);
+        });
+        $("#detailProdukBody").html(rows);
+        $("#detailProdukFooter").html(`
+          <tr class="table-secondary">
+            <td colspan="2"><strong>Total Produk</strong></td>
+            <td><strong>${totalQty} item</strong></td>
+            <td colspan="2"><strong>Total : Rp ${totalSubtotal.toLocaleString('id-ID')}</strong></td>
+          </tr>
+        `);
+      } else {
+        $("#detailProdukBody").html('<tr><td colspan="5" class="text-center text-muted">Tidak ada data produk</td></tr>');
+        $("#detailProdukFooter").html('');
+      }
+    });
+  });
+});
+</script>

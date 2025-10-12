@@ -1,0 +1,421 @@
+<style>
+/* ===================================================
+   BASE STYLING (desktop & umum)
+=================================================== */
+
+/* Agar tabel bisa digeser di layar kecil */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Font & padding normal di desktop */
+table.table th,
+table.table td {
+  font-size: 14px;
+  padding: 8px;
+  vertical-align: middle;
+}
+
+/* Kolom aksi proporsional */
+table.table th:last-child,
+table.table td:last-child {
+  width: 100px;
+  text-align: center;
+}
+
+/* Tombol umum */
+.btn {
+  font-size: 13px;
+  padding: 5px 8px;
+}
+
+/* ===================================================
+   RESPONSIVE (khusus mobile)
+=================================================== */
+@media (max-width: 768px) {
+
+  /* Hilangkan header tabel */
+  #produkTable thead {
+    display: none;
+  }
+
+  /* Buat setiap row seperti kartu */
+  #produkTable,
+  #produkTable tbody,
+  #produkTable tr,
+  #produkTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #produkTable tr {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    padding: 10px 14px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  }
+
+  /* Setiap kolom (label + input sejajar) */
+  #produkTable td {
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+
+  /* Label kiri */
+  #produkTable td::before {
+    content: attr(data-label);
+    flex: 0 0 40%;
+    font-weight: 600;
+    color: #444;
+    text-align: left;
+  }
+
+  /* Input kanan */
+  #produkTable td > * {
+    flex: 1;
+    text-align: right;
+    margin-left: 8px;
+  }
+
+  /* Input dan select ukuran pas jempol */
+  #produkTable input,
+  #produkTable select {
+    font-size: 14px;
+    height: 38px;
+  }
+
+  /* Tombol hapus full width */
+  #produkTable .btnRemove {
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+
+  /* Tambah sedikit ruang antar kartu */
+  #produkTable tr + tr {
+    margin-top: 12px;
+  }
+
+  /* Supaya tombol tambah produk punya ruang */
+  #addProduk {
+    margin-top: 5px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  /* Total biar tetap kelihatan tegas */
+  #grandTotal {
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+}
+</style>
+
+
+
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="card">
+      <form class="card-content" method="POST" action="/kasir/tambah-penjualan">
+        
+        <!-- Header -->
+        <div class="card-header">
+          <h5 class="card-title">
+            <i class="bi bi-book"></i>
+            Tambah Penjualan
+          </h5>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body">
+          <!-- Tanggal Otomatis (dari server) -->
+<div class="mb-3">
+  <label class="form-label">Tanggal</label>
+  <input type="text" class="form-control" value="<%= new Date().toLocaleString('id-ID') %>" readonly>
+  <small class="text-muted">Tanggal transaksi tercatat otomatis oleh sistem</small>
+</div>
+
+
+          <!-- Seller -->
+          <div class="mb-3">
+            <label class="form-label">Seller</label>
+            <select name="seller_id" id="seller_id" class="form-select select2" required>
+              <option value="">-- Pilih Seller --</option>
+              <% if (sellers && sellers.length > 0) { %>
+                <% sellers.forEach(s => { %>
+                  <option value="<%= s.id %>"><%= s.name %> - <%= s.alamat %></option>
+                <% }) %>
+              <% } else { %>
+                <option value="">Tidak ada seller</option>
+              <% } %>
+            </select>
+          </div>
+
+          <!-- Produk Table (keranjang) -->
+          <div class="mb-3">
+            <label class="form-label">Produk Terjual</label>
+            
+            <div class="table-responsive">
+            <table class="table table-bordered" id="produkTable">
+              <thead>
+                <tr>
+                  <th>Produk</th>
+                  <th>Harga</th>
+                  <th>Qty</th>
+                  <th>Subtotal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="produkBody">
+                <!-- Baris produk akan ditambahkan via JS -->
+              </tbody>
+            </table>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-primary" id="addProduk">
+              <i class="bi bi-plus"></i> Tambah Produk
+            </button>
+          </div>
+
+          <!-- Total -->
+          <div class="mt-3 text-end">
+            <h4>Total: Rp <span id="grandTotal">0</span></h4>
+            <input type="hidden" name="grand_total" id="grand_total">
+          </div>
+
+<!-- Metode Pembayaran -->
+<div class="mb-3">
+  <label class="form-label">Metode Pembayaran</label>
+  <select id="metode" name="metode" class="form-select" required>
+    <option value="Cash">Cash</option>
+    <option value="Transfer">Transfer</option>
+    <option value="QRIS">QRIS</option>
+  </select>
+</div>
+
+<!-- Tambahan detail metode (dinamis) -->
+<div id="metodeDetail"></div>
+
+
+          <!-- Status -->
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select" required>
+              <option value="lunas">Lunas</option>
+              <option value="belum">Belum</option>
+            </select>
+          </div>
+
+          <!-- Keterangan -->
+          <div class="mb-3">
+            <label class="form-label">Keterangan</label>
+            <input type="text" class="form-control" name="keterangan">
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer text-end">
+          <button class="btn btn-success">
+            <i class="bi bi-save"></i> Simpan Transaksi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<script>
+  // ========================
+// Dinamis: Detail metode bayar
+// ========================
+$(document).on('change', '#metode', function() {
+  const metode = $(this).val();
+  const container = $('#metodeDetail');
+
+  container.empty(); // reset isi lama
+
+  if (metode === 'Transfer') {
+    container.html(`
+      <div class="row">
+        <div class="col-md-6 mb-2">
+          <label class="form-label">Nama Bank</label>
+          <input class="form-control mb-2" name="bank_name" value="BANK CENTRAL ASIA (BCA)" readonly>
+          <input class="form-control mb-2" name="no_rek" value="542-114-1232" readonly>
+          <input class="form-control" name="rek_name" value="MUNJI SETIAWAN" readonly>
+        </div>
+      </div>
+    `);
+  } else if (metode === 'QRIS') {
+    container.html(`
+      <div class="mb-2 text-center">
+        <label class="form-label">QRIS BIBITNET</label>
+        <div class="border rounded p-3 bg-light">
+          <img src="/assets/qris.png" alt="QRIS" style="max-width:150px">
+          <p class="small text-muted mt-2 mb-0">Scan QR di atas untuk pembayaran, pastikan nama toko BIBITNET</p>
+        </div>
+      </div>
+    `);
+  } else {
+    // Cash: kosongkan
+    container.empty();
+  }
+});
+
+$(document).ready(function () {
+  // ========================
+  // SELECT2 untuk seller
+  // ========================
+  $('#seller_id').select2({
+    placeholder: '🔍 Cari Seller...',
+    allowClear: true,
+    width: '100%'
+  });
+
+  let produkIndex = 0;
+
+  // ========================
+  // Saat seller berganti
+  // ========================
+  $('#seller_id').on('change', function () {
+    // Reset tabel produk jika seller diganti
+    $('#produkBody').empty();
+    $('#grandTotal').text('0');
+    $('#grand_total').val('0');
+  });
+
+  // ========================
+  // Tambah baris produk baru
+  // ========================
+  $('#addProduk').on('click', function () {
+    produkIndex++;
+
+    // Ambil data dari server (sudah dikirim dari controller)
+    const allProducts = <%- JSON.stringify(products) %>;
+    const sellerProducts = <%- JSON.stringify(sellerProducts) %>;
+    const currentSellerId = $('#seller_id').val() || "0";
+
+    // Tentukan harga yang dipakai
+    let filtered = [];
+    if (currentSellerId !== "0" && currentSellerId !== "") {
+      // Seller dipilih → cek apakah produk punya harga khusus
+      filtered = allProducts.map(p => {
+        const sp = sellerProducts.find(sp => sp.product_id === p.product_id && sp.seller_id == currentSellerId);
+        return {
+          product_id: p.product_id,
+          nama: p.nama,
+          harga: sp ? sp.harga_seller : p.harga,
+          isSeller: !!sp
+        };
+      });
+    } else {
+      // Tanpa seller → pakai harga global
+      filtered = allProducts.map(p => ({
+        product_id: p.product_id,
+        nama: p.nama,
+        harga: p.harga,
+        isSeller: false
+      }));
+    }
+
+    // Buat HTML opsi produk
+    let optionsHtml = '<option value="">-- Pilih Produk --</option>';
+    filtered.forEach(p => {
+      optionsHtml += `
+        <option value="${p.product_id}" data-harga="${p.harga}">
+          ${p.nama} ${p.isSeller ? '(Seller)' : ''}
+        </option>
+      `;
+    });
+
+    // Buat baris baru di tabel
+    const row = `
+  <tr>
+    <td data-label="Produk">
+      <select name="produk_id[]" class="form-select select2 produkSelect" required>
+        ${optionsHtml}
+      </select>
+    </td>
+    <td data-label="Harga">
+      <input type="number" class="form-control harga" name="harga[]" value="0" readonly>
+    </td>
+    <td data-label="Qty">
+      <input type="number" class="form-control qty" name="qty[]" min="1" value="1" required>
+    </td>
+    <td data-label="Subtotal">
+      <input type="number" class="form-control subtotal" name="subtotal[]" value="0" readonly>
+    </td>
+    <td data-label="Aksi" class="text-center">
+      <button type="button" class="btn btn-sm btn-danger btnRemove w-100">
+        <i class="bi bi-trash"></i> Hapus
+      </button>
+    </td>
+  </tr>
+`;
+
+
+    $('#produkBody').append(row);
+
+    // Aktifkan select2 untuk produk baru
+    $('.produkSelect').select2({ width: '100%' });
+  });
+
+  // ========================
+  // Hapus baris produk
+  // ========================
+  $(document).on('click', '.btnRemove', function () {
+    $(this).closest('tr').remove();
+    hitungGrandTotal();
+  });
+
+  // ========================
+  // Saat produk dipilih → isi harga otomatis
+  // ========================
+  $(document).on('change', '.produkSelect', function () {
+    const harga = $(this).find(':selected').data('harga') || 0;
+    const row = $(this).closest('tr');
+    row.find('.harga').val(harga);
+    row.find('.qty').val(1);
+    row.find('.subtotal').val(harga);
+    hitungGrandTotal();
+  });
+
+  // ========================
+  // Saat qty berubah → hitung subtotal
+  // ========================
+  $(document).on('input', '.qty', function () {
+    const row = $(this).closest('tr');
+    const harga = parseFloat(row.find('.harga').val()) || 0;
+    const qty = parseInt($(this).val()) || 0;
+    const subtotal = harga * qty;
+    row.find('.subtotal').val(subtotal);
+    hitungGrandTotal();
+  });
+
+  // ========================
+  // Fungsi hitung total keseluruhan
+  // ========================
+  function hitungGrandTotal() {
+    let total = 0;
+    $('.subtotal').each(function () {
+      total += parseFloat($(this).val()) || 0;
+    });
+    $('#grandTotal').text(total.toLocaleString('id-ID'));
+    $('#grand_total').val(total);
+  }
+});
+</script>
+

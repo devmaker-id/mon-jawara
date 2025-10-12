@@ -1,0 +1,387 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+
+    <div class="col-12 mb-2">
+      <div class="btn-group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          Menu
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Tambah User Baru</a></li>
+        </ul>
+      </div>
+    </div>
+
+    
+    <% if (allUsers.length > 0) { %>
+    <div class="card mb-2">
+      <div class="card-header bg-success text-white">
+        User List
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-6">
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cari user...">
+          </div>
+          <div class="col-6">
+            <select id="rowsPerPage" class="form-select form-select-sm">
+              <option value="5">5 per halaman</option>
+              <option value="10" selected>10 per halaman</option>
+              <option value="25">25 per halaman</option>
+            </select>
+          </div>
+        </div>
+
+        
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Full Name</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <% allUsers.forEach((u, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td>
+                    <%= u.username %>
+                  </td>
+                  <td><%= u.akun_type %></td>
+                  <td><%= u.fullname %></td>
+                  <td><%= new Date(u.created_at).toLocaleString() %></td>
+                  <td><%= new Date(u.updated_at).toLocaleString() %></td>
+                  <td>
+                    <!-- Tombol View -->
+                    <button class="btn btn-sm btn-info"
+                            data-bs-toggle="modal"
+                            data-bs-target="#userModal"
+                            data-action="view"
+                            data-user='<%= JSON.stringify(u) %>'>
+                      <span class="bi bi-eye"></span>
+                      Lihat
+                    </button>
+
+                    <!-- Tombol Edit -->
+                    <button class="btn btn-sm btn-secondary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#userModal"
+                            data-action="edit"
+                            data-user='<%= JSON.stringify(u) %>'>
+                      <span class="bi bi-pen"></span>
+                      Edit
+                    </button>
+                    
+                    <!-- Tombol reset password -->
+                    <button class="btn btn-sm btn-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#actionModal"
+                            data-user-id="<%= u.id %>"
+                            data-username="<%= u.username %>"
+                            data-action="reset">
+                      <span class="bi bi-key"></span>
+                      Reset pass
+                    </button>
+
+                    <!-- Tombol hapus -->
+                    <button class="btn btn-sm btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#actionModal"
+                            data-user-id="<%= u.id %>"
+                            data-username="<%= u.username %>"
+                            data-action="delete">
+                      <span class="bi bi-trash"></span>
+                      Hapus
+                    </button>
+
+
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <nav>
+          <ul class="pagination pagination-sm justify-content-end" id="pagination"></ul>
+        </nav>
+
+        
+      </div>
+    </div>
+    <% } %>
+    
+  </div>
+</div>
+
+<script>
+  const originalData = <%- JSON.stringify(allUsers) %>;
+  let filteredData = [...originalData];
+  let currentPage = 1;
+  let rowsPerPage = 10;
+
+  const renderTable = () => {
+    const tbody = document.getElementById("userTableBody");
+    tbody.innerHTML = "";
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const paginatedData = filteredData.slice(start, end);
+
+    paginatedData.forEach((u, index) => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${start + index + 1}</td>
+        <td>${u.username}</td>
+        <td>${u.akun_type}</td>
+        <td>${u.fullname}</td>
+        <td>${new Date(u.created_at).toLocaleString()}</td>
+        <td>${new Date(u.updated_at).toLocaleString()}</td>
+        <td>
+          <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#userModal" data-action="view" data-user='${JSON.stringify(u)}'>
+            <span class="bi bi-eye"></span> Lihat
+          </button>
+          <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#userModal" data-action="edit" data-user='${JSON.stringify(u)}'>
+            <span class="bi bi-pen"></span> Edit
+          </button>
+          <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#actionModal" data-user-id="${u.id}" data-username="${u.username}" data-action="reset">
+            <span class="bi bi-key"></span> Reset pass
+          </button>
+          <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#actionModal" data-user-id="${u.id}" data-username="${u.username}" data-action="delete">
+            <span class="bi bi-trash"></span> Hapus
+          </button>
+        </td>
+      `;
+
+      tbody.appendChild(row);
+    });
+
+    renderPagination();
+  };
+
+  const renderPagination = () => {
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement("li");
+      li.className = "page-item" + (i === currentPage ? " active" : "");
+      li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+      li.addEventListener("click", function (e) {
+        e.preventDefault();
+        currentPage = i;
+        renderTable();
+      });
+      pagination.appendChild(li);
+    }
+  };
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const keyword = this.value.toLowerCase();
+    filteredData = originalData.filter(u =>
+      u.username.toLowerCase().includes(keyword) ||
+      u.fullname.toLowerCase().includes(keyword) ||
+      u.akun_type.toLowerCase().includes(keyword)
+    );
+    currentPage = 1;
+    renderTable();
+  });
+
+  document.getElementById("rowsPerPage").addEventListener("change", function () {
+    rowsPerPage = parseInt(this.value);
+    currentPage = 1;
+    renderTable();
+  });
+
+  // Initial render
+  renderTable();
+</script>
+
+
+<!-- modal views -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">Detail User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body" id="userModalBody">
+        <!-- Konten akan diisi lewat JavaScript -->
+      </div>
+      <div class="modal-footer" id="userModalFooter">
+        <!-- Optional button area -->
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const userModal = document.getElementById('userModal');
+
+  userModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const action = button.getAttribute('data-action');
+    const user = JSON.parse(button.getAttribute('data-user'));
+    const created = new Date(user.created_at).toLocaleString();
+    const updated = new Date(user.updated_at).toLocaleString();
+
+    const modalTitle = userModal.querySelector('#userModalLabel');
+    const modalBody = userModal.querySelector('#userModalBody');
+    const modalFooter = userModal.querySelector('#userModalFooter');
+
+    if (action === 'view') {
+      modalTitle.textContent = `Detail User: ${user.username}`;
+      modalBody.innerHTML = `
+        <ul class="list-group">
+          <li class="list-group-item"><strong>ID:</strong> ${user.id}</li>
+          <li class="list-group-item"><strong>Username:</strong> ${user.username}</li>
+          <li class="list-group-item"><strong>Email:</strong> ${user.email}</li>
+          <li class="list-group-item"><strong>Role:</strong> ${user.akun_type}</li>
+          <li class="list-group-item"><strong>nama lengkap:</strong> ${user.fullname}</li>
+          <li class="list-group-item"><strong>telepon:</strong> ${user.telepon}</li>
+          <li class="list-group-item"><strong>e-mail:</strong> ${user.email}</li>
+          <li class="list-group-item"><strong>alamat:</strong> ${user.alamat}</li>
+          <li class="list-group-item"><strong>telegram id:</strong> ${user.telegram_id}</li>
+          <li class="list-group-item"><strong>api key:</strong> ${user.api_key}</li>
+          <li class="list-group-item"><strong>Created:</strong> ${created}</li>
+          <li class="list-group-item"><strong>Updated:</strong> ${updated}</li>
+        </ul>
+      `;
+      modalFooter.innerHTML = '';
+    }
+
+    if (action === 'edit') {
+      modalTitle.textContent = `Edit User: ${user.username}`;
+      modalBody.innerHTML = `
+        <form id="editUserForm">
+          <div class="mb-3">
+            <label for="usernameInput" class="form-label">Username</label>
+            <input type="text" class="form-control" id="usernameInput" value="${user.username}">
+          </div>
+          <div class="mb-3">
+            <label for="emailInput" class="form-label">Email</label>
+            <input type="email" class="form-control" id="emailInput" value="${user.email}">
+          </div>
+          <div class="mb-3">
+            <label for="roleInput" class="form-label">Role</label>
+            <select class="form-select" id="roleInput">
+              <option value="${user.akun_type}">${user.akun_type}</option>
+              <option value="good">GOLD</option>
+              <option value="vip">VIP</option>
+              <option value="admin">ADMIN</option>
+            </select>
+          </div>
+        </form>
+      `;
+      modalFooter.innerHTML = `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="saveUserBtn">Simpan</button>
+      `;
+
+      // Handle simpan
+      setTimeout(() => {
+        const saveBtn = document.getElementById('saveUserBtn');
+        saveBtn.onclick = () => {
+          const updatedUser = {
+            id: user.id,
+            username: document.getElementById('usernameInput').value,
+            email: document.getElementById('emailInput').value,
+            role: document.getElementById('roleInput').value
+          };
+          console.log('Update user:', updatedUser);
+          // Kirim ke server via AJAX/fetch (atau panggil fungsi update)
+          // close modal jika perlu
+        };
+      }, 100); // delay sedikit agar element sudah render
+    }
+  });
+</script>
+
+
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="actionModalLabel">Konfirmasi Aksi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body" id="modalBodyText">
+        <!-- Diisi via JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-danger" id="confirmActionBtn">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const actionModal = document.getElementById('actionModal');
+  let currentUserId = null;
+  let currentUsername = null;
+  let currentAction = null;
+
+  actionModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    currentUserId = button.getAttribute('data-user-id');
+    currentUsername = button.getAttribute('data-username');
+    currentAction = button.getAttribute('data-action');
+
+    const modalBody = actionModal.querySelector('#modalBodyText');
+    const confirmBtn = actionModal.querySelector('#confirmActionBtn');
+
+    if (currentAction === 'reset') {
+      modalBody.textContent = `Yakin ingin reset password untuk user "${currentUsername}"? Password baru akan dikirim ke email terdaftar`;
+      confirmBtn.className = 'btn btn-warning';
+    } else if (currentAction === 'delete') {
+      modalBody.textContent = `Yakin ingin menghapus user "${currentUsername}"?`;
+      confirmBtn.className = 'btn btn-danger';
+    }
+
+    confirmBtn.onclick = function () {
+      if (currentAction === 'reset') {
+        resetPassword(currentUserId, currentUsername);
+      } else if (currentAction === 'delete') {
+        deleteUser(currentUserId, currentUsername);
+      }
+      const modal = bootstrap.Modal.getInstance(actionModal);
+      modal.hide();
+    };
+  });
+
+  // Contoh fungsi reset (bisa kamu sesuaikan sendiri)
+  function resetPassword(id, username) {
+    console.log(`Reset password untuk user ${username} (ID: ${id})`);
+    // Panggil fungsi sesuai implementasi kamu
+  }
+
+  function deleteUser(id, username) {
+    console.log(`Menghapus user ${username} (ID: ${id})`);
+    // Panggil fungsi sesuai implementasi kamu
+  }
+</script>
+

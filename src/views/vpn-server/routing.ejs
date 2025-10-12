@@ -1,0 +1,111 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+    <div class="card shadow">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h3 class="card-title">
+          <i class="bi bi-signpost-2-fill me-1"></i> Routing Server VPN
+        </h3>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAddRoute">
+          <i class="bi bi-plus-circle"></i> Tambah Routing
+        </button>
+      </div>
+
+      <div class="card-body table-responsive mt-2">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-secondary">
+            <tr>
+              <th>#</th>
+              <th>Server VPN</th>
+              <th>Nama Route</th>
+              <th>Destination</th>
+              <th>Gateway</th>
+              <th>Interface</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% const dummyRoutes = [
+              { id: 1, server: 'VPN-CHR-01', name: 'Route ke kantor', dst: '192.168.10.0/24', gw: '10.0.0.1', iface: 'ovpn-out1', active: true },
+              { id: 2, server: 'VPN-CHR-02', name: 'Route Data Center', dst: '172.16.0.0/16', gw: '10.0.1.1', iface: 'ovpn-out2', active: false },
+            ]; %>
+            <% dummyRoutes.forEach((route, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><%= route.server %></td>
+                <td><%= route.name %></td>
+                <td><code><%= route.dst %></code></td>
+                <td><%= route.gw %></td>
+                <td><%= route.iface %></td>
+                <td>
+                  <% if (route.active) { %>
+                    <span class="badge bg-success">Aktif</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">Nonaktif</span>
+                  <% } %>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditRoute" data-id="<%= route.id %>">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modalAddRoute" tabindex="-1" aria-labelledby="modalAddRouteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalAddRouteLabel"><i class="bi bi-plus-circle"></i> Tambah Routing Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2">
+          <label class="form-label">Server VPN (CHR)</label>
+          <select class="form-select">
+            <option selected disabled>Pilih Server</option>
+            <option value="1">VPN-CHR-01</option>
+            <option value="2">VPN-CHR-02</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Nama Route</label>
+          <input type="text" class="form-control" placeholder="Misal: Route ke kantor pusat">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Destination (CIDR)</label>
+          <input type="text" class="form-control" placeholder="192.168.100.0/24">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Gateway</label>
+          <input type="text" class="form-control" placeholder="10.0.0.1">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Interface</label>
+          <input type="text" class="form-control" placeholder="ovpn-out1 / ether1 / pptp-out1">
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="routeActive">
+          <label class="form-check-label" for="routeActive">
+            Aktifkan Route Sekarang
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Simpan</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>

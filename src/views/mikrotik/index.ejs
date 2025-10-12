@@ -1,0 +1,401 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+    
+    <global id="portForward"></global>
+    
+    <% if (mikrotik.length > 0) { %>
+    <div class="card mb-2">
+      <div class="card-header bg-success text-white">
+        Mikrotik Tersambung
+      </div>
+      <div class="card-body">
+        
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Nama</th>
+                <th>Ros Versi</th>
+                <th>Username</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% mikrotik.forEach((mk, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td><%= mk.name %></td>
+                  <td><%= mk.ros %></td>
+                  <td><%= mk.username %></td>
+                  <td><%= new Date(mk.created_at).toLocaleString() %></td>
+                  <td>
+                    
+                    <button class="btn btn-sm btn-secondary" onclick="portForwardBtn(<%= mk.vpn_id %>, '<%= mk.name %>');">
+                      <span class="bi bi-info"></span>
+                      Aksess public
+                    </button>
+                    
+                    <button class="btn btn-sm btn-danger" onclick="deleteMikrotik(<%= mk.vpn_id %>, '<%= mk.name %>');">
+                      <span class="bi bi-trash"></span>
+                      Hapus
+                    </button>
+
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        
+      </div>
+    </div>
+    <% } %>
+    
+    <div class="card mb-2">
+      <div class="card-header bg-info text-white">Hubungkan Mikrotik</div>
+      <div class="card-body">
+        <div id="resultScript" style="display: none;" class="mb-3">
+          <i>Tempel script ini di terminal mikrotik, jangan reload halaman.!!!</i>
+          <label for="scriptOutput">Script generator:</label>
+          <textarea
+            id="scriptOutput"
+            rows="6"
+            class="form-control"
+            readonly
+          ></textarea>
+          <button class="btn btn-sm btn-primary mt-2" onclick="copyScript()">
+            Copy Script
+          </button>
+        </div>
+        
+        <form id="formMikrotik" action="/mikrotik/save-mikrotik" method="POST" class="needs-validation" novalidate>
+          
+          <div class="mb-3">
+            <label>Nama mikrotik</label>
+            <input type="text"
+              class="form-control"
+              id="namemikrotik"
+              name="namemikrotik"
+              placeholder="MK-JAKARTA"
+              required
+            />
+            <div class="invalid-feedback">Nama mikrotik!</div>
+          </div>
+          
+          <div class="mb-3">
+            <select class="form-control" id="vpn" name="vpn" required>
+              <option value="">pilih vpn...</option>
+              <% if (vpnAkun && vpnAkun.length > 0) { %>
+              <% vpnAkun.forEach(akun => { %>
+              <option value="<%= akun.id %>">
+                <%= akun.type_vpn %> - <%= akun.username %>
+              </option>
+              <% }); %> <% } else { %>
+              <option value="">belum punya vpn/sudah digunakan</option>
+              <% } %>
+            </select>
+            <div class="invalid-feedback">Pilih vpn tersambung</div>
+          </div>
+
+          <div class="mb-3">
+            <label>ros mikrotik</label>
+            <select class="form-control" id="ros" name="ros" required>
+              <option value="6">Ros 6.x</option>
+              <option value="7">Ros 7.x</option>
+            </select>
+            <div class="invalid-feedback">Pilih Ros mikrotik</div>
+          </div>
+
+          <div class="mb-3">
+            <label>port api mikrotik</label>
+            <input type="number"
+              class="form-control"
+              id="port"
+              name="port"
+              value="8728"
+              required
+            />
+            <div class="invalid-feedback">Port api wajib di isi!</div>
+          </div>
+          
+          <input type="hidden" id="usernameMk" name="usernameMk">
+          <input type="hidden" id="passwordMk" name="passwordMk">
+
+          <button
+            type="button"
+            class="btn btn-warning w-100 mb-2"
+            id="generatescript"
+            disabled
+          >
+            <i class="bi bi-key"></i> generate script
+          </button>
+
+          <button type="button" class="btn btn-secondary w-100 mb-2" id="pingMikrotik" disabled>
+            <i class="bi bi-info"></i> cek koneksi
+          </button>
+
+          <button type="submit" class="btn btn-primary w-100" disabled id="saveMikrotik">
+            <i class="bi bi-check-circle"></i> Simpan
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function portForwardBtn(vpnId, name) {
+    
+    axios.post("/mikrotik/info-aksess-publik", {vpnid:vpnId}).then(res => {
+      if (res.data.success) {
+        const data = res.data.data;
+        const html = document.getElementById("portForward");
+        html.innerHTML = `
+        <div class="card mb-3">
+        <div class="card-header bg-secondary text-white">
+          Remote mikrotik ${name}
+        </div>
+        <div class="card-body">
+          <ul class="list-group text-nowrap">
+            <li class="list-group-item table-responsive">Winbox: ${data.winbox}</li>
+            <li class="list-group-item table-responsive">API: ${data.api}</li>
+          </ul>
+        </div>
+        </div>
+        `;
+      } else {
+        alert(res.data.msg);
+      }
+    }).catch(error => {
+      console.error(error);
+      document.getElementById("portForward").innerHTML =
+        `<div class="alert alert-danger">Gagal mengambil data</div>`;
+    });
+  }
+  
+  function deleteMikrotik(vpnid, name) {
+    Swal.fire({
+      title: `Hapus ${name}?`,
+      text: "Script penghapusan akan dibuat. Lanjutkan?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Buat script dan hapus"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Pengecekan server..',
+          text: 'Prosess 20 - 30 detik',
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          allowOutsideClick: false,
+        });
+        axios.post("/mikrotik/delete-script", { vpnid }).then(res => {
+          if (res.data.script) {
+            const scriptArea = document.getElementById("scriptOutput");
+            scriptArea.value = res.data.script;
+            document.getElementById("resultScript").style.display = "block";
+          }
+          if (res.data.success) {
+            Swal.fire({
+              title: "Berhasil",
+              text: res.data.msg,
+              icon: "success"
+            }).then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: res.data.msg,
+              icon: "error"
+            });
+          }
+        }).catch(error => {
+          console.error(error);
+          const titleAlert = error.response?.data?.title || "Error";
+          const alertIcon = error.response?.data?.icon || "error";
+          const errorMsg = error.response?.data?.msg || "Gagal menghubungi server";
+          Swal.fire({
+            title: titleAlert,
+            text: errorMsg,
+            icon: alertIcon
+          });
+        });
+      }
+    });
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function () {
+    const vpnSelect = document.getElementById("vpn");
+    const generateButton = document.getElementById("generatescript");
+
+    // Fungsi untuk mengaktifkan atau menonaktifkan tombol Generate Script
+    function toggleGenerateButton() {
+      // Jika ada pilihan di select VPN, aktifkan tombol
+      if (vpnSelect.value) {
+        generateButton.disabled = false; // Aktifkan tombol
+      } else {
+        generateButton.disabled = true; // Nonaktifkan tombol
+      }
+    }
+
+    // Memantau perubahan di select VPN
+    vpnSelect.addEventListener("change", toggleGenerateButton);
+
+    // Panggil fungsi sekali saat halaman dimuat untuk memeriksa nilai default
+    toggleGenerateButton();
+  });
+  
+  document.getElementById("pingMikrotik").addEventListener("click", function () {
+    const user_mk = document.getElementById("usernameMk").value;
+    const pass_mk = document.getElementById("passwordMk").value;
+    const api_port = document.getElementById("port").value;
+    const vpnId = document.getElementById("vpn").value;
+    axios.post("/mikrotik/ping-vpn-client", {
+      vpnId,
+      user_mk,
+      pass_mk,
+      api_port
+    }).then((res) => {
+      const btnSave = document.getElementById("saveMikrotik");
+      if (res.data.success) {
+        btnSave.disabled = false;
+        Swal.fire({
+          title: "success",
+          text: res.data.msg,
+          icon: "success",
+        });
+      } else {
+        btnSave.disabled = true;
+        Swal.fire({
+          title: "kesalahan",
+          text: res.data.msg,
+          icon: "warning",
+        });
+      }
+    }).catch((err) => {
+      console.error(err);
+      Swal.fire({
+        title: "Terjadi Kesalahan",
+        text: "Terjadi kesalahan saat menghubungi server.",
+        icon: "error",
+      });
+    })
+  });
+
+  document
+    .getElementById("generatescript")
+    .addEventListener("click", function () {
+      const vpnId = document.getElementById("vpn").value;
+      const ros = document.getElementById("ros").value;
+      const portApi = document.getElementById("port").value;
+
+      if (!vpnId || !ros || !portApi) {
+        Swal.fire({
+          title: "Kesalahan",
+          text: "Semua field (VPN, ROS, dan Port) wajib diisi.",
+          icon: "warning",
+        });
+        return;
+      }
+
+      axios
+        .post("/mikrotik/gen-sc-vpn", {
+          vpnId,
+          ros,
+          portApi,
+        })
+        .then((res) => {
+          const btnping = document.getElementById("pingMikrotik");
+          if (res.data.success) {
+            Swal.fire({
+              title: "success",
+              text: "Berhasil membuat script",
+              icon: "success",
+            });
+
+            // Tampilkan script di textarea
+            const mkUser = document.getElementById("usernameMk");
+            const mkPass = document.getElementById("passwordMk");
+            mkUser.value = res.data.usermk;
+            mkPass.value = res.data.passmk;
+            
+            const scriptArea = document.getElementById("scriptOutput");
+            scriptArea.value = res.data.script;
+            document.getElementById("resultScript").style.display = "block";
+            btnping.disabled = false;
+          } else {
+            btnping.disabled = true;
+            Swal.fire({
+              title: "kesalahan",
+              text: "Gagal membuat script",
+              icon: "error",
+            });
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          Swal.fire({
+            title: "Terjadi Kesalahan",
+            text: "Terjadi kesalahan saat menghubungi server.",
+            icon: "error",
+          });
+        });
+    });
+
+  function copyScript() {
+    const textArea = document.getElementById("scriptOutput");
+    textArea.select();
+    textArea.setSelectionRange(0, 99999); // For mobile support
+
+    document.execCommand("copy");
+
+    Swal.fire({
+      title: "Copied!",
+      text: "Script berhasil dicopy ke clipboard",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  }
+
+  (function () {
+    "use strict";
+    let forms = document.querySelectorAll(".needs-validation");
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+</script>

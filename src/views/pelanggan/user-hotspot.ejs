@@ -1,0 +1,213 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+    <!-- Header dan Tombol Tambah -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4><i class="bi bi-wifi me-2"></i> User Hotspot</h4>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
+        <i class="bi bi-person-plus-fill me-1"></i> Tambah User
+      </button>
+    </div>
+
+    <!-- Tabel User Hotspot -->
+    <div class="card shadow">
+      <div class="card-body table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>No</th>
+              <th class="text-nowrap">Nama Lengkap</th>
+              <th>Paket</th>
+              <th class="text-nowrap">User Type</th>
+              <th>Username</th>
+              <th>Secret</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if(pelanggan && pelanggan.length > 0) { %>
+            <% pelanggan.forEach((user, index) => { %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td><%= user.fullname %></td>
+                <td class="text-nowrap"><%= user.paket %></td>
+                <td><%= user.user_type %></td>
+                <td><%= user.username %></td>
+                <td><%= user.secret %></td>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-warning btn-edit" data-id="<%= user.id %>">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= user.id %>">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+            <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center">...Belum ada pelanggan...</td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+$(document).ready(function () {
+  // Hapus user
+  $(document).on("click", ".btn-delete", function () {
+    const userId = $(this).data("id");
+
+    Swal.fire({
+      title: "Yakin hapus user ini?",
+      text: "Data yang dihapus tidak dapat dikembalikan.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/user-hotspot/${userId}`,
+          method: "DELETE",
+          success: function (res) {
+            Swal.fire("Sukses", res.message || "User berhasil dihapus.", "success")
+              .then(() => location.reload());
+          },
+          error: function (xhr) {
+            let message = "Gagal menghapus user.";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              message = xhr.responseJSON.message;
+            }
+            Swal.fire("Error", message, "error");
+          }
+        });
+      }
+    });
+  });
+});
+</script>
+
+
+<!-- MODAL TAMBAH -->
+<div class="modal fade" id="modalAddUser" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" id="formAddUser">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-person-plus-fill"></i> Tambah User Hotspot</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          
+          <div class="col-md-6">
+            <label>Nama Lengkap</label>
+            <input type="text" class="form-control" id="fullname" name="fullname" required>
+          </div>
+          
+          <div class="col-md-6">
+            <label>User Type</label>
+            <select class="form-select" id="user_type" name="user_type">
+              <option value="MEMBER">MEMBER</option>
+              <option value="VOUCHER">VOUCHER</option>
+            </select>
+          </div>
+        
+          <div class="col-md-6">
+            <label>Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+          </div>
+        
+          <div class="col-md-6 secret-field">
+            <label>Password</label>
+            <input type="text" class="form-control" id="secret" name="secret" required>
+          </div>
+          
+          <div class="col-md-6">
+            <label>Profile</label>
+            <select class="form-select" id="profile_id" name="profile_id">
+              <% if (profileGroup && profileGroup.length > 0) { %>
+              <option value="">Pilih Profile...</option>
+              <% profileGroup.forEach(profile => { %>
+              <option value="<%= profile.id %>">
+                <%= profile.groupname %>
+              </option>
+              <% }) %>
+              <% } else { %>
+              <option value="">...Ga ada profile...</option>
+              <% } %>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Simpan
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+$(document).ready(function () {
+  // Sembunyikan kolom secret jika user type = VOUCHER
+  $("#user_type").on("change", function () {
+    const userType = $(this).val();
+    if (userType === "VOUCHER") {
+      $(".secret-field").hide();
+      $("#secret").prop("required", false).val("");
+    } else {
+      $(".secret-field").show();
+      $("#secret").prop("required", true);
+    }
+  }).trigger("change"); // panggil saat load pertama juga
+
+  // Submit form dengan AJAX
+  $("#formAddUser").on("submit", function (e) {
+    e.preventDefault();
+
+    const formData = {
+      fullname: $("#fullname").val(),
+      user_type: $("#user_type").val(),
+      username: $("#username").val(),
+      secret: $("#secret").val(),
+      paket: $("#profile_id").val()
+    };
+
+    $.ajax({
+      url: "/admin/user-hotspot",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(formData),
+      success: function (res) {
+        Swal.fire({
+          icon: "success",
+          title: "Sukses",
+          text: res.message || "User berhasil ditambahkan!"
+        }).then(() => location.reload());
+      },
+      error: function (err) {
+        Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan user.", "error");
+        console.error(err);
+      }
+    });
+  });
+
+  // Reset saat modal ditutup
+  $('#modalAddUser').on('hidden.bs.modal', function () {
+    $("#formAddUser")[0].reset();
+    $(".secret-field").show();
+    $("#secret").prop("required", true);
+  });
+});
+</script>

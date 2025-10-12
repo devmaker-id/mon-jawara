@@ -1,0 +1,145 @@
+<!-- views/vpn-grouping.ejs -->
+<section class="content mt-2">
+  <div class="container-fluid">
+    <div class="card shadow">
+      <div class="card-header bg-dark text-white">
+        <h3 class="card-title mb-0">
+          <i class="bi bi-diagram-3"></i> Grouping VPN ke Server CHR
+        </h3>
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAddGrouping">
+            <i class="bi bi-plus-circle"></i> Tambah
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body table-responsive mt-2">
+        <table class="table table-bordered table-hover text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="text-nowrap">Nama Server</th>
+              <th>Client</th>
+              <% vpnTypes.forEach(type => { %>
+                <th><%= type.name.toUpperCase() %></th>
+              <% }) %>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% servers.forEach(server => { %>
+              <tr>
+                <td class="text-nowrap">
+                  <a href="#">
+                    <i class="bi bi-server"></i> <%= server.name %>
+                  </a>
+                </td>
+                <td>
+                  <i class="bi bi-people"></i> 100
+                </td>
+                <% vpnTypes.forEach(type => { 
+                  const isEnabled = groupings.find(
+                    g => g.server_id === server.id && g.type === type.name
+                  );
+                %>
+                  <td>
+                    <% if (isEnabled) { %>
+                      <span class="badge bg-success">Aktif</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary">Nonaktif</span>
+                    <% } %>
+                  </td>
+                <% }) %>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-primary" data-id="<%= server.id %>" data-bs-toggle="modal" data-bs-target="#modalEditGrouping">
+                    <i class="bi bi-sliders"></i> Ubah
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Edit Grouping -->
+<div class="modal fade" id="modalEditGrouping" tabindex="-1" aria-labelledby="modalEditGroupingLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalEditGroupingLabel">
+          <i class="bi bi-sliders"></i> Ubah Tipe VPN untuk Server
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="server_id" id="edit-server-id">
+
+        <% vpnTypes.forEach(type => { %>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="vpn_types" value="<%= type.name %>" id="check-<%= type.name %>">
+            <label class="form-check-label" for="check-<%= type.name %>">
+              <%= type.name.toUpperCase() %> - <%= type.description %>
+            </label>
+          </div>
+        <% }) %>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Simpan</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Add Grouping -->
+<div class="modal fade" id="modalAddGrouping" tabindex="-1" aria-labelledby="modalAddGroupingLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form method="POST" class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalAddGroupingLabel">
+          <i class="bi bi-plus-circle"></i> Tambah Grouping VPN Baru
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Pilih Server CHR -->
+        <div class="mb-3">
+          <label for="server" class="form-label">Pilih Server CHR</label>
+          <select name="server_id" id="server" class="form-select" required>
+            <% servers.forEach(server => { %>
+              <option value="<%= server.id %>"><%= server.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Tipe VPN -->
+        <label class="form-label">Tipe VPN yang Diaktifkan</label>
+        <% vpnTypes.forEach(type => { %>
+          <div class="border rounded p-3 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="vpn_types" value="<%= type.name %>" id="vpn-<%= type.name %>">
+              <label class="form-check-label fw-bold" for="vpn-<%= type.name %>">
+                <%= type.name.toUpperCase() %> - <%= type.description %>
+              </label>
+            </div>
+            <!-- Opsional: Input Alokasi IP -->
+            <div class="mt-2 ms-3">
+              <label class="form-label small">Alokasi IP (Opsional)</label>
+              <input type="text" name="ip_<%= type.name %>" class="form-control form-control-sm" placeholder="Contoh: 10.10.10.0/24">
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-save"></i> Simpan Grouping
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+

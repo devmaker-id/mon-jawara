@@ -1,0 +1,114 @@
+<!-- views/dashboard-admin.ejs -->
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <div class="row">
+      <!-- Router ONU -->
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-primary text-white shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Router ONU</h5>
+              <h3><%= stats.routerOnu %></h3>
+            </div>
+            <i class="bi bi-hdd-network-fill fs-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- ODP / POP -->
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-info text-white shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">ODP / POP</h5>
+              <h3><%= stats.odpPop %></h3>
+            </div>
+            <i class="bi bi-diagram-3-fill fs-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- OLT -->
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-dark text-white shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">OLT</h5>
+              <h3><%= stats.olt %></h3>
+            </div>
+            <i class="bi bi-box-fill fs-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pelanggan -->
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-success text-white shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Pelanggan</h5>
+              <h3><%= stats.pelanggan %></h3>
+            </div>
+            <i class="bi bi-people-fill fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Radius Server -->
+      <div class="col-md-4 mb-3">
+        <div class="card bg-secondary text-white shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Server Radius</h5>
+              <h3><%= stats.radius %></h3>
+            </div>
+            <i class="bi bi-wifi fs-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- VPN Server -->
+      <div class="col-md-4 mb-3">
+        <div class="card bg-warning text-dark shadow">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Server VPN</h5>
+              <h3><%= stats.vpn %></h3>
+            </div>
+            <i class="bi bi-shield-lock-fill fs-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafik Penghasilan -->
+      <div class="col-md-4 mb-3">
+        <div class="card shadow">
+          <div class="card-header bg-light border-bottom">
+            <h5 class="card-title mb-0"><i class="bi bi-bar-chart-line-fill"></i> Penghasilan</h5>
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Hari ini</span>
+                <strong>Rp <%= stats.income.harian.toLocaleString() %></strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Minggu ini</span>
+                <strong>Rp <%= stats.income.mingguan.toLocaleString() %></strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Bulan ini</span>
+                <strong>Rp <%= stats.income.bulanan.toLocaleString() %></strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>

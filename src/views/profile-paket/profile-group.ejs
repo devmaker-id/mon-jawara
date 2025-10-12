@@ -1,0 +1,121 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+    <!-- Header dan tombol aksi -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4><i class="bi bi-diagram-3-fill me-2"></i> Group Profile</h4>
+      <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-plus-circle me-1"></i> Aksi
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalAddGroup">
+            <i class="bi bi-folder-plus me-1"></i> Tambah Group Profile
+          </a></li>
+          <li><a class="dropdown-item" href="#">
+            <i class="bi bi-upload me-1"></i> Export Group ke Mikrotik
+          </a></li>
+          <li><a class="dropdown-item text-danger" href="#">
+            <i class="bi bi-trash me-1"></i> Hapus Yang Dipilih
+          </a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tabel dummy Group Profile -->
+    <div class="card shadow">
+      <div class="card-body table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col"><input type="checkbox" /></th>
+              <th class="text-nowrap">Nama Group</th>
+              <th>Jenis</th>
+              <th>Limitasi</th>
+              <th>Bandwith</th>
+              <th>Catatan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% const dummyGroups = [
+              { id: 1, name: "Premium Hotspot", type: "Hotspot", limit: "30 Hari", bw: "10M/2M", note: "Untuk pelanggan reguler" },
+              { id: 2, name: "Fast PPPoE", type: "PPPoE", limit: "Tidak Terbatas", bw: "20M/5M", note: "Koneksi cepat" },
+            ]; %>
+            <% dummyGroups.forEach(group => { %>
+              <tr>
+                <td><input type="checkbox" value="<%= group.id %>" /></td>
+                <td class="text-nowrap"><%= group.name %></td>
+                <td><span class="badge bg-<%= group.type === 'Hotspot' ? 'info' : 'success' %>"><%= group.type %></span></td>
+                <td class="text-nowrap"><%= group.limit %></td>
+                <td class="text-nowrap"><%= group.bw %></td>
+                <td><%= group.note %></td>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-warning">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modalAddGroup" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-folder-plus"></i> Tambah Group Profile</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label>Nama Group</label>
+            <input type="text" class="form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label>Nas Client</label>
+            <select class="form-select">
+              <option value="">List Nas ...</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label>Jenis</label>
+            <select class="form-select">
+              <option value="">Pilih type ...</option>
+              <option value="ppp">PPP</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label>Ip Lokal</label>
+            <input type="text" class="form-control" placeholder="192.168.80.1" />
+          </div>
+          <div class="col-md-6">
+            <label>Ip Awal</label>
+            <input type="text" class="form-control" placeholder="192.168.80.2" />
+          </div>
+          <div class="col-md-6">
+            <label>Ip Terakhir</label>
+            <input type="text" class="form-control" placeholder="192.168.80.254" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle"></i> Simpan
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

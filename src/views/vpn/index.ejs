@@ -1,0 +1,209 @@
+<!-- Header Judul -->
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Konten Utama -->
+<div class="app-content">
+  <div class="container-fluid">
+
+    <!-- Flash Message -->
+    <% if (flashData) { %>
+    <div class="mt-2 alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+      <%= flashData.text %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+
+    <!-- Kartu Info -->
+    <div class="row mt-3">
+      <div class="col-md-4 mb-2">
+        <div class="card border-success shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-person-lines-fill me-2"></i> Total Akun Dibuat</span>
+            <strong><%= stats.totalAkun %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card border-info shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-sliders2-vertical me-2"></i> Batas Akun</span>
+            <strong><%= stats.limitAkun %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-plus-circle me-2"></i> Tambah Limit Akun</span>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahLimit">Tambah</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Tambah Limit Akun -->
+    <div class="modal fade" id="modalTambahLimit" tabindex="-1" aria-labelledby="modalTambahLimitLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="/vpn/limit">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="modalTambahLimitLabel">Tambah Limit Akun</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <label for="limitAkun" class="form-label">Jumlah Limit Baru</label>
+              <input type="number" class="form-control" name="limit" id="limitAkun" min="1" required>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+              <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Form Pembuatan VPN & Daftar Akun -->
+    <div class="row mt-3">
+      <!-- Form Buat VPN -->
+      <div class="col-12 col-md-4 mb-2">
+        <div class="card">
+          <div class="card-header bg-info text-white">Pembuatan Akun VPN</div>
+          <div class="card-body">
+            <form action="/vpn/create-akun" method="POST" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <select class="form-control" id="vpn" name="vpn" required>
+                  <option value="">select server...</option>
+                  <% serverVpn.forEach(server => { %>
+                    <option value="<%= server.id %>"><%= server.name %></option>
+                  <% }); %>
+                </select>
+                <div class="invalid-feedback">Pilih server vpn</div>
+              </div>
+              <div class="mb-3">
+                <select class="form-control" id="service" name="service" required>
+                  <option value="">Service...</option>
+                </select>
+                <div class="invalid-feedback">Pilih jenis vpn</div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-check-circle"></i> Buat VPN
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daftar Akun VPN -->
+      <div class="col-12 col-md-8 mb-2">
+        <div class="card">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <span>Akun VPN Kamu</span>
+            <input type="text" id="searchVpn" class="form-control form-control-sm w-50" placeholder="Cari akun...">
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped align-middle text-nowrap">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Server</th>
+                    <th>Address</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Tipe</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="vpnTableBody">
+                  <% if (data && data.length > 0) { %>
+                    <% data.forEach((item, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= item.server_name %> (<%= item.server_host %>)</td>
+                        <td><%= item.ip_vpn %></td>
+                        <td><%= item.username %></td>
+                        <td><%= item.password %></td>
+                        <td><%= item.type_vpn.toUpperCase() %></td>
+                        <td>
+                          <% if (item.expired_at) { %>
+                          <%= new Date(item.expired_at).toLocaleString('id-ID') %>
+                          <% } else { %>
+                          Unlimited
+                          <% } %>
+                        </td>
+                        <td><%= item.status %></td>
+                        <td>
+                          <form action="/vpn/delete/<%= item.id %>" method="POST" onsubmit="return confirm('Yakin ingin menghapus akun ini?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                          </form>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="9" class="text-center">Tidak ada akun VPN tersedia.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById("vpn").addEventListener("change", function () {
+    const serverId = this.value;
+    fetch(`/vpn/${serverId}/vpn-types`)
+      .then(response => response.json())
+      .then(data => {
+        const vpnSelect = document.getElementById("service");
+        vpnSelect.innerHTML = '<option value="">Service...</option>';
+        data.forEach(vpn => {
+          const opt = document.createElement("option");
+          opt.value = vpn.vpn_type_id;
+          opt.textContent = vpn.vpn_type_name;
+          vpnSelect.appendChild(opt);
+        });
+      });
+  });
+
+  // Validasi form
+  (function () {
+    "use strict";
+    const forms = document.querySelectorAll(".needs-validation");
+    Array.from(forms).forEach(form => {
+      form.addEventListener("submit", function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add("was-validated");
+      }, false);
+    });
+  })();
+
+  // Live search akun VPN
+  document.getElementById("searchVpn").addEventListener("keyup", function () {
+    const keyword = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#vpnTableBody tr");
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(keyword) ? "" : "none";
+    });
+  });
+</script>
