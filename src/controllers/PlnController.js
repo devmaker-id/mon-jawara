@@ -1,4 +1,4 @@
-const PlnModel = require("../models/PlnModel");
+const PlnModel = require("../models/plnModel");
 
 class PlnController {
   // 🧭 Tampilkan semua data PLN
