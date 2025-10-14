@@ -21,6 +21,7 @@ const ConBanwith = require("../controllers/BanwithController");
 const ConProfilePaket = require("../controllers/ProfilePaketController");
 const ConPelanggan = require("../controllers/PelangganController");
 const ConCardVcr = require("../controllers/KartuVcrController");
+const ConPlnRoute = require("../controllers/PlnController");
 
 router.use(isAdmin);
 
@@ -132,5 +133,13 @@ router.delete('/kartu-voucher/template/delete/:id', ensureAuthenticated, ConCard
 router.get("/keuangan", ensureAuthenticated, ConKeuangan.index);
 router.get("/pengeluaran", ensureAuthenticated, ConKeuangan.pengeluaran);
 router.get("/hutangpiutang", ensureAuthenticated, ConKeuangan.piutang);
+
+// PLN ROUTES
+router.get("/mgmn-pln", ensureAuthenticated, ConPlnRoute.index);
+router.get("/mgmn-pln/create", ensureAuthenticated, ConPlnRoute.createForm);
+router.post("/mgmn-pln/store", ensureAuthenticated, ConPlnRoute.store);
+router.get("/mgmn-pln/edit/:id", ensureAuthenticated, ConPlnRoute.editForm);
+router.post("/mgmn-pln/update/:id", ensureAuthenticated, ConPlnRoute.update);
+router.get("/mgmn-pln/delete/:id", ensureAuthenticated, ConPlnRoute.destroy);
 
 module.exports = router;
