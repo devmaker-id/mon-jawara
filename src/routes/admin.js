@@ -134,12 +134,13 @@ router.get("/keuangan", ensureAuthenticated, ConKeuangan.index);
 router.get("/pengeluaran", ensureAuthenticated, ConKeuangan.pengeluaran);
 router.get("/hutangpiutang", ensureAuthenticated, ConKeuangan.piutang);
 
-// PLN ROUTES
-router.get("/mgmn-pln", ensureAuthenticated, ConPlnRoute.index);
-router.get("/mgmn-pln/create", ensureAuthenticated, ConPlnRoute.createForm);
-router.post("/mgmn-pln/store", ensureAuthenticated, ConPlnRoute.store);
-router.get("/mgmn-pln/edit/:id", ensureAuthenticated, ConPlnRoute.editForm);
-router.post("/mgmn-pln/update/:id", ensureAuthenticated, ConPlnRoute.update);
-router.get("/mgmn-pln/delete/:id", ensureAuthenticated, ConPlnRoute.destroy);
+// PLN ROUTES (Manajemen Data Pelanggan PLN)
+router.get("/mgmn-pln", ensureAuthenticated, ConPlnRoute.index); // Tampilkan semua data
+router.get("/mgmn-pln/create", ensureAuthenticated, ConPlnRoute.createForm); // Form tambah
+router.post("/mgmn-pln/store", ensureAuthenticated, ConPlnRoute.store); // Simpan data baru
+router.get("/mgmn-pln/edit/:id", ensureAuthenticated, ConPlnRoute.editForm); // Form edit
+router.post("/mgmn-pln/update/:id", ensureAuthenticated, ConPlnRoute.update); // Update data
+router.post("/mgmn-pln/delete/:id", ensureAuthenticated, ConPlnRoute.destroy); // Hapus data
+
 
 module.exports = router;

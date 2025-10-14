@@ -10,21 +10,30 @@ class PlnController {
       const data = await PlnModel.findAll();
 
       res.render("pln/index", {
-        title: "Manajemen PLN Kontrak",
+        title: "Manajemen PLN Pelanggan",
         flashData,
-        data
+        data,
       });
     } catch (error) {
       console.error("Error in PlnController.index:", error.message);
-      res.status(500).send("Terjadi kesalahan saat memuat data.");
+      res.status(500).send("Terjadi kesalahan saat memuat data pelanggan PLN.");
     }
   }
 
   // ➕ Tampilkan form tambah data
   static async createForm(req, res) {
-    res.render("pln/create", {
-      title: "Tambah Pelanggan PLN"
-    });
+    try {
+      const flashData = req.session.flashData;
+      delete req.session.flashData;
+
+      res.render("pln/create", {
+        title: "Tambah Pelanggan PLN",
+        flashData,
+      });
+    } catch (error) {
+      console.error("Error in PlnController.createForm:", error.message);
+      res.status(500).send("Terjadi kesalahan saat memuat form tambah PLN.");
+    }
   }
 
   // ➕ Simpan data baru
@@ -38,32 +47,45 @@ class PlnController {
         alamat,
         no_pln,
         keterangan,
-        status: "aktif"
+        status: "aktif",
       });
 
-      req.session.flashData = { type: "success", message: "Data pelanggan berhasil ditambahkan." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "success",
+        text: "Data pelanggan PLN berhasil ditambahkan.",
+      };
+      res.redirect("/admin/mgmn-pln");
     } catch (error) {
       console.error("Error in PlnController.store:", error.message);
-      req.session.flashData = { type: "danger", message: "Gagal menambahkan data pelanggan." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "danger",
+        text: "Gagal menambahkan data pelanggan PLN.",
+      };
+      res.redirect("/admin/mgmn-pln");
     }
   }
 
   // ✏️ Tampilkan form edit data
   static async editForm(req, res) {
     try {
-      const id = req.params.id;
-      const data = await PlnModel.findById(id);
+      const flashData = req.session.flashData;
+      delete req.session.flashData;
 
-      if (!data) {
-        req.session.flashData = { type: "warning", message: "Data tidak ditemukan." };
-        return res.redirect("/pln");
+      const id = req.params.id;
+      const pln = await PlnModel.findById(id);
+
+      if (!pln) {
+        req.session.flashData = {
+          type: "warning",
+          text: "Data pelanggan PLN tidak ditemukan.",
+        };
+        return res.redirect("/admin/mgmn-pln");
       }
 
       res.render("pln/edit", {
-        title: "Edit Data PLN",
-        data
+        title: "Edit Pelanggan PLN",
+        pln,
+        flashData,
       });
     } catch (error) {
       console.error("Error in PlnController.editForm:", error.message);
@@ -83,20 +105,29 @@ class PlnController {
         alamat,
         no_pln,
         keterangan,
-        status
+        status,
       });
 
       if (!success) {
-        req.session.flashData = { type: "warning", message: "Data tidak ditemukan atau gagal diperbarui." };
-        return res.redirect("/pln");
+        req.session.flashData = {
+          type: "warning",
+          text: "Data tidak ditemukan atau gagal diperbarui.",
+        };
+        return res.redirect("/admin/mgmn-pln");
       }
 
-      req.session.flashData = { type: "success", message: "Data pelanggan berhasil diperbarui." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "success",
+        text: "Data pelanggan PLN berhasil diperbarui.",
+      };
+      res.redirect("/admin/mgmn-pln");
     } catch (error) {
       console.error("Error in PlnController.update:", error.message);
-      req.session.flashData = { type: "danger", message: "Gagal memperbarui data pelanggan." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "danger",
+        text: "Gagal memperbarui data pelanggan PLN.",
+      };
+      res.redirect("/admin/mgmn-pln");
     }
   }
 
@@ -107,16 +138,25 @@ class PlnController {
       const success = await PlnModel.delete(id);
 
       if (!success) {
-        req.session.flashData = { type: "warning", message: "Data tidak ditemukan atau gagal dihapus." };
-        return res.redirect("/pln");
+        req.session.flashData = {
+          type: "warning",
+          text: "Data pelanggan PLN tidak ditemukan atau gagal dihapus.",
+        };
+        return res.redirect("/admin/mgmn-pln");
       }
 
-      req.session.flashData = { type: "success", message: "Data pelanggan berhasil dihapus." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "success",
+        text: "Data pelanggan PLN berhasil dihapus.",
+      };
+      res.redirect("/admin/mgmn-pln");
     } catch (error) {
       console.error("Error in PlnController.destroy:", error.message);
-      req.session.flashData = { type: "danger", message: "Gagal menghapus data pelanggan." };
-      res.redirect("/pln");
+      req.session.flashData = {
+        type: "danger",
+        text: "Gagal menghapus data pelanggan PLN.",
+      };
+      res.redirect("/admin/mgmn-pln");
     }
   }
 }

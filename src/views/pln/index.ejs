@@ -1,0 +1,112 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+      <div class="col-sm-6 text-end">
+        <a href="/admin/mgmn-pln/create" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Tambah Pelanggan PLN
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+    <div class="mt-2 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+
+    <% if (data.length > 0) { %>
+    <div class="card mb-3">
+      <div class="card-header bg-success text-white">
+        Daftar Pelanggan PLN
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped align-middle text-nowrap">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Jenis PLN</th>
+              <th>Alamat</th>
+              <th>No PLN</th>
+              <th>Status</th>
+              <th>Dibuat</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% data.forEach((item, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td><%= item.nama %></td>
+              <td>
+                <% if(item.jenis_pln === 'prabayar') { %>
+                  <span class="badge bg-primary">Prabayar</span>
+                <% } else { %>
+                  <span class="badge bg-warning text-dark">Pascabayar</span>
+                <% } %>
+              </td>
+              <td><%= item.alamat %></td>
+              <td><%= item.no_pln || '-' %></td>
+              <td>
+                <% if(item.status === 'aktif') { %>
+                  <span class="badge bg-success">Aktif</span>
+                <% } else { %>
+                  <span class="badge bg-secondary">Nonaktif</span>
+                <% } %>
+              </td>
+              <td><%= new Date(item.created_at).toLocaleString('id-ID') %></td>
+              <td class="text-nowrap">
+                <a href="/admin/mgmn-pln/edit/<%= item.id %>" class="btn btn-sm btn-warning">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <button class="btn btn-sm btn-danger" onclick="confirmDeletePln(<%= item.id %>, '<%= item.nama %>')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } else { %>
+      <div class="alert alert-info mt-3">Belum ada pelanggan PLN yang ditambahkan.</div>
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+  function confirmDeletePln(id, nama) {
+    Swal.fire({
+      title: `${nama}`,
+      text: "Data pelanggan ini akan dihapus secara permanen!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.get(`/admin/mgmn-pln/delete/${id}`)
+          .then(res => {
+            Swal.fire('Berhasil', 'Data telah dihapus.', 'success').then(() => {
+              location.reload();
+            });
+          })
+          .catch(err => {
+            Swal.fire('Gagal', err.response?.data?.message || 'Terjadi kesalahan saat menghapus.', 'error');
+          });
+      }
+    });
+  }
+</script>
