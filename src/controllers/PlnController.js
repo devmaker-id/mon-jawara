@@ -1,4 +1,5 @@
 const PlnModel = require("../models/plnModel");
+const path = require("path");
 
 class PlnController {
   // 🧭 Tampilkan semua data PLN
@@ -134,7 +135,7 @@ class PlnController {
   // ❌ Hapus data
   static async destroy(req, res) {
     try {
-      const id = req.params.id;
+      const id = req.body.id || req.params.id;
       const success = await PlnModel.delete(id);
 
       if (!success) {
@@ -157,6 +158,111 @@ class PlnController {
         text: "Gagal menghapus data pelanggan PLN.",
       };
       res.redirect("/admin/mgmn-pln");
+    }
+  }
+
+  // =========================
+  // 💰 Transaksi PLN (form)
+  // =========================
+  static async transaksi(req, res) {
+    try {
+      const flashData = req.session.flashData;
+      delete req.session.flashData;
+      // Ambil data pelanggan untuk form transaksi
+      const pelanggan = await PlnModel.findAll();
+
+      res.render("pln/transaksi", {
+        title: "Transaksi Pembayaran PLN",
+        pelanggan,
+        flashData,
+      });
+    } catch (error) {
+      console.error("Error in PlnController.transaksi:", error.message);
+      res.status(500).send("Gagal memuat halaman transaksi PLN.");
+    }
+  }
+
+  // 💾 Simpan transaksi (POST)
+  static async transaksiStore(req, res) {
+    try {
+      const { pln_id, nominal, keterangan } = req.body;
+
+      if (!pln_id || !nominal) {
+        req.session.flashData = { type: "warning", text: "Pelanggan dan nominal wajib diisi." };
+        return res.redirect("/admin/mgmn-pln/transaksi");
+      }
+
+      await PlnModel.saveTransaksi(pln_id, nominal, keterangan);
+
+      req.session.flashData = { type: "success", text: "Transaksi PLN berhasil disimpan." };
+      res.redirect("/admin/mgmn-pln/riwayat");
+    } catch (error) {
+      console.error("Error in PlnController.transaksiStore:", error.message);
+      req.session.flashData = { type: "danger", text: "Gagal menyimpan transaksi PLN." };
+      res.redirect("/admin/mgmn-pln/transaksi");
+    }
+  }
+
+  // =========================
+  // 📤 Upload Bukti Pembayaran
+  // =========================
+  static async uploadForm(req, res) {
+    try {
+      const pelanggan = await PlnModel.findAll();
+
+      res.render("pln/upload-bukti", {
+        title: "Upload Bukti Pembayaran PLN",
+        pelanggan,
+      });
+    } catch (error) {
+      console.error("Error in PlnController.uploadForm:", error.message);
+      res.status(500).send("Gagal memuat form upload bukti.");
+    }
+  }
+
+  static async uploadBukti(req, res) {
+    try {
+      const pln_id = req.body.pln_id || req.body.pelanggan_id;
+      const file = req.file;
+
+      if (!pln_id || !file) {
+        req.session.flashData = { type: "danger", text: "Pelanggan dan file bukti wajib diisi." };
+        return res.redirect("/admin/mgmn-pln/upload-bukti");
+      }
+
+      // simpan path relatif yang bisa diakses static
+      const filePath = path.posix.join("/uploads/bukti_pln", file.filename);
+
+      const ok = await PlnModel.saveBukti(pln_id, filePath);
+
+      if (!ok) {
+        req.session.flashData = { type: "warning", text: "Gagal menyimpan bukti ke database." };
+        return res.redirect("/admin/mgmn-pln/upload-bukti");
+      }
+
+      req.session.flashData = { type: "success", text: "Bukti pembayaran berhasil diunggah." };
+      res.redirect("/admin/mgmn-pln/riwayat");
+    } catch (error) {
+      console.error("Error in PlnController.uploadBukti:", error.message);
+      req.session.flashData = { type: "danger", text: "Gagal mengunggah bukti pembayaran." };
+      res.redirect("/admin/mgmn-pln/upload-bukti");
+    }
+  }
+
+  // =========================
+  // 🧾 Riwayat & Struk
+  // =========================
+  static async riwayat(req, res) {
+    try {
+      const data = await PlnModel.findRiwayat();
+
+      res.render("pln/riwayat", {
+        title: "Riwayat & Struk PLN",
+        data,
+      });
+    } catch (error) {
+      console.error("Error in PlnController.riwayat:", error.message);
+      res.status(500).send("Gagal memuat riwayat pembayaran PLN.");
     }
   }
 }

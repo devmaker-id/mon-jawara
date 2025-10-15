@@ -1,0 +1,43 @@
+<div class="container mt-4">
+  <% if (flashData) { %>
+    <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+      <%= flashData.text %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <i class="bi bi-cash-stack"></i> Transaksi Pembayaran PLN
+    </div>
+    <div class="card-body">
+      <form action="/admin/mgmn-pln/transaksi/store" method="POST">
+        <div class="mb-3">
+          <label class="form-label">Pilih Pelanggan</label>
+          <select class="form-control" name="pln_id" required>
+            <option value="">-- Pilih Pelanggan --</option>
+            <% pelanggan.forEach(p => { %>
+              <option value="<%= p.id %>">
+                <%= p.nama %> - <%= p.no_pln %> (<%= p.jenis_pln %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Nominal Pembayaran (Rp)</label>
+          <input type="number" class="form-control" name="nominal" min="1000" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Keterangan (Opsional)</label>
+          <textarea class="form-control" name="keterangan" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">
+          <i class="bi bi-check-circle"></i> Simpan Transaksi
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -3,19 +3,16 @@ process.env.TZ = process.env.TZ || "Asia/Jakarta"; // Set default timezone jika 
 
 const express = require("express");
 const path = require("path");
-const session = require("express-session"); // Tambahkan session
+const session = require("express-session");
 const expressLayouts = require("express-ejs-layouts");
+const multer = require("multer"); // untuk upload PLN bukti (disiapkan di sini agar bisa global)
+
+// Routes
 const AuthRoute = require("./src/routes/auth");
 const setLocals = require("./src/middleware/setLocals");
 const Administrator = require("./src/routes/admin");
 const KasirRoute = require("./src/routes/kasir");
-
-//helpers
-const { rupiah } = require("./src/helpers/formatter");
-
-//Api Route
 const ApiRoute = require("./src/routes/apiRoutes");
-
 const TeleRoute = require("./src/routes/telegram");
 const OltRoute = require("./src/routes/olt");
 const MikrotikRoute = require("./src/routes/mikrotik");
@@ -26,25 +23,33 @@ const MikhmonRoute = require("./src/routes/mikhmon");
 const LogRoute = require("./src/routes/log");
 const UserRoute = require("./src/routes/user");
 
+// Helpers
+const { rupiah } = require("./src/helpers/formatter");
+
 const app = express();
 
-// 1. Set 'trust proxy' agar Express tahu bahwa ia bekerja di balik proxy (misalnya Nginx)
-app.set('trust proxy', true);
+// --------------------------------------------------
+// 1. Trust proxy (penting jika pakai Nginx/Cloudflare)
+app.set("trust proxy", 1);
 
-// 2. Middleware untuk session
+// --------------------------------------------------
+// 2. Setup Session Middleware
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "S3cr3tM0n1t0rJ4w4r4B161T", // Gunakan secret dari .env atau default value
+    secret: process.env.SESSION_SECRET || "S3cr3tM0n1t0rJ4w4r4B161T",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Secure cookies hanya digunakan di produksi (https)
-      httpOnly: true, // Prevent XSS attacks by preventing JavaScript from accessing cookies
-      maxAge: 60 * 60 * 1000, // Set session cookie untuk 1 jam
+      secure: process.env.NODE_ENV === "production", // hanya aktif di HTTPS
+      httpOnly: true, // cegah akses JS ke cookie
+      sameSite: "lax", // hindari CSRF ringan
+      maxAge: 60 * 60 * 1000, // 1 jam
     },
   })
 );
-// 2.A Refresh session expiration on each request if the user is active
+
+// --------------------------------------------------
+// 3. Refresh session expiry per request aktif
 app.use((req, res, next) => {
   if (req.session) {
     req.session._garbage = Date();
@@ -53,57 +58,58 @@ app.use((req, res, next) => {
   next();
 });
 
-
-// setelah session setup & session.touch middleware
+// --------------------------------------------------
+// 4. Set Locals (flash message, user data, dll)
 app.use(setLocals);
 
-//helper send view
+// --------------------------------------------------
+// 5. Helpers global (rupiah, formatter, dll)
 app.locals.rupiah = rupiah;
 
-// 3. Middleware untuk menangkap data form
+// --------------------------------------------------
+// 6. Middleware parsing data form dan JSON
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Middleware untuk menerima JSON payload
+app.use(express.json());
 
-// 4. Mengatur EJS sebagai template engine
+// --------------------------------------------------
+// 7. View engine EJS setup
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src", "views"));
 
-// 5. Gunakan express-ejs-layouts
+// Layouts (gunakan layouts/main.ejs sebagai base)
 app.use(expressLayouts);
 app.set("layout", "layouts/main");
 
-// 6. Middleware untuk file statis (CSS, JS, gambar)
+// --------------------------------------------------
+// 8. Static files (CSS, JS, Uploads)
 app.use(express.static(path.join(__dirname, "src", "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // penting untuk PLN upload bukti
 
-// 7. Routing folder untuk autentikasi dan dashboard
-app.use("/auth", AuthRoute); // Menggunakan route autentikasi
-app.use("/jawara", DashboardRoute); // Menggunakan route dashboard
-
-app.use("/api", ApiRoute); // api routes
-
-//Administrator Role
+// --------------------------------------------------
+// 9. Routing setup
+app.use("/auth", AuthRoute);
+app.use("/jawara", DashboardRoute);
+app.use("/api", ApiRoute);
 app.use("/admin", Administrator);
-//Kasir Role
 app.use("/kasir", KasirRoute);
-
-app.use("/bot", WebhookRoute); // webhook dinamis
+app.use("/bot", WebhookRoute);
 app.use("/telegram", TeleRoute);
 app.use("/oltmgmn", OltRoute);
 app.use("/mikrotik", MikrotikRoute);
 app.use("/vpn", VpnRoute);
 app.use("/mikhmon", MikhmonRoute);
 app.use("/log", LogRoute);
-
-//user routing profile
 app.use("/user", UserRoute);
 
-// 8. Middleware 404: Halaman Tidak Ditemukan
+// --------------------------------------------------
+// 10. Middleware 404 Redirect
 app.use((req, res) => {
-  res.redirect("/jawara"); // Arahkan ke /jawara jika tidak ada route yang cocok
+  res.redirect("/jawara");
 });
 
-// 9. Menjalankan server
-const PORT = 3000;
+// --------------------------------------------------
+// 11. Jalankan Server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
+  console.log(`✅ Server berjalan di http://localhost:${PORT}`);
 });

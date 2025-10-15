@@ -84,6 +84,60 @@ class PlnModel {
       throw error;
     }
   }
+
+  // =============================
+  // 🔽 FITUR TRANSAKSI & BUKTI
+  // =============================
+
+  // 💰 Simpan transaksi PLN
+  static async saveTransaksi(pln_id, nominal, keterangan = null) {
+    try {
+      const sql = `
+        INSERT INTO tbl_pln_transaksi (pln_id, nominal, keterangan, created_at)
+        VALUES (?, ?, ?, NOW())
+      `;
+      const [result] = await db.query(sql, [pln_id, nominal, keterangan]);
+      return result.insertId;
+    } catch (error) {
+      console.error("Error saveTransaksi:", error.message);
+      throw error;
+    }
+  }
+
+  // 📸 Simpan bukti pembayaran (update transaksi terakhir milik pelanggan)
+  static async saveBukti(pln_id, bukti_path) {
+    try {
+      const sql = `
+        UPDATE tbl_pln_transaksi 
+        SET bukti_path = ?, updated_at = NOW()
+        WHERE pln_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+      `;
+      const [result] = await db.query(sql, [bukti_path, pln_id]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error("Error saveBukti:", error.message);
+      throw error;
+    }
+  }
+
+  // 📜 Ambil riwayat transaksi PLN (join dengan pelanggan)
+  static async findRiwayat() {
+    try {
+      const sql = `
+        SELECT t.*, p.nama, p.jenis_pln, p.no_pln 
+        FROM tbl_pln_transaksi t
+        LEFT JOIN tbl_pln p ON t.pln_id = p.id
+        ORDER BY t.created_at DESC
+      `;
+      const [results] = await db.query(sql);
+      return results;
+    } catch (error) {
+      console.error("Error findRiwayat:", error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = PlnModel;
