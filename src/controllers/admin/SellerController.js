@@ -115,7 +115,7 @@ class SellerController {
           type: "danger",
           text: "Produk, Seller, dan Harga wajib diisi!"
         };
-        return res.redirect("/admin/add-seller-product");
+        return res.redirect("/admin/seller/add-product");
       }
   
       await db.query(`
@@ -127,7 +127,7 @@ class SellerController {
         type: "success",
         text: "Produk Seller berhasil ditambahkan!"
       };
-      res.redirect("/admin/products-sellers");
+      res.redirect("/admin/seller/products");
   
     } catch (err) {
       console.error("Error prosessAddSellerProduct:", err);
@@ -135,7 +135,7 @@ class SellerController {
         type: "danger",
         text: "Terjadi kesalahan saat menambahkan Produk Seller"
       };
-      res.redirect("/admin/products-sellers");
+      res.redirect("/admin/seller/products");
     }
   }
   

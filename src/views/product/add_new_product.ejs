@@ -4,7 +4,7 @@
       <div class="card shadow-sm border-0">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0">➕ Tambah Produk Baru</h5>
-          <a href="/admin/products" class="btn btn-light btn-sm">
+          <a href="/admin/product" class="btn btn-light btn-sm">
             <i class="bi bi-arrow-left"></i> Kembali
           </a>
         </div>
@@ -17,7 +17,7 @@
             </div>
           <% } %>
 
-          <form action="/admin/add_new_product" method="POST" enctype="multipart/form-data" id="formTambahProduk">
+          <form action="/admin/product/add-new" method="POST" enctype="multipart/form-data" id="formTambahProduk">
             <div class="row g-3">
 
               <div class="col-md-6">

@@ -11,10 +11,10 @@
     <div class="card shadow-sm">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-person-check-fill me-2"></i> Data Limit Akun VPN</h5>
+        <button class="btn btn-success btn-sm" id="btn-add-new"><i class="bi bi-plus-circle me-1"></i> Tambah Baru</button>
       </div>
 
       <div class="card-body">
-        <div class="">
           <table id="limitTable" class="table table-bordered table-hover table-striped text-nowrap align-middle w-100">
             <thead class="table-primary text-center">
               <tr>
@@ -33,161 +33,265 @@
                 <% limits.forEach(item => { %>
                   <tr id="row-<%= item.id %>">
                     <td><%= item.id %></td>
-                    <td><%= item.user_id %></td>
-                    <td><%= item.username %></td>
-                    <td id="limit-value-<%= item.id %>"><%= item.limit %></td>
-                    <td><%= item.used %></td>
-                    <td><%= new Date(item.created_at).toLocaleString('id-ID') %></td>
-                    <td id="updated-at-<%= item.id %>"><%= new Date(item.updated_at).toLocaleString('id-ID') %></td>
+                    <td class="user-id"><%= item.user_id %></td>
+                    <td class="username"><%= item.username %></td>
+                    <td class="limit"><%= item.limit %></td>
+                    <td class="used"><%= item.used %></td>
+                    <td class="created"><%= new Date(item.created_at).toLocaleString('id-ID') %></td>
+                    <td class="updated"><%= new Date(item.updated_at).toLocaleString('id-ID') %></td>
                     <td class="text-center">
-                      <button class="btn btn-sm btn-warning btn-edit"
-                        data-id="<%= item.id %>"
-                        data-user="<%= item.username %>"
-                        data-limit="<%= item.limit %>"
-                        data-used="<%= item.used %>">
-                        <i class="bi bi-pencil"></i> Edit
-                      </button>
+                      <button class="btn btn-sm btn-info btn-detail"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-sm btn-warning btn-edit"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-danger btn-delete"><i class="bi bi-trash"></i></button>
                     </td>
                   </tr>
                 <% }) %>
               <% } else { %>
-                <tr>
-                  <td colspan="8" class="text-center">Tidak ada data tersedia</td>
-                </tr>
+                <tr><td colspan="8" class="text-center">Tidak ada data tersedia</td></tr>
               <% } %>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
 
   </div>
 </section>
 
-<!-- Modal Edit Limit -->
-<div class="modal fade" id="editLimitModal" tabindex="-1" aria-labelledby="editLimitModalLabel" aria-hidden="true">
+<!-- Modal Tambah/Edit -->
+<div class="modal fade" id="limitModal" tabindex="-1" aria-labelledby="limitModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form id="editLimitForm" class="modal-content">
-      <input type="hidden" name="id" id="edit-id">
+    <form id="limitForm" class="modal-content">
+      <input type="hidden" id="limit-id">
+      <input type="hidden" id="user-id">
 
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title" id="editLimitModalLabel">Edit Limit Akun VPN</h5>
+      <div class="modal-header">
+        <h5 class="modal-title" id="limitModalLabel">Tambah Limit Baru</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
         <div class="mb-3">
-          <label for="edit-user" class="form-label">Username</label>
-          <input type="text" id="edit-user" class="form-control text-nowrap" disabled>
+          <label for="username" class="form-label">Pilih User</label>
+          <select id="username" name="username" class="form-select" required>
+            <option value="" disabled selected>Pilih user</option>
+            <% if (allUsers && allUsers.length > 0) { %>
+              <% allUsers.forEach(u => { %>
+                <option value="<%= u.username %>" data-id="<%= u.id %>">
+                  [ID: <%= u.id %>] <%= u.username %>
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option value="" disabled>Tidak ada user tersedia</option>
+            <% } %>
+          </select>
         </div>
 
         <div class="mb-3">
-          <label for="edit-limit" class="form-label">Limit Akun</label>
-          <input type="number" name="limit" id="edit-limit" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-          <label for="edit-used" class="form-label">Akun Digunakan</label>
-          <input type="number" id="edit-used" class="form-control text-nowrap" disabled>
+          <label for="limit" class="form-label">Limit Akun</label>
+          <input type="number" id="limit" name="limit" class="form-control" min="0" required>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i> Simpan</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Simpan</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Scripts -->
 <script>
-  $(document).ready(function () {
-    $('#limitTable').DataTable({
-      responsive: true,
-      lengthChange: true,
-      paging: true,
-      info: true,
-      ordering: true,
-      searching: true,
-      language: {
-        search: "🔍 Cari:",
-        lengthMenu: "Tampilkan _MENU_ data per halaman",
-        info: "Menampilkan _START_ sampai _END_ dari total _TOTAL_ data",
-        paginate: {
-          first: "Awal",
-          last: "Akhir",
-          next: "›",
-          previous: "‹"
-        },
-        emptyTable: "Tidak ada data tersedia"
+$(document).ready(function () {
+  // ✅ Inisialisasi DataTable dengan konfigurasi yang rapi
+  const table = $('#limitTable').DataTable({
+    responsive: true,
+    autoWidth: false,
+    pageLength: 10,
+    lengthMenu: [5, 10, 25, 50, 100],
+    order: [[0, "desc"]],
+    dom:
+      "<'row mb-3'<'col-md-6 d-flex align-items-center'f><'col-md-6 text-end'l>>" +
+      "<'table-responsive'tr>" +
+      "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
+    language: {
+      search: "_INPUT_",
+      searchPlaceholder: "🔍 Cari data...",
+      lengthMenu: "Tampilkan _MENU_ data",
+      info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
+      paginate: {
+        previous: "‹",
+        next: "›"
       },
-      dom: `
-        <'row mb-3'
-          <'col-md-6 d-flex align-items-center'l>
-          <'col-md-6'f>
-        >
-        <'table-responsive't>
-        <'row mt-3'
-          <'col-md-6'i>
-          <'col-md-6'p>
-        >`
+      emptyTable: "Tidak ada data tersedia"
+    }
+  });
+
+  // Tambahkan styling agar search box-nya proporsional
+  $('div.dataTables_filter input').addClass('form-control form-control-sm');
+  $('div.dataTables_length select').addClass('form-select form-select-sm');
+
+  // =====================
+  // Tambah Baru
+  // =====================
+  $('#btn-add-new').on('click', function () {
+    $('#limitForm')[0].reset();
+    $('#limit-id').val('');
+    $('#limitModalLabel').text('Tambah Limit Baru');
+    $('#limitModal .modal-header')
+      .removeClass('bg-warning text-dark')
+      .addClass('bg-success text-white');
+
+    // 🔥 Filter username yang sudah punya limit
+    const existingUsernames = [];
+    $('#limitTable tbody tr').each(function () {
+      const username = $(this).find('.username').text().trim();
+      if (username) existingUsernames.push(username);
     });
 
-    // Modal handler
-    document.querySelectorAll(".btn-edit").forEach(button => {
-      button.addEventListener("click", function () {
-        document.getElementById("edit-id").value = this.dataset.id;
-        document.getElementById("edit-user").value = this.dataset.user;
-        document.getElementById("edit-limit").value = this.dataset.limit;
-        document.getElementById("edit-used").value = this.dataset.used;
-
-        new bootstrap.Modal(document.getElementById("editLimitModal")).show();
-      });
+    $('#username option').each(function () {
+      const username = $(this).val();
+      $(this).prop('disabled', existingUsernames.includes(username));
     });
 
-    // Submit Form
-    document.getElementById("editLimitForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+    new bootstrap.Modal('#limitModal').show();
+  });
 
-      const id = document.getElementById("edit-id").value;
-      const limit = parseInt(document.getElementById("edit-limit").value);
-      const used = parseInt(document.getElementById("edit-used").value);
+  // =====================
+  // Isi user_id otomatis
+  // =====================
+  $('#username').on('change', function () {
+    const userId = $(this).find(':selected').data('id');
+    $('#user-id').val(userId);
+  });
 
-      if (limit < used) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Limit Tidak Valid',
-          text: 'Limit tidak boleh lebih kecil dari akun yang sudah digunakan.',
-        });
-        return;
-      }
+  // =====================
+  // Edit Data
+  // =====================
+  $('#limitTable').on('click', '.btn-edit', function () {
+    const row = $(this).closest('tr');
+    const id = row.attr('id').replace('row-', '');
+    const userId = row.find('.user-id').text();
+    const username = row.find('.username').text();
+    const limit = row.find('.limit').text();
 
-      const response = await fetch("/admin/update-limit-akun", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, limit })
-      });
+    $('#limit-id').val(id);
+    $('#user-id').val(userId);
+    $('#username').val(username);
+    $('#limit').val(limit);
+    $('#limitModalLabel').text('Edit Limit Akun');
+    $('#limitModal .modal-header')
+      .removeClass('bg-success text-white')
+      .addClass('bg-warning text-dark');
+    new bootstrap.Modal('#limitModal').show();
+  });
 
-      const result = await response.json();
+  // =====================
+  // Simpan (Add/Edit)
+  // =====================
+  $('#limitForm').submit(async function (e) {
+    e.preventDefault();
 
-      if (result.success) {
-        document.getElementById(`limit-value-${id}`).textContent = limit;
-        document.getElementById(`updated-at-${id}`).textContent = new Date().toLocaleString('id-ID');
-        bootstrap.Modal.getInstance(document.getElementById("editLimitModal")).hide();
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: result.message,
-          timer: 2000,
-          showConfirmButton: false
-        });
+    const id = $('#limit-id').val();
+    const user_id = $('#user-id').val();
+    const username = $('#username').val();
+    const limit = parseInt($('#limit').val());
+
+    if (!user_id || !username) {
+      Swal.fire('Error', 'User wajib dipilih.', 'error');
+      return;
+    }
+
+    const url = id ? '/admin/vpn-server/update-limit-akun' : '/admin/vpn-server/add-limit-akun';
+    const payload = id ? { id, user_id, username, limit } : { user_id, username, limit };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      const now = new Date().toLocaleString('id-ID');
+      const modal = bootstrap.Modal.getInstance(document.getElementById('limitModal'));
+      modal.hide();
+
+      if (id) {
+        const row = $(`#row-${id}`);
+        row.find('.user-id').text(user_id);
+        row.find('.username').text(username);
+        row.find('.limit').text(limit);
+        row.find('.updated').text(now);
+        Swal.fire('Berhasil', 'Data berhasil diperbarui.', 'success');
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal',
-          text: result.message || "Gagal memperbarui limit.",
-        });
+        const d = result.data;
+        const newRow = table.row.add([
+          d.id, d.user_id, d.username, d.limit, d.used,
+          new Date(d.created_at).toLocaleString('id-ID'),
+          new Date(d.updated_at).toLocaleString('id-ID'),
+          `
+            <button class="btn btn-sm btn-info btn-detail"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-sm btn-warning btn-edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-danger btn-delete"><i class="bi bi-trash"></i></button>
+          `
+        ]).draw(false).node();
+        $(newRow).attr('id', `row-${d.id}`);
+        $(newRow).find('td:eq(1)').addClass('user-id');
+        $(newRow).find('td:eq(2)').addClass('username');
+        $(newRow).find('td:eq(3)').addClass('limit');
+        $(newRow).find('td:eq(4)').addClass('used');
+        $(newRow).find('td:eq(5)').addClass('created');
+        $(newRow).find('td:eq(6)').addClass('updated');
+        Swal.fire('Berhasil', 'Data baru berhasil ditambahkan.', 'success');
+      }
+    } else {
+      Swal.fire('Gagal', result.message || 'Terjadi kesalahan.', 'error');
+    }
+  });
+
+  // =====================
+  // Hapus Data
+  // =====================
+  $('#limitTable').on('click', '.btn-delete', async function () {
+    const row = $(this).closest('tr');
+    const id = row.attr('id').replace('row-', '');
+
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: 'Data akan hilang permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonText: 'Batal',
+      confirmButtonText: 'Hapus'
+    }).then(async (resSwal) => {
+      if (resSwal.isConfirmed) {
+        const res = await fetch(`/admin/vpn-server/delete-limit-akun/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+          table.row(row).remove().draw(false);
+          Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+        } else {
+          Swal.fire('Gagal', result.message || 'Gagal menghapus data.', 'error');
+        }
       }
     });
   });
+
+  // =====================
+  // Detail
+  // =====================
+  $('#limitTable').on('click', '.btn-detail', function () {
+    const row = $(this).closest('tr');
+    Swal.fire({
+      title: `Detail Akun: ${row.find('.username').text()}`,
+      html: `
+        <p><strong>User ID:</strong> ${row.find('.user-id').text()}</p>
+        <p><strong>Limit:</strong> ${row.find('.limit').text()}</p>
+        <p><strong>Used:</strong> ${row.find('.used').text()}</p>
+      `,
+      icon: 'info'
+    });
+  });
+});
 </script>
+
