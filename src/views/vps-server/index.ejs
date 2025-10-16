@@ -14,7 +14,7 @@
       <div class="card-body table-responsive">
         <table class="table table-bordered table-hover text-center align-middle">
           <thead class="table-light">
-            <tr>
+            <tr class="text-nowrap">
               <th>Nama Server</th>
               <th>IP Address</th>
               <th>Lokasi</th>
@@ -24,7 +24,7 @@
           </thead>
           <tbody>
             <% servers.forEach(server => { %>
-              <tr>
+              <tr class="text-nowrap">
                 <td><%= server.name %></td>
                 <td><%= server.ip %></td>
                 <td><%= server.location %></td>

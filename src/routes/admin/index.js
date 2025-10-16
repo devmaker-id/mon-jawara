@@ -29,6 +29,7 @@ const kartuVcrRoute = require("./kartu_vcr");
 const keuanganRoute = require("./keuangan");
 const closingRoute = require("./closing");
 const plnRoute = require("./pln");
+const notifRoute = require("./notificationRoutes");
 
 // semua route admin butuh isAdmin
 router.use(isAdmin);
@@ -52,5 +53,6 @@ router.use("/kartu-voucher", kartuVcrRoute);
 router.use("/keuangan", keuanganRoute);
 router.use("/closingan", closingRoute);
 router.use("/mgmn-pln", plnRoute);
+router.use("/notif", notifRoute);
 
 module.exports = router;

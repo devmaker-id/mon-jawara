@@ -1,0 +1,54 @@
+<div class="container py-3">
+  <h3 class="mb-3">Manajemen Notifikasi</h3>
+
+  <form action="/admin/notif/create" method="POST" class="card p-3 mb-4">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input name="title" class="form-control" placeholder="Judul" required>
+      </div>
+      <div class="col-md-4">
+        <input name="icon" class="form-control" placeholder="Icon (contoh: bi-info-circle)">
+      </div>
+      <div class="col-md-4">
+        <input name="link" class="form-control" placeholder="Link (opsional)">
+      </div>
+      <div class="col-12 mt-2">
+        <textarea name="message" class="form-control" rows="2" placeholder="Isi pesan"></textarea>
+      </div>
+      <div class="col-md-6 mt-2">
+        <input name="target_user_id" type="number" class="form-control" placeholder="User ID (kosong = broadcast)" min="1" step="1" oninput="if(this.value==='') this.value=null">
+      </div>
+      <div class="col-md-6 mt-2 text-end">
+        <button class="btn btn-success">Kirim Notifikasi</button>
+      </div>
+    </div>
+  </form>
+  
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-light">
+        <tr class="text-nowrap">
+          <th>Judul</th>
+          <th>Pesan</th>
+          <th>Target</th>
+          <th>Tanggal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (notifications.length === 0) { %>
+          <tr><td colspan="5" class="text-center text-muted">Belum ada notifikasi</td></tr>
+        <% } %>
+        <% notifications.forEach(n => { %>
+          <tr class="text-nowrap">
+            <td><i class="bi <%= n.icon %> me-1"></i> <%= n.title %></td>
+            <td><%= n.message %></td>
+            <td><%= n.target_name || 'Semua User' %></td>
+            <td><%= new Date(n.created_at).toLocaleString('id-ID') %></td>
+            <td><a href="/admin/notif/delete/<%= n.id %>" class="btn btn-sm btn-danger">Hapus</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

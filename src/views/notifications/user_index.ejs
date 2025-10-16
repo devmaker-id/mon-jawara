@@ -1,0 +1,29 @@
+<div class="container py-3">
+  <h3 class="mb-3">Notifikasi Saya</h3>
+
+  <% if (notifications.length === 0) { %>
+    <p class="text-muted text-center">Belum ada notifikasi</p>
+  <% } %>
+
+  <div class="list-group">
+    <% notifications.forEach(n => { %>
+      <a href="<%= n.link || '#' %>" 
+         class="list-group-item list-group-item-action d-flex justify-content-between align-items-start <%= n.is_read ? '' : 'fw-bold bg-light' %>"
+         onclick="markRead(<%= n.id %>)">
+        <div>
+          <i class="bi <%= n.icon %> me-2"></i> <%= n.title %>
+          <div class="small text-muted"><%= n.message %></div>
+        </div>
+        <small class="text-muted"><%= new Date(n.created_at).toLocaleString('id-ID') %></small>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<script>
+function markRead(id){
+  $.post('/notifications/read/' + id, res => {
+    if(res.success) location.reload();
+  });
+}
+</script>

@@ -10,6 +10,8 @@ const multer = require("multer"); // untuk upload PLN bukti (disiapkan di sini a
 // Routes
 const AuthRoute = require("./src/routes/auth");
 const setLocals = require("./src/middleware/setLocals");
+const inboxMiddleware = require('./src/middleware/inbox');
+const notificationMiddleware = require('./src/middleware/notification');
 const Administrator = require("./src/routes/admin");
 const KasirRoute = require("./src/routes/kasir");
 const ApiRoute = require("./src/routes/apiRoutes");
@@ -22,6 +24,8 @@ const DashboardRoute = require("./src/routes/dashboardRoute");
 const MikhmonRoute = require("./src/routes/mikhmon");
 const LogRoute = require("./src/routes/log");
 const UserRoute = require("./src/routes/user");
+const InboxRoute = require("./src/routes/inboxRoutes");
+const NotifRoute = require("./src/routes/notifRoutes");
 
 // Helpers
 const { rupiah } = require("./src/helpers/formatter");
@@ -57,6 +61,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// 4.a Middleware Inbox
+app.use(inboxMiddleware);
+// 4.b
+app.use(notificationMiddleware);
 
 // --------------------------------------------------
 // 4. Set Locals (flash message, user data, dll)
@@ -100,6 +109,8 @@ app.use("/vpn", VpnRoute);
 app.use("/mikhmon", MikhmonRoute);
 app.use("/log", LogRoute);
 app.use("/user", UserRoute);
+app.use("/inbox", InboxRoute);
+app.use("/notifications", NotifRoute);
 
 // --------------------------------------------------
 // 10. Middleware 404 Redirect

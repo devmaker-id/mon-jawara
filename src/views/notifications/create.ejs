@@ -1,0 +1,31 @@
+<div class="container-fluid py-3">
+  <h3><%= title %></h3>
+  <form action="/admin/notif/create" method="POST">
+    <div class="mb-3">
+      <label class="form-label">Kirim ke</label>
+      <select name="user_id" class="form-select">
+        <option value="null">Semua User (Broadcast)</option>
+        <% users.forEach(u => { %>
+          <option value="<%= u.id %>"><%= u.fullname || u.username %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Judul</label>
+      <input type="text" name="title" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Isi Notifikasi</label>
+      <textarea name="body" class="form-control" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Icon (Bootstrap Icon)</label>
+      <input type="text" name="icon" class="form-control" value="bi-bell-fill">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Link (opsional)</label>
+      <input type="text" name="link" class="form-control">
+    </div>
+    <button class="btn btn-success">Kirim</button>
+  </form>
+</div>

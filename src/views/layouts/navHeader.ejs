@@ -20,52 +20,73 @@
 
     <!-- Kanan -->
     <ul class="navbar-nav ms-auto align-items-center gap-2">
+      
+    <li class="nav-item dropdown">
+      <a class="nav-link position-relative" href="<%= latestUnreadUserId ? '/inbox/chat/' + latestUnreadUserId : '/inbox' %>" aria-label="Pesan Masuk">
+        <i class="bi bi-chat-text"></i>
+        <% if(unreadCount>0){ %>
+          <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-danger"><%= unreadCount %></span>
+        <% } %>
+      </a>
+    </li>
 
-      <!-- Pesan -->
-      <li class="nav-item dropdown">
-        <a class="nav-link position-relative" data-bs-toggle="dropdown" href="#" aria-label="Pesan Masuk">
-          <i class="bi bi-chat-text"></i>
-          <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-danger">3</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-          <% messages.forEach(msg => { %>
-          <a href="#" class="dropdown-item">
-            <div class="d-flex">
-              <img src="<%= msg.img %>" alt="User" class="img-size-50 rounded-circle me-3" onerror="this.src='/assets/img/default-avatar.png'" />
-              <div>
-                <h3 class="dropdown-item-title">
-                  <%= msg.name %>
-                  <span class="float-end fs-7 <%= msg.badge %>"><i class="bi bi-star-fill"></i></span>
-                </h3>
-                <p class="fs-7 mb-1"><%= msg.text %></p>
-                <p class="fs-7 text-secondary"><i class="bi bi-clock me-1"></i><%= msg.time %></p>
-              </div>
+
+<li class="nav-item dropdown">
+  <a class="nav-link position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-bell-fill"></i>
+    <% if (notifUnreadCount > 0) { %>
+      <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-warning text-dark">
+        <%= notifUnreadCount %>
+      </span>
+    <% } %>
+  </a>
+
+  <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notifDropdown" style="min-width: 280px;">
+
+    <% if (notifications && notifications.length > 0) { %>
+      <% notifications.forEach(n => { %>
+        <a href="<%= n.link || '/notifications' %>" 
+           class="dropdown-item <%= n.is_read ? '' : 'fw-bold bg-light' %>"
+           onclick="markRead(<%= n.id %>)">
+          <div class="d-flex align-items-start">
+            <i class="bi <%= n.icon || 'bi-info-circle' %> me-2 mt-1"></i>
+            <div>
+              <div><%= n.title %></div>
+              <% if (n.message) { %>
+                <small class="text-muted d-block"><%= n.message %></small>
+              <% } %>
+              <small class="text-muted d-block"><%= new Date(n.created_at).toLocaleString('id-ID') %></small>
             </div>
-          </a>
-          <div class="dropdown-divider"></div>
-          <% }) %>
-          <a href="#" class="dropdown-item dropdown-footer">Lihat Semua Pesan</a>
-        </div>
-      </li>
-
-      <!-- Notifikasi -->
-      <li class="nav-item dropdown">
-        <a class="nav-link position-relative" data-bs-toggle="dropdown" href="#" aria-label="Notifikasi">
-          <i class="bi bi-bell-fill"></i>
-          <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-warning text-dark">5</span>
+          </div>
         </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-          <span class="dropdown-header">5 Notifikasi</span>
-          <% notifications.forEach(n => { %>
-          <a href="#" class="dropdown-item">
-            <i class="bi <%= n.icon %> me-2"></i> <%= n.text %>
-            <span class="float-end fs-7 text-muted"><%= n.time %></span>
-          </a>
-          <% }) %>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item dropdown-footer">Lihat Semua Notifikasi</a>
-        </div>
-      </li>
+      <% }) %>
+      <div class="dropdown-divider"></div>
+      <a href="/notifications" class="dropdown-item text-center text-primary">Lihat Semua</a>
+
+    <% } else { %>
+      <div class="dropdown-item text-center py-3">
+        <i class="bi bi-bell-slash text-muted fs-4 d-block mb-2"></i>
+        <small class="text-muted">Tidak ada notifikasi baru</small>
+      </div>
+      <div class="dropdown-divider m-0"></div>
+      <a href="/notifications" class="dropdown-item text-center text-primary">Lihat Semua</a>
+    <% } %>
+
+  </div>
+</li>
+
+<script>
+function markRead(id){
+  $.post('/notifications/read/' + id, function(res){
+    if(res.success){
+      // Refresh nav agar badge hilang
+      location.reload();
+    }
+  });
+}
+</script>
+
+
 
       <!-- Pengguna -->
       <li class="nav-item dropdown user-menu">

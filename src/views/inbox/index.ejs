@@ -1,0 +1,183 @@
+<div class="container-fluid py-3">
+  <div class="row">
+
+    <!-- Sidebar / Percakapan -->
+    <div id="sidebar" class="col-md-4 border-end d-flex flex-column p-0">
+      <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+        <h5 class="mb-0">Percakapan</h5>
+        <button id="btn-new-chat" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNewChat">
+          Baru
+        </button>
+      </div>
+
+      <div id="conversation-list" class="flex-grow-1 overflow-auto">
+        <% if(conversations.length===0){ %>
+          <p class="text-center text-muted mt-4">Belum ada percakapan</p>
+        <% } %>
+        <% conversations.forEach(c => { %>
+          <a href="#" class="chat-link d-flex align-items-center p-2 mb-2 rounded text-decoration-none text-dark" data-user="<%= c.user_id %>">
+            <img src="<%= c.avatar || '/assets/img/avatar.png' %>" class="rounded-circle me-3" width="45" height="45" />
+            <div class="flex-grow-1">
+              <strong><%= c.fullname || c.username %></strong><br>
+              <small class="text-muted"><%= c.last_message %></small>
+            </div>
+            <% if(c.unread_count>0){ %>
+              <span class="badge bg-danger"><%= c.unread_count %></span>
+            <% } %>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chat-container" class="col-md-8 d-flex flex-column p-0" style="display:none; height:80vh;">
+      <div id="chat-header" class="p-2 border-bottom d-flex justify-content-between align-items-center">
+        <strong id="chat-with"></strong>
+        <button id="btn-back" class="btn btn-sm btn-outline-secondary d-md-none">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+      </div>
+      <div id="chat-window" class="flex-grow-1 overflow-auto p-3 bg-light"></div>
+
+      <form id="chat-form" class="d-flex p-2 border-top bg-white">
+        <input type="hidden" name="receiver_id">
+        <input type="text" name="body" class="form-control me-2" placeholder="Tulis pesan..." required>
+        <button class="btn btn-success" type="submit"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Chat Baru -->
+<div class="modal fade" id="modalNewChat" tabindex="-1" aria-labelledby="modalNewChatLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalNewChatLabel">Chat Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <% if(allUsers.length===0){ %>
+          <p class="text-muted">Tidak ada user lain</p>
+        <% } %>
+        <div class="list-group">
+          <% allUsers.forEach(u => { %>
+            <a href="#" class="list-group-item list-group-item-action new-chat-user" data-user="<%= u.id %>">
+              <img src="<%= u.avatar || '/assets/img/avatar.png' %>" class="rounded-circle me-2" width="35" height="35">
+              <%= u.fullname || u.username %>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function(){
+
+  function scrollBottom() {
+    const $chatWindow = $('#chat-window');
+    $chatWindow.scrollTop($chatWindow[0].scrollHeight);
+  }
+
+  // Klik percakapan
+  $('.chat-link').click(function(e){
+    e.preventDefault();
+    const userId = $(this).data('user');
+    const username = $(this).find('strong').text();
+
+    if($(window).width()<768){
+      $('#sidebar').hide();
+      $('#chat-container').show();
+    }
+
+    $('#chat-with').text(username);
+    $('#chat-form input[name="receiver_id"]').val(userId);
+
+    $.getJSON(`/inbox/chat/${userId}/json`, function(res){
+      if(!res.success) return;
+      const $chatWindow = $('#chat-window');
+      $chatWindow.empty();
+      res.messages.forEach(m=>{
+        const isMine = m.sender_id == <%= user.id %>;
+        const chatTime = new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+        $chatWindow.append(`
+          <div class="d-flex mb-2 ${isMine?'justify-content-end':'justify-content-start'}">
+            <div class="p-2 rounded ${isMine?'bg-success text-white':'bg-light text-dark'}" style="max-width:70%;">
+              ${m.body}<br>
+              <small class="text-muted d-block text-end fs-7">${chatTime}</small>
+            </div>
+          </div>
+        `);
+      });
+      scrollBottom();
+    });
+  });
+
+  // Tombol Back mobile
+  $('#btn-back').click(function(){
+    $('#chat-container').hide();
+    $('#sidebar').show();
+  });
+
+  // Kirim pesan AJAX
+  $('#chat-form').submit(function(e){
+    e.preventDefault();
+    const receiverId = $(this).find('input[name="receiver_id"]').val();
+    const body = $(this).find('input[name="body"]').val().trim();
+    if(!body) return;
+
+    $.ajax({
+      url:'/inbox/send',
+      method:'POST',
+      contentType:'application/json',
+      data: JSON.stringify({receiver_id:receiverId, body}),
+      success:function(){
+        const chatTime = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+        $('#chat-window').append(`
+          <div class="d-flex justify-content-end mb-2">
+            <div class="p-2 rounded bg-success text-white" style="max-width:70%;">
+              ${body}<br>
+              <small class="text-muted d-block text-end fs-7">${chatTime}</small>
+            </div>
+          </div>
+        `);
+        $('#chat-form input[name="body"]').val('');
+        scrollBottom();
+      }
+    });
+  });
+
+  // Modal Chat Baru: langsung isi receiver_id & tampilkan chat
+  $('.new-chat-user').click(function(e){
+    e.preventDefault();
+    const userId = $(this).data('user');
+    const username = $(this).text().trim();
+
+    $('#modalNewChat').modal('hide');
+    $('#chat-with').text(username);
+    $('#chat-form input[name="receiver_id"]').val(userId);
+    $('#chat-window').empty();
+
+    if($(window).width()<768){
+      $('#sidebar').hide();
+      $('#chat-container').show();
+    }
+  });
+
+});
+</script>
+
+<style>
+/* Hover effect */
+.chat-link:hover{ background-color:#f0f0f0; }
+
+/* Chat warna */
+.bg-light.text-dark{ background-color:#e9ecef !important; }
+
+@media(max-width:767px){
+  #sidebar{ display:block; }
+  #chat-container{ display:none; }
+}
+</style>

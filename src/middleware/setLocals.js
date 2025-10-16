@@ -1,22 +1,43 @@
-// mon-jawara/src/middleware/setLocals.js
-module.exports = (req, res, next) => {
-  // user dari session
-  res.locals.user = req.session?.user || null;
+/**
+ * Middleware setLocale
+ * - Menjamin session user tetap tersedia
+ * - Mengatur bahasa (default: 'id')
+ * - Menyediakan helper global untuk EJS
+ */
 
-  // Jika kamu mau menaruh default dummy, gunakan session dulu jika ada
-  res.locals.messages = req.session?.messages || [
-    { name: "Brad Diesel", text: "Call me whenever you can...", time: "4 jam lalu", img: "/assets/img/user1-128x128.jpg", badge: "text-danger" },
-    { name: "John Pierce", text: "I got your message bro", time: "6 jam lalu", img: "/assets/img/user8-128x128.jpg", badge: "text-secondary" },
-    { name: "Nora Silvester", text: "The subject goes here", time: "1 hari lalu", img: "/assets/img/user3-128x128.jpg", badge: "text-warning" }
-  ];
+module.exports = function setLocale(req, res, next) {
+  try {
+    // Pastikan ada objek session
+    if (!req.session) req.session = {};
 
-  res.locals.notifications = req.session?.notifications || [
-    { icon: "bi-envelope", text: "2 pesan baru", time: "5 mnt" },
-    { icon: "bi-people-fill", text: "1 permintaan teman", time: "1 jam" },
-    { icon: "bi-file-earmark-fill", text: "Laporan sistem masuk", time: "3 jam" },
-    { icon: "bi-exclamation-triangle", text: "Kesalahan login", time: "kemarin" },
-    { icon: "bi-download", text: "File berhasil diunggah", time: "2 hari" },
-  ];
+    // Simpan user login (kalau ada)
+    if (req.session.user) {
+      res.locals.user = req.session.user;
+    } else {
+      res.locals.user = null;
+    }
 
-  next();
+    // Bahasa default (bisa diubah di future)
+    const defaultLocale = 'id';
+    res.locals.locale = req.session.locale || defaultLocale;
+
+    // Helper format tanggal agar konsisten
+    res.locals.formatDate = function (date) {
+      if (!date) return '';
+      return new Date(date).toLocaleString(res.locals.locale, {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    next();
+  } catch (err) {
+    console.error('❌ setLocale middleware error:', err);
+    res.locals.user = null;
+    res.locals.locale = 'id';
+    next();
+  }
 };
