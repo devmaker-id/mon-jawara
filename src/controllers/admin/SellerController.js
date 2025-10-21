@@ -1,6 +1,7 @@
 const db = require("../../config/db");
 const ModSellers = require("../../models/sellersModel");
 const ModProducts = require("../../models/productsModel");
+const ModGroup = require("../../models/radiusd/profileGroupModel");
 
 class SellerController {
   
@@ -137,6 +138,20 @@ class SellerController {
       };
       res.redirect("/admin/seller/products");
     }
+  }
+  
+  static async aksessKhusus(req, res) {
+    const flashData = req.session.flashData;
+    delete req.session.flashData;
+    
+    const sellers = await ModSellers.allData();
+    const groups = await ModGroup.findByName("Keluarga-Bibit");
+      
+    res.render("seller/aksess_khusus", {
+      title: "Aksess Khusus Seller / Agen",
+      data: { groups, sellers },
+      flashData
+    });
   }
   
 }

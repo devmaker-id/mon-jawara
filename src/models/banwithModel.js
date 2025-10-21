@@ -92,6 +92,7 @@ class BandwidthModel {
       throw error;
     }
   }
+  
 }
 
 module.exports = BandwidthModel;

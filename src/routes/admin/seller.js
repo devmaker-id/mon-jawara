@@ -10,4 +10,6 @@ router.get("/products", ensureAuthenticated, Seller.sellerProduct);
 router.get("/add-product", ensureAuthenticated, Seller.addSellerProduct);
 router.post("/add-product", ensureAuthenticated, Seller.prosessAddSellerProduct);
 
+router.get("/aksess-free", ensureAuthenticated, Seller.aksessKhusus);
+
 module.exports = router;

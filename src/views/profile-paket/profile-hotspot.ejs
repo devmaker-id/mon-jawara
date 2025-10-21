@@ -369,7 +369,7 @@
     };
 
     $.ajax({
-      url: "/admin/profile-hotspot",
+      url: "/admin/profile/hotspot",
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify(data),
@@ -411,7 +411,7 @@
       const id = $(this).data("id");
 
       $.ajax({
-        url: `/admin/profile-hotspot/${id}`,
+        url: `/admin/profile/hotspot/${id}`,
         method: "GET",
         dataType: "json",
         success: function (data) {
@@ -457,7 +457,7 @@
       }).then((result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: `/admin/profile-hotspot/delete/${id}`,
+            url: `/admin/profile/hotspot/delete/${id}`,
             method: "POST",
             success: function () {
               Swal.fire({
@@ -502,7 +502,7 @@
       };
 
       $.ajax({
-        url: `/admin/profile-hotspot/${id}`,
+        url: `/admin/profile/hotspot/${id}`,
         method: "PUT",
         contentType: "application/json",
         data: JSON.stringify(formData),

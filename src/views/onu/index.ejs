@@ -291,7 +291,7 @@ $(document).ready(function () {
     $("#editNoInternet").val(noInternet);
     $("#editLocation").val(lokasi);
     $("#odpEditList").val(odpId);
-    $("#formEditOnu").attr("action", `/admin/edit-onu/${id}`);
+    $("#formEditOnu").attr("action", `/admin/router-onu/edit/${id}`);
 
     $("#editOnuModal").modal("show");
   });
@@ -355,7 +355,7 @@ $(document).ready(function () {
     }).then((result) => {
       if (result.isConfirmed) {
         $.ajax({
-          url: `/admin/onu/delete/${id}`,
+          url: `/admin/router-onu/delete/${id}`,
           type: "DELETE",
           success: function () {
             Swal.fire({
