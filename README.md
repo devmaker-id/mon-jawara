@@ -1,6 +1,10 @@
 ## MON JAWARA
 
 monitor jaringan jawara
+
+## update 24/10/2025
+tambah telnet, olt hisfocus, cek detail onu
+
 ## update 04/04/2025
 ```
 Perbaiki logika login

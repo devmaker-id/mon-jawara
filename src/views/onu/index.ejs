@@ -1,85 +1,4 @@
-<style>
-  /* ====== Table Modern ====== */
-  table.dataTable {
-    border-collapse: separate;
-    border-spacing: 0 0.6rem; /* jarak antar row */
-  }
 
-  table.dataTable thead th {
-    background: #17a2b8; /* biru info */
-    color: #fff;
-    font-weight: 600;
-    border: none;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  table.dataTable tbody tr {
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    transition: all 0.2s ease;
-  }
-
-  table.dataTable tbody tr:hover {
-    transform: scale(1.01);
-    background: #f8f9fa;
-  }
-
-  table.dataTable td {
-    vertical-align: middle;
-    border: none;
-    padding: 0.9rem 1rem;
-    font-size: 0.95rem;
-  }
-
-  /* ====== Pagination Modern ====== */
-  .dataTables_wrapper .dataTables_paginate .pagination {
-    justify-content: center;
-    gap: 0.4rem;
-  }
-
-  .dataTables_wrapper .dataTables_paginate .page-link {
-    border-radius: 8px;
-    font-size: 1rem;
-    padding: 0.5rem 0.9rem;
-    color: #17a2b8;
-    border: 1px solid #dee2e6;
-    transition: all 0.2s;
-  }
-
-  .dataTables_wrapper .dataTables_paginate .page-link:hover {
-    background: #17a2b8;
-    color: #fff;
-  }
-
-  .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
-    background: #17a2b8;
-    border-color: #17a2b8;
-    color: #fff;
-    font-weight: 600;
-  }
-
-  /* ====== Search Box Modern ====== */
-  .dataTables_filter input {
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    padding: 0.4rem 0.8rem;
-    outline: none;
-    transition: 0.2s;
-  }
-
-  .dataTables_filter input:focus {
-    border-color: #17a2b8;
-    box-shadow: 0 0 4px rgba(23,162,184,0.3);
-  }
-
-  /* ====== Length Select ====== */
-  .dataTables_length select {
-    border-radius: 6px;
-    padding: 0.3rem;
-    border: 1px solid #ccc;
-  }
-</style>
 
 <section class="content mt-3">
   <div class="container-fluid">
@@ -120,9 +39,12 @@
     <div class="card shadow-sm">
       <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i> Daftar Router ONU</h5>
+        <a href="/admin/router-onu/add-new" class="btn btn-sm btn-secondary">
+          Tambah Router
+        </a>
       </div>
       <div class="card-body">
-        <div class="table-responsive">
+        <div class="">
           <table id="routerTable" class="table table-bordered table-hover align-middle text-nowrap">
             <thead class="table-info">
               <tr>
@@ -156,6 +78,7 @@
                       <% } %>
                     </td>
                     <td>
+                      <button class="btn btn-sm btn-info btn-view" data-id="<%= router.id %>" data-name="<%= router.nama %>"><i class="bi bi-eye"></i></button>
                       <button class="btn btn-sm btn-warning btn-edit"
                         data-id="<%= router.id %>"
                         data-nama="<%= router.nama %>"
@@ -181,6 +104,33 @@
 
   </div>
 </section>
+
+<!-- Modal Detail ONU -->
+<div class="modal fade" id="viewOnuModal" tabindex="-1" aria-labelledby="viewOnuModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="viewOnuModalLabel">
+          <i class="bi bi-hdd-network me-2"></i> Detail ONU
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row" id="onuDetailContent">
+          <div class="col-12 text-center text-muted">Pilih ONU untuk melihat detail...</div>
+        </div>
+        <div class="mt-4">
+          <canvas id="powerChart" height="100"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Modal Edit ONU -->
 <div class="modal fade" id="editOnuModal" tabindex="-1" aria-labelledby="editOnuModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -243,14 +193,18 @@ $(document).ready(function () {
   const table = $('#routerTable').DataTable({
     responsive: true,
     lengthChange: true,
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100, 250, 500],
+    ordering: true,
     paging: true,
     info: true,
-    ordering: true,
     searching: true,
     language: {
-      search: "🔍 Cari:",
+      search: "🔍 Cari ONU:",
       lengthMenu: "Tampilkan _MENU_ data per halaman",
       info: "Menampilkan _START_ sampai _END_ dari total _TOTAL_ data",
+      infoEmpty: "Tidak ada data yang ditampilkan",
+      zeroRecords: "Tidak ditemukan data yang cocok",
       paginate: {
         first: "Awal",
         last: "Akhir",
@@ -260,22 +214,168 @@ $(document).ready(function () {
       emptyTable: "Tidak ada data tersedia"
     },
     dom: `
-      <'row mb-3'
+      <'row mb-2'
         <'col-sm-12 col-md-6'l>
         <'col-sm-12 col-md-6'f>
       >
-      <'table-responsive't>
+      <'table-responsive'tr>
       <'row mt-3'
         <'col-sm-12 col-md-5'i>
         <'col-sm-12 col-md-7'p>
       >
     `,
     drawCallback: function () {
-      $(".dataTables_paginate .pagination").addClass("justify-content-center");
-      $(".dataTables_paginate .pagination li:first-child").addClass("me-auto");
-      $(".dataTables_paginate .pagination li:last-child").addClass("ms-auto");
+      $(".dataTables_paginate .pagination").addClass("justify-content-end mb-0");
     }
   });
+  
+let powerChart = null; // simpan global chart biar bisa destroy sebelum redraw
+
+function getPowerBarColor(value) {
+  const v = parseFloat(value);
+  if (isNaN(v)) return "#adb5bd"; // abu-abu
+
+  if (v > -8) return "#fd7e14";      // orange
+  if (v <= -8 && v >= -12) return "#fd7e14"; // orange
+  if (v <= -13 && v >= -23) return "#198754"; // hijau
+  if (v <= -24 && v >= -27) return "#e83e8c"; // pink
+  if (v <= -28 && v >= -35) return "#dc3545"; // merah
+  return "#6c757d";
+}
+
+$(document).on("click", ".btn-view", function () {
+  const id = $(this).data("id");
+  const name = $(this).data("name");
+
+  $("#onuDetailContent").html(`
+    <div class="col-12 text-center mt-3">
+      <div class="spinner-border text-info" role="status"></div>
+      <p class="mt-2 text-muted">Mengambil data ONU <b>${name}</b>...</p>
+    </div>
+  `);
+  $("#viewOnuModalLabel").html(`<i class="bi bi-hdd-network me-2"></i> Detail ONU - ${name}`);
+  $("#viewOnuModal").modal("show");
+
+  $.ajax({
+    url: `/admin/router-onu/view/${id}`,
+    type: "GET",
+    success: function (res) {
+      if (!res.success || !res.data || !res.data.onu_info) {
+        $("#onuDetailContent").html(`
+          <div class="col-12 text-center text-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i> Data ONU tidak ditemukan atau kosong.
+          </div>
+        `);
+        if (powerChart) {
+          powerChart.destroy();
+          powerChart = null;
+        }
+        return;
+      }
+
+      const d = res.data.onu_info;
+      const rxColor = getPowerBarColor(d.rxpower);
+      const txColor = getPowerBarColor(d.txpower);
+
+      const html = `
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+              <h6 class="border-bottom pb-2 mb-2 text-info"><i class="bi bi-cpu me-1"></i> Info Umum</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>ONU ID:</strong> ${d.onu_id || '-'}</li>
+                <li class="list-group-item"><strong>MAC:</strong> ${d.onu_mac || '-'}</li>
+                <li class="list-group-item"><strong>Nama:</strong> ${d.onu_name || '-'}</li>
+                <li class="list-group-item"><strong>Status:</strong> ${d.online_status || '-'}</li>
+                <li class="list-group-item"><strong>Firmware:</strong> ${d.firmware_version || '-'}</li>
+                <li class="list-group-item"><strong>Model:</strong> ${d.model_string || '-'}</li>
+                <li class="list-group-item"><strong>Onu Type:</strong> ${d.onu_type || '-'}</li>
+                <li class="list-group-item"><strong>Online Time:</strong> ${d.onlinetime || '-'}</li>
+                <li class="list-group-item"><strong>Offline Count:</strong> ${d.offlineeventcnt || '-'}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+              <h6 class="border-bottom pb-2 mb-2 text-primary"><i class="bi bi-lightning me-1"></i> Optical Power</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>Temperature:</strong> ${d.temperature || '-'} °C</li>
+                <li class="list-group-item"><strong>Voltage:</strong> ${d.voltage || '-'} V</li>
+                <li class="list-group-item"><strong>Tx Bias:</strong> ${d.txbias || '-'} mA</li>
+                <li class="list-group-item"><strong>Tx Power:</strong> <span class="fw-bold" style="color:${txColor}">${d.txpower || '-'}</span></li>
+                <li class="list-group-item"><strong>Rx Power:</strong> <span class="fw-bold" style="color:${rxColor}">${d.rxpower || '-'}</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $("#onuDetailContent").html(html);
+
+      // ===============================
+      // Buat chart baru
+      // ===============================
+      const ctx = document.getElementById("powerChart");
+      if (powerChart) {
+        powerChart.destroy(); // hapus chart lama biar ga dobel
+      }
+
+      const tx = parseFloat(d.txpower) || 0;
+      const rx = parseFloat(d.rxpower) || 0;
+
+      powerChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["TX Power", "RX Power"],
+          datasets: [{
+            label: "Optical Power (dBm)",
+            data: [tx, rx],
+            backgroundColor: [txColor, rxColor],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: false,
+              min: -35,
+              max: 0,
+              title: { display: true, text: "dBm" }
+            },
+            y: { ticks: { font: { weight: 'bold' } } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.parsed.x} dBm`
+              }
+            }
+          }
+        }
+      });
+    },
+    error: function (err) {
+      $("#onuDetailContent").html(`
+        <div class="col-12 text-center text-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i> Gagal mengambil data ONU.
+        </div>
+      `);
+      if (powerChart) {
+        powerChart.destroy();
+        powerChart = null;
+      }
+      console.error("Detail ONU error:", err);
+    }
+  });
+});
+
+
+
 
   // ====================================
   // 2. HANDLER TOMBOL EDIT

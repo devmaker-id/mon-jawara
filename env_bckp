@@ -7,6 +7,12 @@ NODE_ENV=development
 # session
 SESSION_SECRET=S3cr3tM0n1t0rJ4w4r4B161T
 
+# olt hisfocus 4p1gm aksess telnet
+TELNET_HOST=192.168.110.3
+TELNET_PORT=23
+TELNET_USERNAME=admin
+TELNET_PASSWORD=admin
+
 # database
 DB_HOST=localhost
 DB_USER=root
@@ -15,4 +21,4 @@ DB_NAME=db_mon_jawara
 DB_PORT=3306
 
 # key server to server
-SERVER_KEY=d643b321fe51c359d6b1d045407a2de2916d1c9db0f0c2c8f43c59d5c0b1558a
+SERVER_KEY=d643b321fe1c359d6b1d045407ade2916d1c9db0f0c2c8f43c59d5c0b1558a

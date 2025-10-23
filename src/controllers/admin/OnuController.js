@@ -1,3 +1,4 @@
+const OltService = require("../../services/oltService");
 const OnuUnauthModel = require("../../models/onuUnauthModel");
 const OnuModel = require("../../models/onuModel");
 const OdpModel = require("../../models/odpModel");
@@ -198,7 +199,6 @@ class OnuController {
       });
     }
   }
-
   static async deleteOnu(req, res) {
     const { id } = req.params;
     try {
@@ -231,6 +231,31 @@ class OnuController {
         success: false,
         message: "Terjadi kesalahan pada server",
       });
+    }
+  }
+  
+  
+  static async detailOnu(req, res) {
+    const { id } = req.params;
+    try {
+      const onu = await OnuModel.getById(id);
+      if (!onu) {
+        return res.status(404).json({ success: false, message: "ONU tidak ditemukan" });
+      }
+  
+      // misalnya ambil info OLT dari tabel OLT ENV
+      const oltConfig = {
+        host: process.env.TELNET_HOST,
+        port: process.env.TELNET_PORT,
+        username: process.env.TELNET_USERNAME,
+        password: process.env.TELNET_PASSWORD,
+        prompt: "OLT_BIBITNET"
+      };
+  
+      const result = await OltService.getOnuDetail(onu, oltConfig);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Gagal ambil data ONU", error: error.message });
     }
   }
 
