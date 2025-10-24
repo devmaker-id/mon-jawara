@@ -2,6 +2,7 @@ const db = require("../../config/db");
 const ModSellers = require("../../models/sellersModel");
 const ModProducts = require("../../models/productsModel");
 const ModGroup = require("../../models/radiusd/profileGroupModel");
+const UserGroup = require("../../models/radiusd/radUserGroupModel");
 
 class SellerController {
   
@@ -145,7 +146,9 @@ class SellerController {
     delete req.session.flashData;
     
     const sellers = await ModSellers.allData();
-    const groups = await ModGroup.findByName("Keluarga-Bibit");
+    const groups = await UserGroup.findByName("Keluarga-Bibit");
+    
+    console.log("groups:\n", groups);
       
     res.render("seller/aksess_khusus", {
       title: "Aksess Khusus Seller / Agen",
