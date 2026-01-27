@@ -1,6 +1,6 @@
 const RouterOSAPI = require("node-routeros").RouterOSAPI;
 const MikrotikModel = require("../../models/mikrotikModel");
-const NasModel = require("../../models/nasModel");
+const NasModel = require("../../models/radiusd/nasModel");
 const RadServer = require("../../models/radiusd/radServerUserModel");
 const AkunVpnModel = require("../../models/akunVpnModel");
 
@@ -11,6 +11,8 @@ class NasController {
     delete req.session.flashData;
     
     const nasClients = await NasModel.findAll();
+    
+    console.log("Nas:\n", nasClients);
 
     res.render("nas-client/index", {
       title: "Nas Client Manajemen",

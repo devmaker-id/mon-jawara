@@ -13,6 +13,20 @@ class SupplierUser {
     }
   }
   
+  static async getAkunByUsername(username) {
+    try {
+      const radcheck = "SELECT * FROM radcheck WHERE username = ?";
+      const usergroup = "SELECT * FROM radusergroup WHERE username = ?";
+      const value = [username];
+      
+      const [result] = await db.query(usergroup, value);
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+  
   static async create(data) {
     const sql = `INSERT INTO tbl_sellers (name, alamat, telepon, email, catatan) VALUES (?, ?, ?, ?, ?)`;
     const values = [
