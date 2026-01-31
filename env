@@ -1,0 +1,24 @@
+# set time zone
+TZ=Asia/Jakarta
+
+# app set, production | development
+NODE_ENV=development
+
+# session
+SESSION_SECRET=S3cr3tM0n1t0rJ4w4r4B161T
+
+# olt hisfocus 4p1gm aksess telnet
+TELNET_HOST=172.10.0.121
+TELNET_PORT=23
+TELNET_USERNAME=admin
+TELNET_PASSWORD=1234123
+
+# database
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=
+DB_NAME=mon_jawara
+
+# key server to server
+SERVER_KEY=d643b321fe1c359d6b1d045407ade2916d1c9db0f0c2c8f43c59d5c0b1558a
