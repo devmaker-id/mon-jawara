@@ -1,0 +1,122 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <h3 class="mb-0"><%= title %></h3>
+    </div>
+  </div>
+</div>
+
+<div class="app-content py-3">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="col-12 mb-2">
+      <div class="btn-group">
+        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          Menu
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="/admin/seller/add-product">Tambah Baru</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Kode Produk</th>
+                <th>Nama Produk</th>
+                <th>Seller</th>
+                <th>Harga Seller</th>
+                <th>Stok Seller</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% if (data.rows && data.rows.length > 0) { %>
+                <% data.rows.forEach((item, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= item.kode_produk %></td>
+                    <td><%= item.product_name %></td>
+                    <td><%= item.seller_name %></td>
+                    <td>Rp <%= item.harga_seller.toLocaleString() %></td>
+                    <td><%= item.stok_seller %></td>
+                    <td>
+                      <!-- Tombol Edit -->
+                      <a href="/edit-seller-product/<%= item.seller_product_id %>" 
+                         class="btn btn-sm btn-secondary">
+                        <span class="bi bi-pen"></span> Edit
+                      </a>
+
+                      <!-- Tombol hapus -->
+                      <button class="btn btn-sm btn-danger"
+                              data-bs-toggle="modal"
+                              data-bs-target="#deleteModal"
+                              data-id="<%= item.seller_product_id %>"
+                              data-name="<%= item.product_name %> - <%= item.seller_name %>">
+                        <span class="bi bi-trash"></span> Hapus
+                      </button>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="7" class="text-center">Belum ada produk seller</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Delete -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="deleteForm" method="POST" action="">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          Apakah anda yakin ingin menghapus <span id="deleteItemName"></span> ?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var deleteModal = document.getElementById("deleteModal");
+  deleteModal.addEventListener("show.bs.modal", function (event) {
+    var button = event.relatedTarget;
+    var id = button.getAttribute("data-id");
+    var name = button.getAttribute("data-name");
+
+    document.getElementById("deleteItemName").innerText = name;
+    document.getElementById("deleteForm").action = "/delete-seller-product/" + id;
+  });
+});
+</script>

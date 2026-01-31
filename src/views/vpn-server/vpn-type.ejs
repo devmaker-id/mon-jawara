@@ -1,0 +1,86 @@
+<!-- views/vpn-type-global.ejs -->
+<section class="content mt-2">
+  <div class="container-fluid">
+    <div class="card shadow">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
+          <i class="bi bi-collection me-1"></i> Manajemen Tipe VPN
+        </h3>
+        <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalAddVpnType">
+          <i class="bi bi-plus-circle"></i> Tambah Tipe
+        </button>
+      </div>
+
+      <div class="card-body table-responsive mt-2">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th class="text-nowrap">Nama Tipe</th>
+              <th>Deskripsi</th>
+              <th class="text-nowrap">Status Default</th>
+              <th>Dibuat</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% vpnTypes.forEach((type, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><strong><%= type.name.toUpperCase() %></strong></td>
+                <td>x</td>
+                <td>
+                  <% if (true) { %>
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Aktif</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Tidak Aktif</span>
+                  <% } %>
+                </td>
+                <td>x</td>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Tambah Tipe VPN -->
+<div class="modal fade" id="modalAddVpnType" tabindex="-1" aria-labelledby="modalAddVpnTypeLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalAddVpnTypeLabel">
+          <i class="bi bi-plus-circle me-1"></i> Tambah Tipe VPN
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nama Tipe VPN</label>
+          <input type="text" class="form-control" id="name" name="name" required placeholder="Misal: ovpn / sstp">
+        </div>
+
+        <div class="mb-3">
+          <label for="description" class="form-label">Deskripsi</label>
+          <textarea class="form-control" name="description" id="description" rows="2" placeholder="Penjelasan singkat..."></textarea>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="default_enabled" name="default_enabled" checked>
+          <label class="form-check-label" for="default_enabled">Aktif secara default</label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Simpan</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+      /* Styling umum */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+        text-align: center;
+        padding: 50px;
+    }
+    
+    /* Container untuk halaman error */
+    .container {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Judul halaman */
+    h1 {
+        font-size: 20px;
+        color: #dc3545;
+    }
+    
+    /* Pesan error */
+    p {
+        font-size: 13px;
+        margin: 10px 0 20px;
+    }
+    
+    /* Tombol kembali */
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 16px;
+        text-decoration: none;
+        color: white;
+        background-color: #007bff;
+        border-radius: 5px;
+        transition: 0.3s;
+    }
+    
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h1><%= title %> - Halaman Tidak Ditemukan</h1>
+        <p>Maaf, halaman yang Anda cari tidak tersedia.</p>
+        <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+    </div>
+</body>
+</html>

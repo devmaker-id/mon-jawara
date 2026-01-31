@@ -1,0 +1,122 @@
+<nav class="app-header navbar navbar-expand" style="background-color: rgba(0, 108, 0, 0.8);">
+  <div class="container-fluid">
+
+    <!-- Kiri -->
+    <ul class="navbar-nav align-items-center">
+      <!-- Toggle Sidebar -->
+      <li class="nav-item">
+        <a class="nav-link" data-lte-toggle="sidebar" href="#" aria-label="Toggle Sidebar">
+          <i class="bi bi-list"></i>
+        </a>
+      </li>
+      <% if(user.akun_type !== "kasir") { %>
+      <li class="nav-item">
+        <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#navModalCari" aria-label="Cari">
+          <i class="bi bi-search"></i> Cari
+        </a>
+      </li>
+      <% } %>
+    </ul>
+
+    <!-- Kanan -->
+    <ul class="navbar-nav ms-auto align-items-center gap-2">
+      
+    <li class="nav-item dropdown">
+      <a class="nav-link position-relative" href="<%= latestUnreadUserId ? '/inbox/chat/' + latestUnreadUserId : '/inbox' %>" aria-label="Pesan Masuk">
+        <i class="bi bi-chat-text"></i>
+        <% if(unreadCount>0){ %>
+          <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-danger"><%= unreadCount %></span>
+        <% } %>
+      </a>
+    </li>
+
+
+<li class="nav-item dropdown">
+  <a class="nav-link position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-bell-fill"></i>
+    <% if (notifUnreadCount > 0) { %>
+      <span class="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-warning text-dark">
+        <%= notifUnreadCount %>
+      </span>
+    <% } %>
+  </a>
+
+  <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notifDropdown" style="min-width: 280px;">
+
+    <% if (notifications && notifications.length > 0) { %>
+      <% notifications.forEach(n => { %>
+        <a href="<%= n.link || '/notifications' %>" 
+           class="dropdown-item <%= n.is_read ? '' : 'fw-bold bg-light' %>"
+           onclick="markRead(<%= n.id %>)">
+          <div class="d-flex align-items-start">
+            <i class="bi <%= n.icon || 'bi-info-circle' %> me-2 mt-1"></i>
+            <div>
+              <div><%= n.title %></div>
+              <% if (n.message) { %>
+                <small class="text-muted d-block"><%= n.message %></small>
+              <% } %>
+              <small class="text-muted d-block"><%= new Date(n.created_at).toLocaleString('id-ID') %></small>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+      <div class="dropdown-divider"></div>
+      <a href="/notifications" class="dropdown-item text-center text-primary">Lihat Semua</a>
+
+    <% } else { %>
+      <div class="dropdown-item text-center py-3">
+        <i class="bi bi-bell-slash text-muted fs-4 d-block mb-2"></i>
+        <small class="text-muted">Tidak ada notifikasi baru</small>
+      </div>
+      <div class="dropdown-divider m-0"></div>
+      <a href="/notifications" class="dropdown-item text-center text-primary">Lihat Semua</a>
+    <% } %>
+
+  </div>
+</li>
+
+<script>
+function markRead(id){
+  $.post('/notifications/read/' + id, function(res){
+    if(res.success){
+      // Refresh nav agar badge hilang
+      location.reload();
+    }
+  });
+}
+</script>
+
+
+
+      <!-- Pengguna -->
+      <li class="nav-item dropdown user-menu">
+        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-label="Menu Pengguna">
+          <img src="<%= user?.avatar || '/assets/img/user2-160x160.jpg' %>" alt="User Avatar" class="user-image rounded-circle shadow" width="32" height="32" onerror="this.src='/assets/img/user2-160x160.jpg'" />
+          <span class="d-none d-md-inline ms-2 text-white"><%= user.fullname %></span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+          <li class="user-header text-bg-success text-white text-center">
+            <img src="<%= user?.avatar || '/assets/img/user2-160x160.jpg' %>" alt="User" class="rounded-circle shadow mb-2" width="80" height="80" onerror="this.src='/assets/img/user2-160x160.jpg'" />
+            <p>
+              <strong><%= user.fullname %></strong> - <%= user.akun_type %><br />
+              <small><%= user.email %></small>
+            </p>
+          </li>
+
+          <li class="user-body text-center">
+            <p>Github: <a href="https://github.com/devmaker-id" target="_blank">Devmaker-ID</a></p>
+          </li>
+
+          <li class="user-footer d-flex justify-content-between px-3 py-2">
+            <a href="/user/profile" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-person-circle me-1"></i> Profil Saya
+            </a>
+            <a href="/auth/logout" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-box-arrow-right me-1"></i> Keluar
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>

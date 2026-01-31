@@ -1,0 +1,258 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+    <div class="card shadow">
+      <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+        <h3 class="card-title m-0">
+          <i class="bi bi-speedometer2"></i> Manajemen Bandwidth
+        </h3>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdd">
+          <i class="bi bi-plus-circle"></i> Tambah
+        </button>
+      </div>
+
+      <div class="card-body table-responsive mt-2">
+        <table class="table table-bordered table-hover table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th class="text-nowrap">Min Upload</th>
+              <th class="text-nowrap">Max Upload</th>
+              <th class="text-nowrap">Min Download</th>
+              <th class="text-nowrap">Max Download</th>
+              <th>Owner</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (profiles && profiles.length > 0) { %>
+              <% profiles.forEach((profile, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td class="text-nowrap"><%= profile.name %></td>
+                  <td class="text-nowrap"><%= profile.min_upload %> <%= profile.unit_min_upload %></td>
+                  <td class="text-nowrap"><%= profile.max_upload %> <%= profile.unit_max_upload %></td>
+                  <td class="text-nowrap"><%= profile.min_download %> <%= profile.unit_min_download %></td>
+                  <td class="text-nowrap"><%= profile.max_download %> <%= profile.unit_max_download %></td>
+                  <td><%= profile.owner_name %></td>
+                  <td class="text-nowrap">
+                    <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal" data-bs-target="#modalEdit" 
+                      data-id="<%= profile.id %>" data-name="<%= profile.name %>" 
+                      data-minup="<%= profile.min_upload %>" data-unitminup="<%= profile.unit_min_upload %>"
+                      data-maxup="<%= profile.max_upload %>" data-unitmaxup="<%= profile.unit_max_upload %>"
+                      data-mindown="<%= profile.min_download %>" data-unitmindown="<%= profile.unit_min_download %>"
+                      data-maxdown="<%= profile.max_download %>" data-unitmaxdown="<%= profile.unit_max_download %>">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger btn-delete" data-bs-toggle="modal" data-bs-target="#modalDelete"
+                      data-id="<%= profile.id %>" data-name="<%= profile.name %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center text-muted">Tidak ada data bandwidth tersedia.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="modalAdd" tabindex="-1" aria-labelledby="modalAddLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalAddLabel">
+          <i class="bi bi-plus-circle me-1"></i> Tambah Profil Bandwidth
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formAddBandwidth" method="post" action="/admin/banwith-management/store">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label">Nama Profil</label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Min Upload</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="min_upload" required>
+                <select class="form-select" name="unit_min_upload">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max Upload</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="max_upload" required>
+                <select class="form-select" name="unit_max_upload">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Min Download</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="min_download" required>
+                <select class="form-select" name="unit_min_download">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max Download</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="max_download" required>
+                <select class="form-select" name="unit_max_download">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="description" class="form-label">Keterangan</label>
+              <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="modalEditLabel">
+          <i class="bi bi-pencil-square me-1"></i> Edit Profil Bandwidth
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formEditBandwidth" method="post" action="/admin/banwith-management/update">
+        <div class="modal-body">
+          <input type="hidden" id="editId" name="id">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="editName" class="form-label">Nama Profil</label>
+              <input type="text" class="form-control" id="editName" name="name" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Min Upload</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="editMinUpload" name="min_upload" required>
+                <select class="form-select" id="editUnitMinUpload" name="unit_min_upload">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max Upload</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="editMaxUpload" name="max_upload" required>
+                <select class="form-select" id="editUnitMaxUpload" name="unit_max_upload">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Min Download</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="editMinDownload" name="min_download" required>
+                <select class="form-select" id="editUnitMinDownload" name="unit_min_download">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max Download</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="editMaxDownload" name="max_download" required>
+                <select class="form-select" id="editUnitMaxDownload" name="unit_max_download">
+                  <option value="kbps">Kbps</option>
+                  <option value="mbps">Mbps</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning text-white">
+            <i class="bi bi-save"></i> Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Hapus -->
+<div class="modal fade" id="modalDelete" tabindex="-1" aria-labelledby="modalDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalDeleteLabel">
+          <i class="bi bi-trash"></i> Hapus Data
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="/admin/banwith-management/delete">
+        <div class="modal-body">
+          <input type="hidden" id="deleteId" name="id">
+          <p>Yakin ingin menghapus profil <strong id="deleteName">?</strong></p>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Hapus
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Script Modal -->
+<script>
+  document.getElementById('modalEdit').addEventListener('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+    document.getElementById('editId').value = btn.dataset.id;
+    document.getElementById('editName').value = btn.dataset.name;
+    document.getElementById('editMinUpload').value = btn.dataset.minup;
+    document.getElementById('editUnitMinUpload').value = btn.dataset.unitminup;
+    document.getElementById('editMaxUpload').value = btn.dataset.maxup;
+    document.getElementById('editUnitMaxUpload').value = btn.dataset.unitmaxup;
+    document.getElementById('editMinDownload').value = btn.dataset.mindown;
+    document.getElementById('editUnitMinDownload').value = btn.dataset.unitmindown;
+    document.getElementById('editMaxDownload').value = btn.dataset.maxdown;
+    document.getElementById('editUnitMaxDownload').value = btn.dataset.unitmaxdown;
+  });
+
+  document.getElementById('modalDelete').addEventListener('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+    document.getElementById('deleteId').value = btn.dataset.id;
+    document.getElementById('deleteName').textContent = btn.dataset.name;
+  });
+</script>

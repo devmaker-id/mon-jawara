@@ -1,0 +1,460 @@
+<!-- CodeMirror dependencies -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/overlay.min.js"></script>
+
+<section class="content mt-3">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-layout-text-window-reverse me-1"></i> Template Voucher</h5>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddTemplate">
+          <i class="bi bi-plus-circle me-1"></i> Tambah
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th class="text-nowrap">Nama Template</th>
+                <th>Status</th>
+                <th>Preview</th>
+                <th class="text-end">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% templates.forEach((tpl, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td class="text-nowrap"><%= tpl.name %></td>
+                  <td>
+                    <% if (tpl.status === "enable") { %>
+                      <span class="badge bg-success">Enable</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary">Disable</span>
+                    <% } %>
+                  </td>
+                  <td class="text-nowrap">
+                    <button class="btn btn-sm btn-info btn-preview-template" data-id="<%= tpl.id %>" data-bs-toggle="modal" data-bs-target="#modalPreviewTemplate">
+                      <i class="bi bi-eye"></i> Preview
+                    </button>
+                  </td>
+                  <td class="text-nowrap">
+                    <button class="btn btn-warning btn-sm me-1 btn-edit-template"
+                      data-id="<%= tpl.id %>"
+                      data-name="<%= tpl.name %>"
+                      data-status="<%= tpl.status %>"
+                      data-html="<%= tpl.html %>"
+                    >
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm btn-delete-template" data-id="<%= tpl.id %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Edit Template -->
+<div class="modal fade" id="modalEditTemplate" tabindex="-1" aria-labelledby="editTemplateLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form id="formEditTemplate">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Template Voucher</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editTemplateId">
+          <div class="mb-3">
+            <label for="editTemplateName" class="form-label">Nama Template</label>
+            <input type="text" class="form-control" id="editTemplateName">
+          </div>
+          <div class="mb-3">
+            <label for="editTemplateEngine" class="form-label">Engine Template</label>
+            <textarea class="form-control" id="editTemplateEngine" rows="10"></textarea>
+            <small class="text-muted">Gunakan variabel seperti <code>&lt;%= username %&gt;</code>, <code>&lt;%= price %&gt;</code>, dll.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-block">Status Template</label>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="editStatusTemplate" id="editStatusEnable" value="enable">
+              <label class="form-check-label" for="editStatusEnable">Enable</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="editStatusTemplate" id="editStatusDisable" value="disable">
+              <label class="form-check-label" for="editStatusDisable">Disable</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Update</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Tambah Template -->
+<div class="modal fade" id="modalAddTemplate" tabindex="-1" aria-labelledby="addTemplateLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form id="formAddTemplate">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Tambah Template Voucher</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Nama Template -->
+          <div class="mb-3">
+            <label for="templateName" class="form-label">Nama Template</label>
+            <input type="text" class="form-control" id="templateName" placeholder="Contoh: Voucher Mini">
+          </div>
+
+          <!-- Engine Template -->
+          <div class="mb-3">
+            <label for="templateEngine" class="form-label">Engine Template</label>
+            <textarea class="form-control" id="templateEngine" rows="10" placeholder="Masukkan kode engine di sini..."></textarea>
+            <div class="form-text">
+              Gunakan sintaks EJS seperti <code>&lt;%= v.code %&gt;</code>. Lihat daftar variabel di bawah.
+            </div>
+          </div>
+
+          <!-- ToolTips / Variable Help -->
+          <div class="alert alert-info small">
+            <strong>Variabel yang bisa digunakan:</strong>
+            <ul class="mb-0 ps-3">
+              <li><code>v.code</code> – Kode voucher</li>
+              <li><code>v.secret</code> – Password voucher</li>
+              <li><code>v.price</code> – Harga (misalnya: Rp. 2000)</li>
+              <li><code>v.duration</code> – Durasi akses (contoh: 1 jam, 1 hari)</li>
+              <li><code>v.expired</code> – Tanggal kadaluarsa voucher</li>
+              <li><code>v.quota</code> – Kuota data (misal: 2GB)</li>
+              <li><code>v.profile</code> – Nama profile dari voucher</li>
+              <li><code>v.owner</code> – Username pemilik voucher</li>
+              <li><code>domain</code> – Domain hotspot (contoh: login.domain.com)</li>
+              <li><code>index</code> – Nomor urut cetakan (1,2,3,...)</li>
+              <li><code>userType</code> – Jenis user (contoh: VOUCHER, MEMBER)</li>
+            </ul>
+          </div>
+
+          <!-- Status -->
+          <div class="mb-3">
+            <label class="form-label d-block">Status Template</label>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="statusTemplate" id="statusEnable" value="enable" checked>
+              <label class="form-check-label" for="statusEnable">Enable</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="statusTemplate" id="statusDisable" value="disable">
+              <label class="form-check-label" for="statusDisable">Disable</label>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-save me-1"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="modalPreviewTemplate" tabindex="-1" aria-labelledby="modalPreviewTemplateLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalPreviewTemplateLabel">Preview Template</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="previewArea" class="border p-3">
+          
+          <style type="text/css">
+          .rotate {
+            vertical-align: bottom;
+            text-align: center;
+          }
+          .rotate span {
+            -ms-writing-mode: tb-rl;
+            -webkit-writing-mode: vertical-rl;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+          }
+          .qrcode {
+            height: 60px;
+            width: 60px;
+          }
+          </style>
+          
+          <% for (let i = 0; i < 5; i++) { %>
+          <!-- Voucher dengan Username = Password -->
+          <table class="voucher" style="width: 230px; border:1px solid blue; margin-bottom: 10px; position: relative;">
+          <tbody>
+            <tr>
+              <td class="rotate" style="font-weight: bold; border-right: 1px solid blue; background-color:blue; -webkit-print-color-adjust: exact;color:white;" rowspan="4">
+                <span>Rp. 2.000</span>
+              </td>
+              <td style="font-weight: bold; position: relative;" colspan="2">
+                VOUCHER WIFI
+        
+                <!-- Nomor voucher di pojok kanan atas -->
+                <span style="position: absolute; top: 0; right: 0; font-size: 10px; color: #555;">[<%= i + 1 %>]</span>
+              </td>
+              
+            </tr>
+            <tr>
+              <td colspan="2" style="text-align: center; font-weight: bold; font-size: 20px;">user<%= i + 1 %></td>
+            </tr>
+            <tr>
+              <td colspan="2" style="font-size: 10px;">4 jam, 1 hari</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size: 10px;">Login: http://bibit.net</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <% } %>
+        
+        <% for (let i = 0; i < 5; i++) { %>
+          <!-- Voucher dengan Username dan Password terpisah -->
+          <table class="voucher" style="width: 230px; border:1px solid green; margin-bottom: 10px;">
+            <tbody>
+              <tr>
+                <td class="rotate" style="font-weight: bold; border-right: 1px solid green; background-color:green; -webkit-print-color-adjust: exact;color:white;" rowspan="4"><span>Rp. 2.000</span></td>
+                <td style="font-weight: bold" colspan="2">VOUCHER WIFI</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="text-align: center; font-weight: bold; font-size: 15px;">
+                  User: user<%= i + 6 %><br>Pass: pass<%= i + 6 %>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" style="font-size: 10px;">4 jam, 1 hari</td>
+              </tr>
+              <tr>
+                <td colspan="3" style="font-size: 10px;">Login: http://bibit.net <span>[<%= i + 6 %>]</span></td>
+              </tr>
+            </tbody>
+          </table>
+        <% } %>
+
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let templateEditor, addTemplateEditor;
+
+$(document).ready(function () {
+  // 🟡 PREVIEW TEMPLATE
+  $('.btn-preview-template').on('click', function () {
+    const id = $(this).data('id');
+    $('#previewArea').html(`
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    `);
+
+    $.get(`/admin/kartu-voucher/preview/${id}`, function (html) {
+      $('#previewArea').html(html);
+    }).fail(function () {
+      $('#previewArea').html('<div class="alert alert-danger">Gagal memuat preview.</div>');
+    });
+  });
+
+  // 🟡 EDIT TEMPLATE - buka modal & isi data
+  $(document).on('click', '.btn-edit-template', function () {
+    const id = $(this).data('id');
+    const name = $(this).data('name');
+    const html = $(this).data('html'); // ambil dari DB / backend saat render
+    const status = $(this).data('status');
+  
+    $('#editTemplateId').val(id);
+    $('#editTemplateName').val(name);
+    $('#editStatusEnable').prop('checked', status === 'enable');
+    $('#editStatusDisable').prop('checked', status === 'disable');
+  
+    $('#modalEditTemplate').modal('show');
+  
+    // Saat CodeMirror sudah diinisialisasi, set nilainya di sini
+    if (templateEditor) {
+      templateEditor.setValue(html);
+    } else {
+      $('#editTemplateEngine').val(html);
+    }
+  });
+
+
+  // 🟡 CodeMirror init setelah modal tampil
+  $('#modalEditTemplate').on('shown.bs.modal', function () {
+    if (!templateEditor) {
+      templateEditor = CodeMirror.fromTextArea(document.getElementById("editTemplateEngine"), {
+        mode: "htmlmixed",
+        theme: "material",
+        lineNumbers: true,
+        lineWrapping: true,
+        autoCloseTags: true
+      });
+    } else {
+      templateEditor.refresh();
+    }
+  });
+
+  // 🟡 SUBMIT FORM EDIT
+  $('#formEditTemplate').on('submit', function (e) {
+    e.preventDefault();
+    if (templateEditor) templateEditor.save();
+
+    const id = $('#editTemplateId').val();
+    const name = $('#editTemplateName').val();
+    const html = $('#editTemplateEngine').val();
+    const status = $('input[name="editStatusTemplate"]:checked').val();
+
+    $.ajax({
+      url: '/admin/kartu-voucher/template/update/' + id,
+      type: 'PUT',
+      data: { name, html, status },
+      success: function () {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Template berhasil diperbarui.'
+        }).then(() => location.reload());
+      },
+      error: function () {
+        Swal.fire('Gagal', 'Tidak dapat mengupdate template.', 'error');
+      }
+    });
+  });
+  // 🟡 MODAL INIT ADD TEMPLATE
+  $('#modalAddTemplate').on('shown.bs.modal', function () {
+    if (!addTemplateEditor) {
+      addTemplateEditor = CodeMirror.fromTextArea(document.getElementById("templateEngine"), {
+        mode: "htmlmixed",
+        theme: "material",
+        lineNumbers: true,
+        lineWrapping: true,
+        autoCloseTags: true
+      });
+    } else {
+      addTemplateEditor.refresh();
+    }
+  });
+
+
+  // 🟡 SUBMIT FORM ADD TEMPLATE
+  $('#formAddTemplate').on('submit', function (e) {
+    e.preventDefault();
+  
+    if (addTemplateEditor) {
+      addTemplateEditor.save(); // Sync ke textarea
+    }
+  
+    const name = $('#templateName').val().trim();
+    const html = $('#templateEngine').val().trim();
+    const status = $('input[name="statusTemplate"]:checked').val();
+  
+    if (!name || !html) {
+      Swal.fire('Gagal', 'Nama dan isi template tidak boleh kosong.', 'warning');
+      return;
+    }
+  
+    $.ajax({
+      url: '/admin/kartu-voucher/template/add',
+      type: 'POST',
+      data: {
+        name,
+        templateEngine: html,
+        statusTemplate: status
+      },
+      success: function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Template berhasil ditambahkan.'
+        }).then(() => {
+          $('#modalAddTemplate').modal('hide');
+          location.reload();
+        });
+      },
+      error: function () {
+        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan template.', 'error');
+      }
+    });
+  });
+  
+  // 🟡 RESET EDITOR ADD TEMPLATE
+  $('#modalAddTemplate').on('hidden.bs.modal', function () {
+    $('#formAddTemplate')[0].reset();
+    if (addTemplateEditor) {
+      addTemplateEditor.setValue('');
+    }
+  });
+
+
+
+  // 🟡 HAPUS TEMPLATE
+  $(document).on('click', '.btn-delete-template', function () {
+    const id = $(this).data('id');
+
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: 'Data template akan hilang permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: '/admin/kartu-voucher/template/delete/' + id,
+          type: 'DELETE',
+          success: function () {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: 'Template berhasil dihapus.'
+            }).then(() => location.reload());
+          },
+          error: function () {
+            Swal.fire('Gagal', 'Tidak bisa menghapus template.', 'error');
+          }
+        });
+      }
+    });
+  });
+});
+</script>

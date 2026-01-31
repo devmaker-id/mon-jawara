@@ -1,0 +1,226 @@
+<section class="content mt-3">
+  <div class="container-fluid">
+
+    <!-- Flash Message -->
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% } %>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5><i class="bi bi-hdd-rack me-2"></i> NAS Client</h5>
+      <a href="/admin/new-nas-use-vpn" class="btn btn-secondary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i> Nas Dengan Vpn
+      </a>
+    </div>
+
+    <!-- Tabel NAS Client -->
+    <div class="card shadow-sm">
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-info">
+            <tr>
+              <th>ID</th>
+              <th>Nama</th>
+              <th>IP Address</th>
+              <th>Deskripsi</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (nasClients && nasClients.length > 0) { %>
+            <% nasClients.forEach(nas => { %>
+              <tr>
+                <td><%= nas.id %></td>
+                <td class="text-nowrap"><%= nas.shortname %></td>
+                <td><%= nas.nasname %></td>
+                <td><%= nas.description %></td>
+                <td>
+                  <% if (nas.status === 'online') { %>
+                    <span class="badge bg-success">Online</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">Offline</span>
+                  <% } %>
+                </td>
+                <td class="text-nowrap">
+                  <button 
+                    class="btn btn-sm btn-warning"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editNasModal"
+                    data-id="<%= nas.id %>"
+                    data-shortname="<%= nas.shortname %>"
+                    data-nasname="<%= nas.nasname %>"
+                    data-type="<%= nas.type %>"
+                    data-ports="<%= nas.ports %>"
+                    data-secret="<%= nas.secret %>"
+                    data-server="<%= nas.server %>"
+                    data-community="<%= nas.community %>"
+                    data-description="<%= nas.description %>">
+                    <i class="bi bi-pen"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="hapusNas('<%= nas.id %>')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="text-center">...Tidak Ada Nas...</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Edit NAS -->
+<div class="modal fade" id="editNasModal" tabindex="-1" aria-labelledby="editNasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="editNasLabel"><i class="bi bi-pen me-1"></i> Edit NAS</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editNasForm">
+          <input type="hidden" id="editNasId">
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nama (shortname)</label>
+              <input type="text" class="form-control" id="editNasShortname" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">IP Address (nasname)</label>
+              <input type="text" class="form-control" id="editNasNasname" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Tipe</label>
+              <input type="text" class="form-control" id="editNasType" placeholder="other / cisco / mikrotik">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-control" id="editNasPorts" placeholder="Contoh: 1812">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Secret</label>
+              <input type="text" class="form-control" id="editNasSecret" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Server</label>
+              <input type="text" class="form-control" id="editNasServer" placeholder="Optional">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Community</label>
+              <input type="text" class="form-control" id="editNasCommunity" placeholder="Optional">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea class="form-control" id="editNasDescription" rows="2"></textarea>
+          </div>
+
+          <div class="text-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Ketika tombol edit diklik → isi form di modal
+  $('#editNasModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    $('#editNasId').val(button.data('id'));
+    $('#editNasShortname').val(button.data('shortname'));
+    $('#editNasNasname').val(button.data('nasname'));
+    $('#editNasType').val(button.data('type'));
+    $('#editNasPorts').val(button.data('ports'));
+    $('#editNasSecret').val(button.data('secret'));
+    $('#editNasServer').val(button.data('server'));
+    $('#editNasCommunity').val(button.data('community'));
+    $('#editNasDescription').val(button.data('description'));
+  });
+
+  // Submit form edit NAS
+  $('#editNasForm').on('submit', async function (e) {
+    e.preventDefault();
+
+    const id = $('#editNasId').val();
+    const payload = {
+      shortname: $('#editNasShortname').val(),
+      nasname: $('#editNasNasname').val(),
+      type: $('#editNasType').val(),
+      ports: $('#editNasPorts').val() || null,
+      secret: $('#editNasSecret').val(),
+      server: $('#editNasServer').val() || null,
+      community: $('#editNasCommunity').val() || null,
+      description: $('#editNasDescription').val()
+    };
+
+    try {
+      const res = await fetch(`/admin/nas-client/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire("Berhasil", data.message || "NAS berhasil diperbarui.", "success")
+          .then(() => location.reload());
+      } else {
+        Swal.fire("Gagal", data.message || "Terjadi kesalahan saat memperbarui NAS.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Gagal menghubungi server.", "error");
+    }
+  });
+
+  // Hapus NAS
+  async function hapusNas(id) {
+    const konfirmasi = await Swal.fire({
+      title: "Yakin hapus?",
+      text: "Data NAS akan dihapus permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal"
+    });
+
+    if (!konfirmasi.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/admin/nas-client/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire("Berhasil", data.message, "success").then(() => location.reload());
+      } else {
+        Swal.fire("Gagal", data.message || "Terjadi kesalahan saat menghapus.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Gagal menghubungi server.", "error");
+    }
+  }
+</script>

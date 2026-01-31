@@ -1,0 +1,36 @@
+{
+  "name": "mon-jawara",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js --ignore session/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
+    "crypto": "^1.0.1",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.1",
+    "multer": "^2.0.2",
+    "mysql2": "^3.14.0",
+    "node-cron": "^3.0.3",
+    "node-routeros": "^1.6.8",
+    "nodemailer": "^7.0.2",
+    "qrcode-terminal": "^0.12.0",
+    "ssh2": "^1.16.0",
+    "validator": "^13.15.0"
+  },
+  "devDependencies": {
+    "nodaemon": "^0.0.5"
+  }
+}

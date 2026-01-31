@@ -1,0 +1,122 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+      <div class="col-sm-6 text-end">
+        <form class="d-flex" method="get" action="">
+          <input type="date" name="start" class="form-control me-2" value="<%= filter.start %>">
+          <input type="date" name="end" class="form-control me-2" value="<%= filter.end %>">
+          <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <!-- Closing Harian -->
+    <div class="card mt-3">
+      <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-calendar-day"></i> Closing Harian</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0 text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Tanggal</th>
+                <th>Total Transaksi</th>
+                <th>Total Penjualan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% daily.forEach((row, idx) => { %>
+                <tr>
+                  <td><%= idx + 1 %></td>
+                  <td><%= new Date(row.tanggal).toISOString().slice(0,16).replace('T', ' ') %>
+                  </td>
+                  <td><%= row.total_transaksi %></td>
+                  <td>Rp <%= rupiah(row.total_penjualan) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Closing Per Seller -->
+    <div class="card mt-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-person-lines-fill"></i> Closing Per Seller</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0 text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Nama Seller</th>
+                <th>Total Transaksi</th>
+                <th>Total Penjualan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bySeller.forEach((row, idx) => { %>
+                <tr>
+                  <td><%= idx + 1 %></td>
+                  <td><%= row.nama_seller %></td>
+                  <td><%= row.total_transaksi %></td>
+                  <td>Rp <%= rupiah(row.total_penjualan) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Closing Per Produk -->
+    <div class="card mt-4 mb-5">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-box-seam"></i> Closing Per Produk</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0 text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Nama Produk</th>
+                <th>Total Qty Terjual</th>
+                <th>Total Penjualan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% byProduct.forEach((row, idx) => { %>
+                <tr>
+                  <td><%= idx + 1 %></td>
+                  <td><%= row.nama_produk %></td>
+                  <td><%= row.total_qty %></td>
+                  <td>Rp <%= rupiah(row.total_penjualan) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

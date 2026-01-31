@@ -1,0 +1,202 @@
+<link href="/select2/css/select2.min.css" rel="stylesheet">
+<link href="/select2/css/custom.css" rel="stylesheet">
+
+<section class="content mt-2">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+      <%= flashData.text %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <% } %>
+
+    <div class="card shadow">
+      <div class="card-header bg-success text-white">
+        <h3 class="card-title">
+          <i class="bi bi-plus-circle-fill"></i> Tambah Router ONU
+        </h3>
+      </div>
+
+      <form
+        action="/admin/router-onu/add-new"
+        method="POST"
+        class="needs-validation"
+        novalidate
+        autocomplete="off"
+      >
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Type Onu -->
+            <div class="col-md-6">
+              <label for="usertype" class="form-label">Type Onu</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-router"></i></span>
+                <select name="usertype" id="usertype" class="form-select" required>
+                  <option value="customers">Customers</option>
+                  <option value="pop">POP</option>
+                  <option value="ap">AP</option>
+                  <option value="seller">AGEN | SELLER</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Nama Router Manual -->
+            <div class="col-md-6 d-none" id="col-router-name">
+              <label for="router_name" class="form-label">Nama Router</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-hdd-network"></i></span>
+                <input
+                  type="text"
+                  name="router_name"
+                  id="router_name"
+                  class="form-control"
+                  placeholder="Masukkan nama router"
+                />
+              </div>
+              <div class="form-text text-muted">Wajib diisi jika Type Onu bukan Customers</div>
+            </div>
+
+            <!-- Pelanggan -->
+            <div class="col-md-6" id="col-member">
+              <label for="member_id" class="form-label">Pelanggan</label>
+              <div class="input-group">
+                <select name="member_id" id="member_id" class="form-select">
+                  <% if (pelanggan && pelanggan.length > 0) { %>
+                  <option value="">-- Pilih Pelanggan --</option>
+                  <% pelanggan.forEach(pel => { %>
+                  <option value="<%= pel.id %>">
+                    <%= pel.fullname %> - <%= pel.paket %>, <%= pel.service_type %>
+                  </option>
+                  <% }) %>
+                  <% } else { %>
+                  <option value="">Tidak ada pelanggan tersedia</option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+
+            <!-- MAC Address -->
+            <div class="col-md-6">
+              <label for="mac" class="form-label">MAC Address</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-router"></i></span>
+                <select name="mac" id="mac" class="form-select" required>
+                  <% if (onuUnauth && onuUnauth.length > 0) { %>
+                  <option value="">-- Pilih MAC Address --</option>
+                  <% onuUnauth.forEach(onu => { %>
+                  <option value="<%= onu.mac_onu %>"><%= onu.name %> - <%= onu.mac_onu %></option>
+                  <% }) %>
+                  <% } else { %>
+                  <option value="">Tidak ada perangkat ONT tersedia</option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+
+            <!-- Lokasi -->
+            <div class="col-md-6">
+              <label for="location" class="form-label">Lokasi</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                <input
+                  type="text"
+                  name="location"
+                  id="location"
+                  class="form-control"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <!-- ODP -->
+            <div class="col-md-6">
+              <label for="odp_id" class="form-label">Pilih ODP / POP</label>
+              <select name="odp_id" id="odp_id" class="form-select" required>
+                <option value="">-- Pilih ODP / POP --</option>
+                <% odpData.forEach(odp => { %>
+                <option value="<%= odp.id %>">
+                  <%= odp.name %> (<%= odp.used %>/<%= odp.capacity %> port)
+                </option>
+                <% }) %>
+              </select>
+              <div class="form-text text-muted">Gunakan kolom ini untuk memilih ODP / POP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+          <a href="/admin/router-onu" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Kembali
+          </a>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-save-fill"></i> Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- JS Tambahan -->
+<!-- Select2 JS -->
+<script src="/select2/js/select2.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    // Init Select2
+    $('#odp_id, #member_id').select2({
+      theme: 'bootstrap-5',
+      placeholder: '🔍 Ketik untuk mencari...',
+      allowClear: true,
+      width: '100%',
+      language: {
+        noResults: function() {
+          return "Tidak ditemukan";
+        }
+      }
+    });
+
+    // Toggle Logic
+    function isCustomers(typeVal) {
+      const norm = String(typeVal || '').toLowerCase().trim();
+      return norm === 'customers';
+    }
+
+    function toggleCustomerFields() {
+      const showCustomer = isCustomers($('#usertype').val());
+
+      if (showCustomer) {
+        $('#col-member').removeClass('d-none');
+        $('#member_id').prop('disabled', false).prop('required', true);
+
+        $('#col-router-name').addClass('d-none');
+        $('#router_name').prop('disabled', true).prop('required', false).val('');
+      } else {
+        $('#col-member').addClass('d-none');
+        $('#member_id').val(null).trigger('change');
+        $('#member_id').prop('disabled', true).prop('required', false);
+
+        $('#col-router-name').removeClass('d-none');
+        $('#router_name').prop('disabled', false).prop('required', true);
+      }
+    }
+
+    toggleCustomerFields();
+    $('#usertype').on('change', toggleCustomerFields);
+
+    // Validasi Bootstrap 5
+    $('form').on('submit', function (e) {
+      if (!this.checkValidity()) {
+        e.preventDefault();
+        e.stopPropagation();
+      } else {
+        $(this)
+          .find('button[type="submit"]')
+          .prop('disabled', true)
+          .html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+      }
+      $(this).addClass('was-validated');
+    });
+  });
+</script>

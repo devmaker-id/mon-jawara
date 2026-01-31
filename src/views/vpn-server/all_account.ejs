@@ -1,0 +1,255 @@
+<section class="content mt-3">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% } %>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00bcd4);">
+        <h5 class="mb-0 text-primary"><i class="bi bi-hdd-network me-2"></i> Manajemen Akun VPN</h5>
+        <button class="btn btn-light btn-sm text-primary fw-bold shadow-sm" id="btn-add-account">
+          <i class="bi bi-plus-circle me-1"></i> Tambah Akun
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="vpnAccountTable" class="table table-hover align-middle w-100">
+            <thead class="bg-primary text-white text-center">
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Server</th>
+                <th>Host</th>
+                <th>Tipe VPN</th>
+                <th>Gateway</th>
+                <th>IP VPN</th>
+                <th>Status</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (accounts && accounts.length > 0) { %>
+                <% accounts.forEach(a => { %>
+                  <tr class="text-nowrap" id="row-<%= a.id %>">
+                    <td><%= a.id %></td>
+                    <td class="username"><%= a.username %></td>
+                    <td class="server_name"><%= a.server_name %></td>
+                    <td class="server_host"><%= a.server_host %></td>
+                    <td class="type_vpn text-uppercase fw-semibold"><%= a.type_vpn %></td>
+                    <td class="gateway"><%= a.gateway || '-' %></td>
+                    <td class="ip_vpn"><%= a.ip_vpn || '-' %></td>
+                    <td class="status text-center">
+                      <% if (a.status === 'active') { %>
+                        <span class="badge bg-success px-3 py-2">Aktif</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary px-3 py-2">Nonaktif</span>
+                      <% } %>
+                    </td>
+                    <td><%= new Date(a.created_at).toLocaleString('id-ID') %></td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-info btn-detail"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-sm btn-warning btn-edit"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-danger btn-delete"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr><td colspan="10" class="text-center">Tidak ada akun VPN ditemukan</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Tambah/Edit -->
+<div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="accountForm" class="modal-content">
+      <input type="hidden" id="account-id">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="accountModalLabel">Tambah Akun VPN</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Username</label>
+          <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Password</label>
+          <input type="text" id="password" name="password" class="form-control" required>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Server Name</label>
+          <input type="text" id="server_name" name="server_name" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Server Host</label>
+          <input type="text" id="server_host" name="server_host" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Tipe VPN</label>
+          <select id="type_vpn" class="form-select" required>
+            <option value="ovpn">OpenVPN</option>
+            <option value="l2tp">L2TP</option>
+            <option value="pptp">PPTP</option>
+            <option value="sstp">SSTP</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Gateway</label>
+          <input type="text" id="gateway" name="gateway" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">IP VPN</label>
+          <input type="text" id="ip_vpn" name="ip_vpn" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          <select id="status" class="form-select">
+            <option value="active">Aktif</option>
+            <option value="inactive">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  const table = $('#vpnAccountTable').DataTable({
+    responsive: true,
+    order: [[0, 'desc']],
+    language: {
+      search: "🔍 Cari:",
+      lengthMenu: "Tampilkan _MENU_ akun per halaman",
+      info: "Menampilkan _START_–_END_ dari total _TOTAL_ akun",
+      paginate: { previous: "‹", next: "›" },
+      emptyTable: "Tidak ada akun VPN ditemukan"
+    }
+  });
+
+  // Tambah akun
+  $('#btn-add-account').on('click', function() {
+    $('#accountForm')[0].reset();
+    $('#account-id').val('');
+    $('#accountModalLabel').text('Tambah Akun VPN');
+    $('#accountModal .modal-header').removeClass('bg-warning').addClass('bg-primary text-white');
+    new bootstrap.Modal('#accountModal').show();
+  });
+
+  // Edit akun
+  $('#vpnAccountTable').on('click', '.btn-edit', function() {
+    const row = $(this).closest('tr');
+    $('#account-id').val(row.attr('id').replace('row-', ''));
+    $('#username').val(row.find('.username').text());
+    $('#server_name').val(row.find('.server_name').text());
+    $('#server_host').val(row.find('.server_host').text());
+    $('#type_vpn').val(row.find('.type_vpn').text());
+    $('#gateway').val(row.find('.gateway').text());
+    $('#ip_vpn').val(row.find('.ip_vpn').text());
+    $('#status').val(row.find('.status .badge').text().toLowerCase() === 'aktif' ? 'active' : 'inactive');
+    $('#accountModalLabel').text('Edit Akun VPN');
+    $('#accountModal .modal-header').removeClass('bg-primary text-white').addClass('bg-warning text-dark');
+    new bootstrap.Modal('#accountModal').show();
+  });
+
+  // Simpan add/edit
+  $('#accountForm').submit(async function(e) {
+    e.preventDefault();
+
+    const id = $('#account-id').val();
+    const data = {
+      id,
+      username: $('#username').val(),
+      password: $('#password').val(),
+      server_name: $('#server_name').val(),
+      server_host: $('#server_host').val(),
+      type_vpn: $('#type_vpn').val(),
+      gateway: $('#gateway').val(),
+      ip_vpn: $('#ip_vpn').val(),
+      status: $('#status').val()
+    };
+
+    const url = id ? '/admin/vpn-server/update-account' : '/admin/vpn-server/add-account';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      Swal.fire('Berhasil', result.message, 'success').then(() => location.reload());
+    } else {
+      Swal.fire('Gagal', result.message || 'Terjadi kesalahan.', 'error');
+    }
+  });
+
+  // Hapus akun
+  $('#vpnAccountTable').on('click', '.btn-delete', async function() {
+    const row = $(this).closest('tr');
+    const id = row.attr('id').replace('row-', '');
+
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: 'Data ini akan hilang permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    }).then(async (resSwal) => {
+      if (resSwal.isConfirmed) {
+        const res = await fetch(`/admin/vpn-server/delete-account/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+          table.row(row).remove().draw();
+          Swal.fire('Terhapus!', 'Akun berhasil dihapus.', 'success');
+        } else {
+          Swal.fire('Gagal', result.message || 'Gagal menghapus akun.', 'error');
+        }
+      }
+    });
+  });
+
+  // Detail akun
+  $('#vpnAccountTable').on('click', '.btn-detail', function() {
+    const row = $(this).closest('tr');
+    Swal.fire({
+      title: `Detail Akun: ${row.find('.username').text()}`,
+      html: `
+        <div class="text-start">
+          <p><strong>Server:</strong> ${row.find('.server_name').text()}</p>
+          <p><strong>Host:</strong> ${row.find('.server_host').text()}</p>
+          <p><strong>Tipe VPN:</strong> ${row.find('.type_vpn').text()}</p>
+          <p><strong>Gateway:</strong> ${row.find('.gateway').text()}</p>
+          <p><strong>IP VPN:</strong> ${row.find('.ip_vpn').text()}</p>
+          <p><strong>Status:</strong> ${row.find('.status .badge').text()}</p>
+        </div>
+      `,
+      icon: 'info'
+    });
+  });
+});
+</script>

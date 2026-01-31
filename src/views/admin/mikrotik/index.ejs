@@ -1,0 +1,275 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="card shadow">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h3 class="card-title"><i class="bi bi-router-fill"></i> Daftar Mikrotik Client</h3>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addMikrotikModal">
+          <i class="bi bi-plus-lg"></i> Tambah Mikrotik
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="mikrotikTable">
+            <thead>
+              <tr class="text-nowrap">
+                <th>ID</th>
+                <th>Nama</th>
+                <th>OLT Used</th>
+                <th>NAS Used</th>
+                <th>Host</th>
+                <th>Ros</th>
+                <th>Port API</th>
+                <th>Username</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (rows && rows.length > 0) { %>
+                <% rows.forEach(row => { %>
+                  <tr class="text-nowrap" data-id="<%= row.id %>">
+                    <td><%= row.id %></td>
+                    <td><%= row.name %></td>
+                    <td><%= row.olt_used || '-' %></td>
+                    <td><%= row.nas_used || '-' %></td>
+                    <td><%= row.host %></td>
+                    <td><%= row.ros %></td>
+                    <td><%= row.port_api %></td>
+                    <td><%= row.username %></td>
+                    <td>
+                      <button class="btn btn-info btn-sm btn-view" data-id="<%= row.id %>"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-warning btn-sm btn-edit" data-id="<%= row.id %>"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-danger btn-sm btn-delete" data-id="<%= row.id %>"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="8" class="text-center text-muted">Belum ada data Mikrotik Client</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Tambah Mikrotik -->
+<div class="modal fade" id="addMikrotikModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="formAddMikrotik">
+        <div class="modal-header">
+          <h5 class="modal-title">Tambah Mikrotik Client</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Nama</label>
+            <input type="text" name="name" class="form-control" placeholder="Nama Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">OLT Used</label>
+            <input type="text" name="olt_used" class="form-control" placeholder="OLT yang digunakan">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">NAS Used</label>
+            <input type="text" name="nas_used" class="form-control" placeholder="NAS yang digunakan">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Host</label>
+            <input type="text" name="host" class="form-control" placeholder="IP/Hostname Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Port API</label>
+            <input type="number" name="port_api" class="form-control" placeholder="Port API Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Username API" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="text" name="password" class="form-control" placeholder="Password API" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success">Tambah</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal View Mikrotik -->
+<div class="modal fade" id="viewMikrotikModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Mikrotik</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewMikrotikContent"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Mikrotik -->
+<div class="modal fade" id="editMikrotikModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="formEditMikrotik" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Mikrotik</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="editId">
+          <div class="mb-3">
+            <label class="form-label">Nama</label>
+            <input type="text" name="name" id="editName" class="form-control" placeholder="Nama Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama</label>
+            <input type="text" name="olt_used" id="editOltUsed" class="form-control" placeholder="Olt" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama</label>
+            <input type="text" name="nas_used" id="editNasUsed" class="form-control" placeholder="Nas" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Host</label>
+            <input type="text" name="host" id="editHost" class="form-control" placeholder="IP/Hostname Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Router OS</label>
+            <select class="form-control" name="ros" id="editRos">
+              <option value="6">6</option>
+              <option value="7">7</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Port API</label>
+            <input type="number" name="port_api" id="editPort" class="form-control" placeholder="Port API Mikrotik" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" id="editUsername" class="form-control" placeholder="Username API" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="text" name="password" id="editPassword" class="form-control" placeholder="Password API" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+
+  // Tambah Mikrotik
+  $('#formAddMikrotik').submit(function(e) {
+    e.preventDefault();
+    $.post('/admin/mikrotik-client/add', $(this).serialize(), function(res) {
+      if(res.success) {
+        $('#addMikrotikModal').modal('hide');
+        Swal.fire({icon:'success', title:'Berhasil!', text:'Mikrotik Client berhasil ditambahkan', timer:1200, showConfirmButton:false})
+          .then(()=>location.reload());
+      } else {
+        Swal.fire('Error', res.message || 'Gagal menambahkan Mikrotik', 'error');
+      }
+    });
+  });
+
+  // Preview Mikrotik
+  $('.btn-view').click(function() {
+    const id = $(this).data('id');
+    $.get(`/admin/mikrotik-client/${id}`, function(row) {
+      if(row) {
+        const content = `
+          <ul class="list-group">
+            <li class="list-group-item"><strong>ID:</strong> ${row.id}</li>
+            <li class="list-group-item"><strong>User ID:</strong> ${row.user_id}</li>
+            <li class="list-group-item"><strong>Vpn ID:</strong> ${row.vpn_id}</li>
+            <li class="list-group-item"><strong>Nama:</strong> ${row.name}</li>
+            <li class="list-group-item"><strong>OLT Used:</strong> ${row.olt_used || '-'}</li>
+            <li class="list-group-item"><strong>NAS Used:</strong> ${row.nas_used || '-'}</li>
+            <li class="list-group-item"><strong>Host:</strong> ${row.host}</li>
+            <li class="list-group-item"><strong>RoS:</strong> ${row.ros}</li>
+            <li class="list-group-item"><strong>Port API:</strong> ${row.port_api}</li>
+            <li class="list-group-item"><strong>Username:</strong> ${row.username}</li>
+            <li class="list-group-item"><strong>Password:</strong> ${row.password}</li>
+            <li class="list-group-item"><strong>Created At:</strong> ${new Date(row.created_at).toLocaleString()}</li>
+          </ul>`;
+        $('#viewMikrotikContent').html(content);
+        $('#viewMikrotikModal').modal('show');
+      }
+    });
+  });
+
+  // Edit Mikrotik
+  $('.btn-edit').click(function() {
+    const id = $(this).data('id');
+    $.get(`/admin/mikrotik-client/${id}`, function(row){
+      if(row){
+        $('#editId').val(row.id);
+        $('#editName').val(row.name);
+        $('#editOltUsed').val(row.olt_used);
+        $('#editNasUsed').val(row.nas_used);
+        $('#editHost').val(row.host);
+        $('#editRos').val(row.ros);
+        $('#editPort').val(row.port_api);
+        $('#editUsername').val(row.username);
+        $('#editPassword').val(row.password);
+        $('#formEditMikrotik').attr('action', `/admin/mikrotik-client/edit/${row.id}`);
+        $('#editMikrotikModal').modal('show');
+      }
+    });
+  });
+
+  // Hapus Mikrotik
+  $('.btn-delete').click(function(){
+    const id = $(this).data('id');
+    Swal.fire({
+      title:'Apakah anda yakin?',
+      text:'Data Mikrotik akan dihapus!',
+      icon:'warning',
+      showCancelButton:true,
+      confirmButtonColor:'#d33',
+      cancelButtonColor:'#3085d6',
+      confirmButtonText:'Ya, hapus!'
+    }).then((result)=>{
+      if(result.isConfirmed){
+        $.post(`/admin/mikrotik-client/delete/${id}`,{}, function(data){
+          if(data.success){
+            Swal.fire('Terhapus!','Data berhasil dihapus.','success').then(()=>location.reload());
+          } else {
+            Swal.fire('Gagal!', data.message || 'Terjadi kesalahan','error');
+          }
+        });
+      }
+    });
+  });
+
+});
+</script>

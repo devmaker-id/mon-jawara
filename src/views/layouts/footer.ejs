@@ -1,0 +1,63 @@
+<% if(user.akun_type !== "kasir") { %>
+<!-- Modal Pencarian -->
+<div class="modal fade" id="navModalCari" tabindex="-1" aria-labelledby="modalCariLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalCariLabel">Pencarian</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="navsearchInput" class="form-control mb-3" placeholder="Masukkan kode atau nama..." />
+        <div id="navsearchResults"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" id="navBtnCari"><i class="bi bi-search me-1"></i> Cari</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function () {
+  $('#navBtnCari').click(function () {
+    const query = $('#navsearchInput').val().trim();
+    if (!query) {
+      $('#navsearchResults').html('<p class="text-danger">Masukkan kata kunci pencarian!</p>');
+      return;
+    }
+
+    $('#navsearchResults').html('<p>Loading...</p>');
+
+    $.ajax({
+      url: '/admin/search', // endpoint di server
+      method: 'GET',
+      data: { q: query },
+      success: function (res) {
+        if (res.length === 0) {
+          $('#navsearchResults').html('<p class="text-muted">Tidak ada data ditemukan.</p>');
+        } else {
+          let html = '<ul class="list-group">';
+          res.forEach(item => {
+            html += `<li class="list-group-item">
+                      <strong>${item.name}</strong> - ${item.type || 'N/A'}<br/>
+                      Host: ${item.host || '-'} | User: ${item.username || '-'}
+                    </li>`;
+          });
+          html += '</ul>';
+          $('#navsearchResults').html(html);
+        }
+      },
+      error: function () {
+        $('#navsearchResults').html('<p class="text-danger">Terjadi kesalahan. Coba lagi.</p>');
+      }
+    });
+  });
+});
+</script>
+<% } %>
+
+<div class="float-end d-none d-sm-inline">Created By Devmaker-ID</div>
+<strong>
+  Copyright &copy; 2014-2024&nbsp;
+  <a href="#" class="text-decoration-none">mon jawara</a>.
+</strong>

@@ -1,0 +1,539 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+    <!-- Header dan Tombol Aksi -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4><i class="bi bi-wifi me-2"></i> Profile Hotspot</h4>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddProfile">
+        <i class="bi bi-plus-circle me-1"></i> Tambah Profile
+      </button>
+    </div>
+
+    <!-- Tabel Profile Hotspot -->
+    <div class="card shadow">
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">No</th>
+              <th scope="col" class="text-nowrap">Nama Profile</th>
+              <th class="text-nowrap">Harga Modal</th>
+              <th class="text-nowrap">Harga Jual</th>
+              <th class="text-nowrap">Durasi | Quota</th>
+              <th class="text-nowrap">Masa Aktif</th>
+              <th class="text-nowrap">Bandwidth</th>
+              <th class="text-nowrap">Shared Users</th>
+              <th class="text-nowrap">Total Akun</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (profiles && profiles.length > 0) { %>
+              <% profiles.forEach((profile, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td class="text-nowrap"><%= profile.groupname %></td>
+                  <td>Rp, <%= profile.modal_format %></td>
+                  <td>Rp, <%= profile.jual_format %></td>
+                  <td class="text-nowrap"><%= profile.durasi %> | <%= profile.quota || 'Unlimited' %></td>
+                  <td><%= profile.expired || '-' %></td>
+                  <td><%= profile.speed_internet || '-' %></td>
+                  <td><%= profile.shared_users %></td>
+                  <td>
+                    <span class="bi bi-ticket-detailed"></span> 0 | <span class="bi bi-people"></span> 0
+                  </td>
+                  <td class="text-nowrap">
+                    <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditProfile" data-id="<%= profile.id %>">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger btn-delete" data-id="<%= profile.id %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center text-muted">Belum ada data profile hotspot.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Tambah Profile -->
+<div class="modal fade" id="modalAddProfile" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Tambah Profile Hotspot</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="nasServer" class="form-label">NAS Server</label>
+            <select class="form-select" id="nasServer">
+              <option value="all-nas">Semua NAS</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="profileName" class="form-label">Nama Profile</label>
+            <input type="text" class="form-control" id="profileName" required>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="serviceprofile" class="form-label">Service</label>
+            <input type="text" class="form-control" id="serviceprofile" value="HOTSPOT" readonly>
+          </div>
+
+          <div class="col-md-6">
+            <label for="owner" class="form-label">Owner</label>
+            <select class="form-select" id="owner">
+              <option value="admin">admin</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label d-block">Aktifkan Limitasi</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="toggleLimitasi">
+              <label class="form-check-label" for="toggleLimitasi">Nonaktif / Aktif</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Durasi Internet</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="durasi" placeholder="Durasi" disabled>
+              <select class="form-select" id="durasi_unit" disabled>
+                <option value="h">Jam</option>
+                <option value="d">Hari</option>
+                <option value="w">Minggu</option>
+                <option value="m">Bulan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Expired</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="expired" placeholder="Expired" disabled>
+              <select class="form-select" id="expired_unit" disabled>
+                <option value="h">Jam</option>
+                <option value="d">Hari</option>
+                <option value="w">Minggu</option>
+                <option value="m">Bulan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="bandwidth" class="form-label">Bandwidth</label>
+            <select class="form-select" id="bandwidth">
+              <% if(bandwidths && bandwidths.length > 0) { %>
+              <option value="">Pilih Bandwidth</option>
+                <% bandwidths.forEach((bw, index) => { %>
+                  <option value="<%= bw.id %>">
+                    <%= index + 1 %> - <%= bw.name %>
+                  </option>
+                <% }) %>
+              <% } else { %>
+              <option value="">...belum ada bandwith...</option>
+              <% } %>
+            </select>
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="enable_burst" name="enable_burst" value="on">
+              <label class="form-check-label" for="enable_burst">
+                Aktifkan Burst
+              </label>
+              <div id="ratePreview" class="mt-2 text-danger" style="font-size: 0.9em;"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="sharedUsers" class="form-label">Shared Users</label>
+            <input type="number" class="form-control" id="sharedUsers" value="1">
+          </div>
+
+          <div class="col-md-6">
+            <label for="hargaModal" class="form-label">Harga Modal</label>
+            <input type="number" class="form-control" id="hargaModal" value="0">
+          </div>
+
+          <div class="col-md-6">
+            <label for="hargaJual" class="form-label">Harga Jual</label>
+            <input type="number" class="form-control" id="hargaJual" value="0">
+          </div>
+
+          <div class="col-12">
+            <label for="catatan" class="form-label">Catatan</label>
+            <textarea class="form-control" id="catatan" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Simpan
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Profile -->
+<div class="modal fade" id="modalEditProfile" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" id="formEditProfile">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Profile Hotspot</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit_id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nama Profile</label>
+            <input type="text" class="form-control" id="edit_name" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Durasi Internet</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="edit_durasi">
+              <select class="form-select" id="edit_durasi_unit">
+                <option value="h">Jam</option>
+                <option value="d">Hari</option>
+                <option value="w">Minggu</option>
+                <option value="m">Bulan</option>
+              </select>
+            </div>
+            <div class="form-check mt-1">
+              <input type="checkbox" class="form-check-input" id="edit_durasi_unlimited">
+              <label class="form-check-label" for="edit_durasi_unlimited">Unlimited Durasi</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Expired</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="edit_expired">
+              <select class="form-select" id="edit_expired_unit">
+                <option value="h">Jam</option>
+                <option value="d">Hari</option>
+                <option value="w">Minggu</option>
+                <option value="m">Bulan</option>
+              </select>
+            </div>
+            <div class="form-check mt-1">
+              <input type="checkbox" class="form-check-input" id="edit_expired_unlimited">
+              <label class="form-check-label" for="edit_expired_unlimited">Unlimited Expired</label>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label">Bandwidth</label>
+            <input type="text" class="form-control" id="edit_bandwidth" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Shared Users</label>
+            <input type="number" class="form-control" id="edit_shared_users">
+          </div>
+          <div class="col-md-6">
+            <label for="edit_hargaModal" class="form-label">Harga Modal</label>
+            <input type="number" class="form-control" id="edit_hargaModal">
+          </div>
+
+          <div class="col-md-6">
+            <label for="edit_hargaJual" class="form-label">Harga Jual</label>
+            <input type="number" class="form-control" id="edit_hargaJual">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-save"></i> Simpan Perubahan
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  const bandwidths = <%- JSON.stringify(bandwidths) %>; // Data dari server
+
+  // ================================
+  // 🔧 Utility Functions
+  // ================================
+  function convert(val, unit) {
+    return unit === 'mbps' ? `${val}M` : `${val}k`;
+  }
+
+  function calcThreshold(val) {
+    return Math.floor(val / 2) || 1;
+  }
+
+  function formatRateLimit(bw, useBurst) {
+    const rateDown = convert(bw.min_download, bw.unit_min_download);
+    const rateUp = convert(bw.min_upload, bw.unit_min_upload);
+
+    if (!useBurst || !bw.max_download || !bw.max_upload) {
+      return `${rateDown}/${rateUp}`;
+    }
+
+    const burstDown = convert(bw.max_download, bw.unit_max_download);
+    const burstUp = convert(bw.max_upload, bw.unit_max_upload);
+    const thresholdDown = convert(calcThreshold(bw.min_download), bw.unit_min_download);
+    const thresholdUp = convert(calcThreshold(bw.min_upload), bw.unit_min_upload);
+
+    return `${rateDown}/${rateUp} ${burstDown}/${burstUp} ${thresholdDown}/${thresholdUp} 40/40 8`;
+  }
+
+  function updatePreview() {
+    const selectedId = $('#bandwidth').val();
+    const useBurst = $('#enable_burst').is(':checked');
+    const bw = bandwidths.find(b => b.id == selectedId);
+
+    if (!bw) {
+      $('#ratePreview').text('');
+      return;
+    }
+
+    const preview = formatRateLimit(bw, useBurst);
+    $('#ratePreview').text('Rate Limit: ' + preview);
+  }
+
+  // ================================
+  // 📶 Limitasi Toggle Handling ADD
+  // ================================
+  const toggleLimitasi = document.getElementById("toggleLimitasi");
+  const durasi = document.getElementById("durasi");
+  const durasiUnit = document.getElementById("durasi_unit");
+  const expired = document.getElementById("expired");
+  const expiredUnit = document.getElementById("expired_unit");
+
+  toggleLimitasi.addEventListener("change", () => {
+    const enabled = toggleLimitasi.checked;
+    durasi.disabled = !enabled;
+    durasiUnit.disabled = !enabled;
+    expired.disabled = !enabled;
+    expiredUnit.disabled = !enabled;
+  });
+  
+  // Saat checkbox "unlimited durasi" dicentang
+  $("#edit_durasi_unlimited").on("change", function () {
+    const checked = $(this).is(":checked");
+    $("#edit_durasi, #edit_durasi_unit").prop("disabled", checked);
+  });
+  
+  // Saat checkbox "unlimited expired" dicentang
+  $("#edit_expired_unlimited").on("change", function () {
+    const checked = $(this).is(":checked");
+    $("#edit_expired, #edit_expired_unit").prop("disabled", checked);
+  });
+
+  // ================================
+  // ➕ Submit Form Tambah Profile
+  // ================================
+  $("#modalAddProfile form").on("submit", function (e) {
+    e.preventDefault();
+
+    const isLimitasiAktif = $("#toggleLimitasi").is(":checked");
+
+    const data = {
+      nas_server: $("#nasServer").val(),
+      name: $("#profileName").val(),
+      owner: $("#owner").val(),
+      limit_enabled: isLimitasiAktif,
+      duration_value: isLimitasiAktif ? $("#durasi").val() : null,
+      duration_unit: isLimitasiAktif ? $("#durasi_unit").val() : null,
+      expired_value: isLimitasiAktif ? $("#expired").val() : null,
+      expired_unit: isLimitasiAktif ? $("#expired_unit").val() : null,
+      bandwidth_id: $("#bandwidth").val(),
+      burst_enabled: $("#enable_burst").is(":checked"),
+      shared_users: $("#sharedUsers").val(),
+      harga_modal: $("#hargaModal").val(),
+      harga_jual: $("#hargaJual").val(),
+      note: $("#catatan").val()
+    };
+
+    $.ajax({
+      url: "/admin/profile/hotspot",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(data),
+      success: function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: res.message || 'Data berhasil disimpan',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => location.reload());
+      },
+      error: function (xhr) {
+        let message = "Gagal menyimpan data.";
+        if (xhr.responseJSON?.message) {
+          message = xhr.responseJSON.message;
+        } else if (xhr.responseText.startsWith("<!DOCTYPE")) {
+          message = "Server mengembalikan HTML, bukan JSON (mungkin error 500 atau redirect).";
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: message
+        });
+      }
+    });
+  });
+
+  // ================================
+  // 📦 Document Ready Section
+  // ================================
+  $(document).ready(function () {
+    // 🔄 Preview rate limit
+    $('#bandwidth, #enable_burst').on('change', updatePreview);
+
+    // ✏️ Edit Button
+    $(".btn-edit").on("click", function () {
+      const id = $(this).data("id");
+
+      $.ajax({
+        url: `/admin/profile/hotspot/${id}`,
+        method: "GET",
+        dataType: "json",
+        success: function (data) {
+          $("#edit_id").val(data.id);
+          $("#edit_owner_id").val(data.owner_id);
+          $("#edit_owner_name").val(data.owner_name);
+          $("#edit_name").val(data.groupname);
+          $("#edit_bandwidth").val(data.speed_internet || '');
+          $("#edit_durasi").val(data.durasiValue);
+          $("#edit_durasi_unit").val(data.durasiUnit);
+          $("#edit_expired").val(data.expiredValue);
+          $("#edit_expired_unit").val(data.expiredUnit);
+          $("#edit_shared_users").val(data.shared_users || 1);
+          $("#edit_hargaModal").val(data.harga_modal);
+          $("#edit_hargaJual").val(data.harga_jual);
+
+          const modal = bootstrap.Modal.getOrCreateInstance('#modalEditProfile');
+          modal.show();
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text: "Tidak dapat mengambil data profile."
+          });
+        }
+      });
+    });
+
+    // 🗑️ Delete Button
+    $(".btn-delete").on("click", function () {
+      const id = $(this).data("id");
+
+      Swal.fire({
+        title: "Yakin ingin menghapus?",
+        text: "Data yang dihapus tidak bisa dikembalikan!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#aaa",
+        confirmButtonText: "Ya, hapus!",
+        cancelButtonText: "Batal"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: `/admin/profile/hotspot/delete/${id}`,
+            method: "POST",
+            success: function () {
+              Swal.fire({
+                icon: "success",
+                title: "Terhapus!",
+                text: "Profile berhasil dihapus.",
+                timer: 1500,
+                showConfirmButton: false
+              }).then(() => {
+                location.reload();
+              });
+            },
+            error: function () {
+              Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: "Gagal menghapus profile."
+              });
+            }
+          });
+        }
+      });
+    });
+
+    // 💾 Edit Form Submit
+    $("#formEditProfile").on("submit", function (e) {
+      e.preventDefault();
+
+      const id = $("#edit_id").val();
+      const formData = {
+        name: $("#edit_name").val(),
+        bandwidth: $("#edit_bandwidth").val(),
+        durasiValue: $("#edit_durasi").val(),
+        durasiUnit: $("#edit_durasi_unit").val(),
+        expiredValue: $("#edit_expired").val(),
+        expiredUnit: $("#edit_expired_unit").val(),
+        shared_users: $("#edit_shared_users").val(),
+        harga_modal: $("#edit_hargaModal").val(),
+        harga_jual: $("#edit_hargaJual").val(),
+        durasi_unlimited: $("#edit_durasi_unlimited").is(":checked") ? "on" : "",
+        expired_unlimited: $("#edit_expired_unlimited").is(":checked") ? "on" : ""
+      };
+
+      $.ajax({
+        url: `/admin/profile/hotspot/${id}`,
+        method: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify(formData),
+        success: function (response) {
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: response.message || "Profile berhasil diperbarui."
+          }).then(() => location.reload());
+        },
+        error: function () {
+          Swal.fire("Gagal", "Gagal memperbarui profile.", "error");
+        }
+      });
+    });
+
+    // 🔁 Reset modal saat ditutup
+    $('#modalEditProfile').on('hidden.bs.modal', function () {
+      // Reset seluruh form
+      $("#formEditProfile")[0].reset();
+      $("#edit_id").val("");
+    
+      // Uncheck checkbox unlimited (jika ada)
+      $("#edit_durasi_unlimited").prop("checked", false);
+      $("#edit_expired_unlimited").prop("checked", false);
+    
+      // Aktifkan kembali input dan select durasi & expired
+      $("#edit_durasi, #edit_durasi_unit").prop("disabled", false);
+      $("#edit_expired, #edit_expired_unit").prop("disabled", false);
+    });
+
+  });
+</script>
+

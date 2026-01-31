@@ -1,0 +1,59 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <h3 class="mb-0"><%= title %></h3>
+    </div>
+  </div>
+</div>
+
+<div class="app-content py-3">
+  <div class="container-fluid">
+    
+    <% if (message) { %>
+      <div class="alert alert-<%= message.type %> alert-dismissible fade show" role="alert">
+        <%= message.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+
+        <div class="row g-4 align-items-center">
+          <div class="col-md-3 text-center">
+            <img
+              src="/assets/img/user2-160x160.jpg"
+              class="rounded-circle shadow"
+              alt="User Image"
+            />
+            <p class="mt-2 mb-0 fw-semibold"><%= user.fullname %></p>
+            <small class="text-muted">Profil Pengguna</small>
+          </div>
+
+          <div class="col-md-9">
+            <form method="POST" action="/user/profile">
+              <div class="mb-3">
+                <label for="fullname" class="form-label fw-semibold">Nama Lengkap</label>
+                <input type="text" class="form-control" id="fullname" name="fullname" value="<%= user.fullname || '' %>" required>
+              </div>
+              <div class="mb-3">
+                <label for="phone" class="form-label fw-semibold">No. Telepon</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="<%= user.telepon || '' %>" required>
+              </div>
+              <div class="mb-3">
+                <label for="address" class="form-label fw-semibold">Alamat</label>
+                <textarea class="form-control" id="address" name="address" rows="3" required><%= user.alamat || '' %></textarea>
+              </div>
+              <div class="d-grid d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="bi bi-save me-1"></i> Simpan Profil
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

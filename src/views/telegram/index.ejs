@@ -1,0 +1,215 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <p>
+      Kamu bisa menambahkan bot telegram, untuk monitor olt.
+    </p>
+    <% if (!telegram) { %>
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        Token telegram
+      </div>
+      <div class="card-body">
+        <form action="/telegram/add-token" method="POST" class="needs-validation" novalidate>
+
+          <div class="mb-3">
+            <label for="token" class="form-label">Token Telegram:</label>
+            <input type="text" class="form-control" id="token" name="token" placeholder="Masukkan Token Telegram" required>
+            <div class="invalid-feedback">Token Telegram wajib diisi!</div>
+          </div>
+          
+          <% if (flashData) { %>
+            <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+              <%= flashData.text %>
+            </div>
+          <% } %>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-check-circle"></i>
+            Simpan Token
+          </button>
+        </form>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        Telegram Telah Ditambahkan
+      </div>
+      <div class="card-body">
+        <li class="list-group-item">
+          <strong>Bot ID:</strong>
+          <span class="text-muted"><%= telegram.bot_id %></span>
+        </li>
+        <li class="list-group-item">
+          <strong>Name bot:</strong>
+          <span class="text-muted"><%= telegram.bot_name %></span>
+        </li>
+        <li class="list-group-item">
+          <strong>Buka Bot:</strong>
+          <a href="https://t.me/<%= telegram.bot_username%>" class="text-muted" target="_blank"><%= telegram.bot_username %></a>
+        </li>
+        <li class="list-group-item">
+          <strong>Dibuat pada:</strong>
+          <span class="text-muted"><%= telegram.created_at_formatted %></span>
+        </li>
+
+        <hr>
+        <form>
+          <input type="hidden" name="id" value="<%= telegram.id %>">
+          <button type="button" onclick="deleteTelegram(<%= telegram.id %>, '<%= telegram.bot_name %>')" class="btn btn-sm btn-danger">
+            <span class="bi bi-trash"></span>
+            Delete Telegram
+          </button>
+          
+          <% if(!telegram.webhook_status) { %>
+          <button type="button" onclick="setWebhookTelegram(<%= telegram.id %>, '<%= telegram.bot_name %>')" class="btn btn-sm btn-primary">
+            <span class="bi bi-save"></span>
+            Set Webhook
+          </button>
+          <script>
+            function setWebhookTelegram(id, name) {
+              Swal.fire({
+                title: name,
+                text: "Akan di aktifkan webhook",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: 'green',
+                cancelButtonColor: 'red',
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Batal'
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                      Swal.showLoading();
+                    }
+                  });
+                  axios.post("/telegram/set-webhook", {
+                    id: id,
+                    name: name
+                  }).then((res) => {
+                    const data = res.data;
+                    Swal.fire({
+                      title: "Berhasil",
+                      text: data.text,
+                      icon: "success"
+                    }).then(() => {
+                      window.location.reload();
+                    })
+                  }).catch(error => {
+                    const data = error.response?.data;
+                    Swal.fire({
+                      title: "Gagal",
+                      text: data.text,
+                      icon: "error"
+                    });
+                  });
+                }
+              });
+            }
+          </script>
+          <% } %>
+          
+        </form>
+        
+        <script>
+          function deleteTelegram(id, name) {
+            Swal.fire({
+              title: name,
+              text: "Akan dihapus dan ini tidak bisa dikembalikan!",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              cancelButtonColor: '#3085d6',
+              confirmButtonText: 'Ya, hapus!',
+              cancelButtonText: 'Batal'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                Swal.fire({
+                  title: 'Memproses...',
+                  text: 'Mohon tunggu sebentar',
+                  allowOutsideClick: false,
+                  didOpen: () => {
+                    Swal.showLoading();
+                  }
+                });
+                axios.post("/telegram/delete-telegran", {
+                  id: id,
+                  name: name
+                }).then((res) => {
+                  Swal.fire({
+                    title: "Berhasil",
+                    text: `${name} berhasil dihapus.`,
+                    icon: "success"
+                  }).then(() => {
+                    window.location.reload();
+                  })
+                }).catch(error => {
+                  Swal.fire({
+                    title: "Gagal",
+                    text: "terjadi kesalahan saat hapus",
+                    icon: "error"
+                  });
+                });
+              }
+            });
+          }
+        </script>
+        
+      </div>
+    </div>
+    <% } %>
+    
+  </div>
+</div>
+
+<script>
+  
+  // Validasi Form Bootstrap 5
+  (function () {
+    "use strict";
+    let forms = document.querySelectorAll(".needs-validation");
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+
+  document
+    .getElementById("btn-get-updates")
+    .addEventListener("click", async function () {
+      const response = await fetch("/telegram/updates");
+      const data = await response.json();
+      const updateList = document.getElementById("update-list");
+      updateList.innerHTML = "";
+      data.forEach((update) => {
+        const li = document.createElement("li");
+        li.classList.add("list-group-item");
+        li.textContent = update.message ? update.message.text : "No message";
+        updateList.appendChild(li);
+      });
+    });
+
+</script>

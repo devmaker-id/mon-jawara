@@ -1,0 +1,92 @@
+<section class="content mt-3">
+  <div class="container-fluid">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i> <%= title %></h5>
+      </div>
+      <div class="card-body">
+        <form action="#" method="POST">
+          <div class="mb-3">
+            <label class="form-label">Nama NAS</label>
+            <input type="text" name="name" class="form-control" required value="">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Auth</label>
+            <input type="text" name="p_auth" class="form-control" value="<%= radPort ? radPort.port_auth : '' %>" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Acct</label>
+            <input type="text" name="p_acct" class="form-control" value="<%= radPort ? radPort.port_acct : '' %>" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mikrotik Dengan Vpn</label>
+            <select name="mikrotik" class="form-select" required>
+              <% if(mkclient && mkclient.length > 0) { %>
+              <option value="">pilih mikrotii...</option>
+                <% mkclient.forEach(mk => { %>
+                <option value="<%= mk.id %>"><%= mk.name %></option>
+                <% }); %>
+              <% } else { %>
+              <option value="">ga ada mikrotik...!</option>
+              <% } %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <input type="text" name="deskripsi" class="form-control" required value="Nas-Client">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Domin Isolir (opsional)</label>
+            <input type="text" name="domainisolir" class="form-control" placeholder="https://isolir.example.net" value="">
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="/admin/nas-client" class="btn btn-secondary">Batal</a>
+            <button type="button" id="btn-radius" class="btn btn-primary">Buat Radius & Simpan</button>
+          </div>
+          
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('btn-radius').addEventListener('click', async () => {
+    const name = document.querySelector('input[name="name"]').value;
+    const pauth = document.querySelector('input[name="p_auth"]').value;
+    const pacct = document.querySelector('input[name="p_acct"]').value;
+    const mikrotik = document.querySelector('select[name="mikrotik"]').value;
+    const deskripsi = document.querySelector('input[name="deskripsi"]').value;
+    const domain = document.querySelector('input[name="domainisolir"]').value;
+
+    if (!name || !pauth || !pacct || !mikrotik || !deskripsi) {
+      Swal.fire('Error', 'Semua field wajib diisi.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch('/admin/buat-radius', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, pauth, pacct, mikrotik, deskripsi, domain })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire('Berhasil', 'Radius berhasil dibuat di Mikrotik!', 'success');
+        setTimeout(() => {
+          window.location.href = '/admin/nas-client';
+        }, 2000);
+      } else {
+        Swal.fire('Gagal', data.message || 'Terjadi kesalahan.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Koneksi ke server gagal.', 'error');
+    }
+  });
+</script>

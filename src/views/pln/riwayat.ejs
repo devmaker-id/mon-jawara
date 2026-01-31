@@ -1,0 +1,87 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header bg-info text-white">Laporan tramsaksi</div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Pelanggan</th>
+              <th>No PLN</th>
+              <th>Nominal</th>
+              <th>Tanggal</th>
+              <th>Bukti</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% data.forEach(r => { %>
+              <tr class="text-nowrap">
+                <td><%= r.nama %></td>
+                <td><%= r.no_pln %></td>
+                <td>Rp <%= rupiah(r.nominal) %></td>
+                <td><%= new Date(r.created_at).toLocaleString("id-ID") %></td>
+                <td class="text-center">
+                  <% if (r.bukti_path) { 
+                       const buktiUrl = r.bukti_path.startsWith('/uploads/')
+                         ? r.bukti_path
+                         : '/uploads/bukti_pln/' + r.bukti_path;
+                  %>
+                    <button type="button" 
+                            class="btn btn-sm btn-primary btn-preview" 
+                            data-img="<%= buktiUrl %>">
+                      <i class="bi bi-eye"></i> Preview
+                    </button>
+                  <% } else { %>
+                    <span class="text-muted">Belum ada</span>
+                  <% } %>
+                </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Preview Bukti -->
+<div class="modal fade" id="buktiModal" tabindex="-1" aria-labelledby="buktiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="buktiModalLabel">Preview Bukti Pembayaran</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="buktiImage" src="" class="img-fluid rounded shadow-sm" alt="Bukti Pembayaran">
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const previewButtons = document.querySelectorAll(".btn-preview");
+  const buktiImage = document.getElementById("buktiImage");
+  const buktiModal = new bootstrap.Modal(document.getElementById("buktiModal"));
+
+  previewButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const imgSrc = btn.getAttribute("data-img");
+      buktiImage.src = imgSrc;
+      buktiModal.show();
+    });
+  });
+});
+</script>

@@ -1,0 +1,481 @@
+
+
+<section class="content mt-3">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+    <!-- Ringkasan Status ONU Modern -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-success text-white">
+            <div><i class="bi bi-wifi me-2"></i> Online</div>
+            <strong><%= summary.online %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-secondary text-white">
+            <div><i class="bi bi-wifi-off me-2"></i> Offline</div>
+            <strong><%= summary.offline %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow border-0">
+          <div class="card-body d-flex justify-content-between align-items-center rounded bg-warning text-dark">
+            <div><i class="bi bi-question-circle me-2"></i> Tidak Terdaftar</div>
+            <strong><%= summary.unknown %></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel Daftar ONU -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i> Daftar Router ONU</h5>
+        <a href="/admin/router-onu/add-new" class="btn btn-sm btn-secondary">
+          Tambah Router
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="">
+          <table id="routerTable" class="table table-bordered table-hover align-middle text-nowrap">
+            <thead class="table-info">
+              <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>No Internet</th>
+                <th>Optic</th>
+                <th>Regis</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="routerBody">
+              <% if (routers.length > 0) { %>
+                <% routers.forEach((router, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= router.nama %></td>
+                    <td><%= router.no_internet %></td>
+                    <td>
+                      <% if (router.optic_status === 'linkup') { %>
+                        <span class="badge bg-success">linkup</span>
+                      <% } else { %>
+                        <span class="badge bg-warning text-dark"><%= router.optic_status %></span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (router.status === 'active') { %>
+                        <span class="badge bg-success">Activated</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary"><%= router.status %></span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-info btn-view" data-id="<%= router.id %>" data-name="<%= router.nama %>"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-sm btn-warning btn-edit"
+                        data-id="<%= router.id %>"
+                        data-nama="<%= router.nama %>"
+                        data-no_internet="<%= router.no_internet %>"
+                        data-lokasi="<%= router.lokasi || '' %>"
+                        data-odp="<%= router.id_odp || '' %>">
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger btn-delete" data-id="<%= router.id %>" data-name="<%= router.nama %>"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Tidak ada data ONU</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Detail ONU -->
+<div class="modal fade" id="viewOnuModal" tabindex="-1" aria-labelledby="viewOnuModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="viewOnuModalLabel">
+          <i class="bi bi-hdd-network me-2"></i> Detail ONU
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row" id="onuDetailContent">
+          <div class="col-12 text-center text-muted">Pilih ONU untuk melihat detail...</div>
+        </div>
+        <div class="mt-4">
+          <canvas id="powerChart" height="100"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Edit ONU -->
+<div class="modal fade" id="editOnuModal" tabindex="-1" aria-labelledby="editOnuModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow">
+      <form id="formEditOnu" method="POST">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="editOnuModalLabel">
+            <i class="bi bi-pencil-square me-2"></i> Edit Data ONU
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+
+        <div class="modal-body row g-3">
+          <div class="col-md-12">
+            <label for="editLocation" class="form-label">
+              Odp Port
+            </label>
+            <select name="odp_id" id="odpEditList" class="form-control">
+              <option value="">---PILIH ODP---</option>
+              <% if (odpData.length > 0) { %>
+                <% odpData.forEach(odp => { %>
+                  <option value="<%= odp.id %>"><%= odp.name %> (Port: <%= odp.used %>/<%= odp.capacity %>)</option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="editHostname" class="form-label">Hostname</label>
+            <input type="text" class="form-control" id="editHostname" name="hostname" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="editNoInternet" class="form-label">No Internet</label>
+            <input type="text" class="form-control" id="editNoInternet" name="no_internet" required>
+          </div>
+
+          <div class="col-md-12">
+            <label for="editLocation" class="form-label">Lokasi</label>
+            <input type="text" class="form-control" id="editLocation" name="location" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning text-white">
+            <i class="bi bi-save"></i> Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function () {
+  // ====================================
+  // 1. INIT DATATABLES
+  // ====================================
+  const table = $('#routerTable').DataTable({
+    responsive: true,
+    lengthChange: true,
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100, 250, 500],
+    ordering: true,
+    paging: true,
+    info: true,
+    searching: true,
+    language: {
+      search: "🔍 Cari ONU:",
+      lengthMenu: "Tampilkan _MENU_ data per halaman",
+      info: "Menampilkan _START_ sampai _END_ dari total _TOTAL_ data",
+      infoEmpty: "Tidak ada data yang ditampilkan",
+      zeroRecords: "Tidak ditemukan data yang cocok",
+      paginate: {
+        first: "Awal",
+        last: "Akhir",
+        next: "›",
+        previous: "‹"
+      },
+      emptyTable: "Tidak ada data tersedia"
+    },
+    dom: `
+      <'row mb-2'
+        <'col-sm-12 col-md-6'l>
+        <'col-sm-12 col-md-6'f>
+      >
+      <'table-responsive'tr>
+      <'row mt-3'
+        <'col-sm-12 col-md-5'i>
+        <'col-sm-12 col-md-7'p>
+      >
+    `,
+    drawCallback: function () {
+      $(".dataTables_paginate .pagination").addClass("justify-content-end mb-0");
+    }
+  });
+  
+let powerChart = null; // simpan global chart biar bisa destroy sebelum redraw
+
+function getPowerBarColor(value) {
+  const v = parseFloat(value);
+  if (isNaN(v)) return "#adb5bd"; // abu-abu
+
+  if (v > -8) return "#fd7e14";      // orange
+  if (v <= -8 && v >= -12) return "#fd7e14"; // orange
+  if (v <= -13 && v >= -23) return "#198754"; // hijau
+  if (v <= -24 && v >= -27) return "#e83e8c"; // pink
+  if (v <= -28 && v >= -35) return "#dc3545"; // merah
+  return "#6c757d";
+}
+
+$(document).on("click", ".btn-view", function () {
+  const id = $(this).data("id");
+  const name = $(this).data("name");
+
+  $("#onuDetailContent").html(`
+    <div class="col-12 text-center mt-3">
+      <div class="spinner-border text-info" role="status"></div>
+      <p class="mt-2 text-muted">Mengambil data ONU <b>${name}</b>...</p>
+    </div>
+  `);
+  $("#viewOnuModalLabel").html(`<i class="bi bi-hdd-network me-2"></i> Detail ONU - ${name}`);
+  $("#viewOnuModal").modal("show");
+
+  $.ajax({
+    url: `/admin/router-onu/view/${id}`,
+    type: "GET",
+    success: function (res) {
+      if (!res.success || !res.data || !res.data.onu_info) {
+        $("#onuDetailContent").html(`
+          <div class="col-12 text-center text-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i> Data ONU tidak ditemukan atau kosong.
+          </div>
+        `);
+        if (powerChart) {
+          powerChart.destroy();
+          powerChart = null;
+        }
+        return;
+      }
+
+      const d = res.data.onu_info;
+      const rxColor = getPowerBarColor(d.rxpower);
+      const txColor = getPowerBarColor(d.txpower);
+
+      const html = `
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+              <h6 class="border-bottom pb-2 mb-2 text-info"><i class="bi bi-cpu me-1"></i> Info Umum</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>ONU ID:</strong> ${d.onu_id || '-'}</li>
+                <li class="list-group-item"><strong>MAC:</strong> ${d.onu_mac || '-'}</li>
+                <li class="list-group-item"><strong>Nama:</strong> ${d.onu_name || '-'}</li>
+                <li class="list-group-item"><strong>Status:</strong> ${d.online_status || '-'}</li>
+                <li class="list-group-item"><strong>Firmware:</strong> ${d.firmware_version || '-'}</li>
+                <li class="list-group-item"><strong>Model:</strong> ${d.model_string || '-'}</li>
+                <li class="list-group-item"><strong>Onu Type:</strong> ${d.onu_type || '-'}</li>
+                <li class="list-group-item"><strong>Online Time:</strong> ${d.onlinetime || '-'}</li>
+                <li class="list-group-item"><strong>Offline Count:</strong> ${d.offlineeventcnt || '-'}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+              <h6 class="border-bottom pb-2 mb-2 text-primary"><i class="bi bi-lightning me-1"></i> Optical Power</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>Temperature:</strong> ${d.temperature || '-'} °C</li>
+                <li class="list-group-item"><strong>Voltage:</strong> ${d.voltage || '-'} V</li>
+                <li class="list-group-item"><strong>Tx Bias:</strong> ${d.txbias || '-'} mA</li>
+                <li class="list-group-item"><strong>Tx Power:</strong> <span class="fw-bold" style="color:${txColor}">${d.txpower || '-'}</span></li>
+                <li class="list-group-item"><strong>Rx Power:</strong> <span class="fw-bold" style="color:${rxColor}">${d.rxpower || '-'}</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $("#onuDetailContent").html(html);
+
+      // ===============================
+      // Buat chart baru
+      // ===============================
+      const ctx = document.getElementById("powerChart");
+      if (powerChart) {
+        powerChart.destroy(); // hapus chart lama biar ga dobel
+      }
+
+      const tx = parseFloat(d.txpower) || 0;
+      const rx = parseFloat(d.rxpower) || 0;
+
+      powerChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["TX Power", "RX Power"],
+          datasets: [{
+            label: "Optical Power (dBm)",
+            data: [tx, rx],
+            backgroundColor: [txColor, rxColor],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: false,
+              min: -35,
+              max: 0,
+              title: { display: true, text: "dBm" }
+            },
+            y: { ticks: { font: { weight: 'bold' } } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.parsed.x} dBm`
+              }
+            }
+          }
+        }
+      });
+    },
+    error: function (err) {
+      $("#onuDetailContent").html(`
+        <div class="col-12 text-center text-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i> Gagal mengambil data ONU.
+        </div>
+      `);
+      if (powerChart) {
+        powerChart.destroy();
+        powerChart = null;
+      }
+      console.error("Detail ONU error:", err);
+    }
+  });
+});
+
+
+
+
+  // ====================================
+  // 2. HANDLER TOMBOL EDIT
+  // ====================================
+  $(document).on("click", ".btn-edit", function () {
+    const id = $(this).data("id");
+    const nama = $(this).data("nama");
+    const noInternet = $(this).data("no_internet");
+    const lokasi = $(this).data("lokasi");
+    const odpId  = $(this).data("odp");
+
+    $("#editHostname").val(nama);
+    $("#editNoInternet").val(noInternet);
+    $("#editLocation").val(lokasi);
+    $("#odpEditList").val(odpId);
+    $("#formEditOnu").attr("action", `/admin/router-onu/edit/${id}`);
+
+    $("#editOnuModal").modal("show");
+  });
+
+  // ====================================
+  // 3. SUBMIT FORM EDIT
+  // ====================================
+  $(document).on("submit", "#formEditOnu", function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const actionUrl = form.attr("action");
+    const data = form.serialize();
+  
+    $.ajax({
+      url: actionUrl,
+      type: "POST",
+      data: data,
+      dataType: "json",
+      success: function (res) {
+        console.log(res);
+  
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Data ONU berhasil diperbarui",
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          // update row DataTable / reload
+          location.reload();
+        });
+      },
+      error: function (xhr, status, err) {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: "Terjadi kesalahan saat menyimpan data."
+        });
+        console.error("Edit ONU error:", err, xhr.responseText);
+      }
+    });
+  });
+
+
+  // ====================================
+  // 4. HANDLER TOMBOL DELETE
+  // ====================================
+  $(document).on("click", ".btn-delete", function () {
+    const id = $(this).data("id");
+    const name = $(this).data("name");
+
+    Swal.fire({
+      title: `Hapus ONU '${name}'?`,
+      text: "Tindakan ini tidak dapat dibatalkan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/router-onu/delete/${id}`,
+          type: "DELETE",
+          success: function () {
+            Swal.fire({
+              icon: "success",
+              title: "Berhasil",
+              text: `Data ONU '${name}' berhasil dihapus`,
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => location.reload());
+          },
+          error: function () {
+            Swal.fire({
+              icon: "error",
+              title: "Gagal",
+              text: "Terjadi kesalahan saat menghapus data."
+            });
+          }
+        });
+      }
+    });
+  });
+});
+</script>

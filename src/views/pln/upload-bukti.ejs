@@ -1,0 +1,65 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">Form Pembayaran PLN</div>
+        <div class="card-body">
+          <form action="/admin/mgmn-pln/upload-bukti" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label>Pilih Pelanggan</label>
+              <select class="form-control" name="pelanggan_id" required>
+                <% pelanggan.forEach(p => { %>
+                  <option value="<%= p.id %>"><%= p.nama %> - <%= p.no_pln %></option>
+                <% }) %>
+              </select>
+            </div>
+      
+            <div class="mb-3">
+              <label>Upload Bukti (gambar)</label>
+              <input type="file" name="bukti" class="form-control" accept="image/*" id="buktiInput" required>
+            </div>
+      
+            <!-- Tempat preview -->
+            <div id="previewContainer" class="text-center mb-3 d-none">
+              <img id="previewImage" src="" class="img-fluid rounded shadow-sm" style="max-height: 250px;" alt="Preview Bukti">
+            </div>
+      
+            <button type="submit" class="btn btn-success w-100">
+              <i class="bi bi-upload"></i> Upload Bukti
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('buktiInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const previewContainer = document.getElementById('previewContainer');
+  const previewImage = document.getElementById('previewImage');
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewImage.src = e.target.result;
+      previewContainer.classList.remove('d-none');
+    }
+    reader.readAsDataURL(file);
+  } else {
+    previewImage.src = '';
+    previewContainer.classList.add('d-none');
+  }
+});
+</script>

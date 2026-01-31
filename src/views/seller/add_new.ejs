@@ -1,0 +1,97 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h3 class="mb-0"><%= title %></h3>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+      <div class="mt-1 alert alert-<%= flashData.type %>">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="card shadow mt-3">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title"><i class="bi bi-person-plus-fill"></i> Tambah Seller Baru</h3>
+      </div>
+      <div class="card-body">
+        <form id="formSeller">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nama Seller</label>
+              <input type="text" name="nama" class="form-control" placeholder="Nama lengkap seller" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="Email seller">
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Telepon</label>
+              <input type="text" name="telepon" class="form-control" placeholder="Nomor HP / WA seller" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Alamat</label>
+              <input type="text" name="alamat" class="form-control" placeholder="Alamat seller">
+            </div>
+            
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Catatan</label>
+              <textarea name="catatan" class="form-control" rows="3" placeholder="Catatan tambahan (opsional)"></textarea>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-save"></i> Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    $('#formSeller').on('submit', function (e) {
+      e.preventDefault();
+      const formData = $(this).serialize();
+
+      $.ajax({
+        url: '/admin/seller/add-new',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function (res) {
+          if (res.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message,
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              window.location.href = '/admin/seller';
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: res.message
+            });
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Terjadi kesalahan saat menyimpan data.'
+          });
+        }
+      });
+    });
+  });
+</script>

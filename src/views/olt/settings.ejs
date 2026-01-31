@@ -1,0 +1,243 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+      <div class="mt-1 alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <% if(!olt.sn_olt) { %>
+      <div class="card mb-3">
+        <% if (telegram) { %>
+        <div class="card-header">
+          <h4 class="card-title">Konfigurasi OLT</h4>
+        </div>
+        <div class="card-body">
+          <p>
+            Informasi telegram yang akan dijadikan informasi olt kamu
+          </p>
+          <ul>
+          <li class="list-group-item">
+            <strong>Bot ID:</strong>
+            <span class="text-muted"><%= telegram.bot_id %></span>
+          </li>
+          <li class="list-group-item">
+            <strong>Name bot:</strong>
+            <span class="text-muted"><%= telegram.bot_name %></span>
+          </li>
+          <li class="list-group-item">
+            <strong>Buka Bot:</strong>
+            <a href="https://t.me/<%= telegram.bot_username%>" class="text-muted" target="_blank"><%= telegram.bot_username %></a>
+          </li>
+          </ul>
+          
+          <% if (!telegram.telegram_id) { %>
+          <hr>
+          <p>Ada beberapa konfigurasi yang kurang</p>
+          <ul>
+          <li class="list-group-item">
+            Belum menambahkan telegram id
+          </li>
+          <% if (!telegram.webhook_status) { %>
+          <li class="list-group-item">
+            Webhook Belum Di Set
+          </li>
+          <% } %>
+          </ul>
+          
+          <form>
+            <div class="form-group mb-2">
+              <label>Id Telegram</label>
+              <input type="number" id="telegramid" class="form-control" placeholder="Masukan Telegram Id" name="telegramid" required>
+              <small id="telegramid-error" class="form-text text-danger" style="display: none;">Telegram ID tidak boleh kosong.</small>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-sm btn-primary" onclick="return telegramTes();">
+                <span class="bi bi-save"></span>
+                kirim tes & simpan
+              </button>
+            </div>
+            <script>
+              function telegramTes() {
+                const input = document.getElementById('telegramid');
+                const error = document.getElementById('telegramid-error');
+
+                if (!input.value.trim()) {
+                  error.style.display = 'block';
+                  return false;
+                } else {
+                  Swal.fire({
+                    title: 'Tunggu...',
+                    text: 'Menambah telegram id',
+                    didOpen: () => {
+                      Swal.showLoading();
+                    },
+                    allowOutsideClick: false,
+                  });
+                  const teleid = input.value;
+                  axios.post('/telegram/add-owner-id', {
+                    teleid
+                  }).then(res => {
+                    if(res.data.success) {
+                      Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: res.data.msg,
+                      }).then(() => {
+                        location.reload();
+                      });
+                    } else {
+                      Swal.fire({
+                        icon: 'error',
+                        title: 'GAGAL!!!',
+                        text: res.data.msg,
+                      });
+                    }
+                  }).catch(error => {
+                    const errMsg = error.response?.data?.msg || 'Terjadi kesalahan saat mengirim data.';
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Gagal',
+                      text: errMsg,
+                    });
+                  });
+                }
+              }
+            </script>
+          </form>
+          <% } %>
+          
+        </div>
+        <div class="card-footer">
+          <button type="button" class="btn btn-sm btn-warning" onclick="return oltJoinServer(<%=olt.id %>, <%= olt.user_id %>);">
+            <span class="bi bi-server"></span>
+            Join Server
+          </button>
+          <script>
+            function oltJoinServer(oltid, userid) {
+              Swal.fire({
+                title: 'Inisialisasi To Server..',
+                text: 'butuh waktu 20 detik - 1 menit',
+                didOpen: () => {
+                  Swal.showLoading();
+                },
+                allowOutsideClick: false,
+              });
+              axios.post('/oltmgmn/join-to-server', {
+                oltid,
+                userid
+              }).then(res => {
+                if(res.data.success) {
+                  const dataOlt = res.data.dataOlt;
+                  Swal.fire({
+                    icon: 'success',
+                    title: res.data.msg,
+                    html: `
+                      <ul class="list-unstyled text-start mx-auto">
+                        <li>Name: ${dataOlt.name}</li>
+                        <li>MAC: ${dataOlt.mac}</li>
+                        <li>SN: ${dataOlt.sn}</span></li>
+                      </ul>
+                    `,
+                  }).then(() => {
+                    location.reload();
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'GAGAL!!!',
+                    text: res.data.msg,
+                  });
+                }
+              }).catch(error => {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal',
+                  text: error.res?.data?.msg,
+                });
+              });
+            }
+            
+          </script>
+        </div>
+        
+        <% } else { %>
+        <div class="card-header">
+          <h3 class="card-title">Informasi</h3>
+        </div>
+        <div class="card-body">
+          <p>
+            Kamu belum memiliki telegram, kami membutuhkan telegram, untuk menerima informasi olt ke telegram
+            <br>
+            silahkan tambahkan telegram dahulu, 
+            <a href="/telegram">Halaman telegram</a>
+          </p>
+        </div>
+        <% } %>
+        
+      </div>
+    <% } %>
+    
+    <% if(olt.sn_olt) { %>
+    <div class="card mb-3">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Log Server, set [172.10.0.254]</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>Aksess GLOBAL OLT</h3>
+        <p>
+          aksess webfig, olt publik anda.
+          <a href="<%= oltpublic %>" target="_blank">
+              <%= oltpublic %>
+          </a> <br>
+          izinkan port 80 meneruskan ke olt kamu.
+          <br>
+          <h3>Telegram</h3>
+          telegram yang akan menerima informasi. <br>
+          <a href="https://t.me/<%= telegram.bot_username%>" target="_blank"><%= telegram.bot_username %></a>,
+          <ul class="form-group">
+            <li>info onu ofline</li>
+            <li>info onu online</li>
+          </ul>
+        </p>
+        <h3>Konfigurasi di OLT</h3>
+        <p>
+          Kamu tinggal satu langkah lagi, untuk menikmati fitur itu.
+        </p>
+        <ul class="form-group">
+          <li>buka olt dengan web gui</li>
+          <li>
+            <a href="<%= oltpublic %>" class="btn btn-sm btn-primary">
+              <span class="bi bi-server"></span>
+              buka olt
+            </a>
+            jika port web -> 80
+          </li>
+          <li>system > system log config</li>
+          <li>kamu melihat, syslog server ip</li>
+          <li>ubah menjadi 172.10.0.254</li>
+          <li>klik apply</li>
+          <li>system > save configuration > ok</li>
+          <li>untuk simpan ketika olt restar ga balik lagi</li>
+        </ul>
+
+      </div>
+      <div class="card-footer">
+        Bantuan hubungi tim support
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>

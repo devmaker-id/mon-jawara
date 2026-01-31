@@ -1,0 +1,374 @@
+<style>
+  /* Tambahkan jarak sekitar 3px ke input pencarian DataTables */
+  div.dataTables_filter input {
+    padding: 6px 10px;
+    margin-left: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    height: auto;
+  }
+
+  /* Tambahkan jarak antar elemen agar lebih rapi */
+  div.dataTables_filter {
+    margin-bottom: 10px;
+  }
+</style>
+
+<section class="content mt-2">
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4><i class="bi bi-ticket-detailed me-2"></i> Voucher Hotspot</h4>
+      <div class="dropdown">
+        <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-list-task me-1"></i> Extra
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalGenerateVoucher">
+            <i class="bi bi-stars me-2"></i> Hasilkan Voucher</a></li>
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCetakVoucher">
+            <i class="bi bi-printer-fill me-2"></i> Cetak Voucher</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#modalConfirmDelete">
+              <i class="bi bi-trash3-fill me-2"></i> Hapus yang Dipilih
+            </a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card shadow">
+      <div class="card-body table-responsive">
+        <table id="voucherTable" class="table table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>No</th>
+              <th>Kode</th>
+              <th>Secret</th>
+              <th>Type</th>
+              <th>Profile</th>
+              <th>Harga</th>
+              <th>Dibuat</th>
+              <th>Owner</th>
+              <th>Expired</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (vouchers && vouchers.length > 0) { %>
+            <% vouchers.forEach((v, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <% if (v.type === 'VOUCHER') { %>
+                <td colspan="2" class="text-center">
+                  <%= v.code %>
+                </td>
+                <% } else { %>
+                  <td><%= v.code %></td>
+                  <td><%= v.secret %></td>
+                <% } %>
+                <td><%= v.type %></td>
+                <td><%= v.profilegroup %></td>
+                <td class="text-nowrap">Rp, <%= v.price_format %></td>
+                <td class="text-nowrap">
+                  <%= v.created_at_formatted %>
+                </td>
+                <td><%= v.owner_username %></td>
+                <td class="text-nowrap"><%= v.expired ? v.expired : 'Menunggu Login...' %></td>
+                <td><%= v.status %></td>
+              </tr>
+            <% }) %>
+            <% } else { %>
+            <tr>
+              <td colspan="10" class="text-center">
+                ...belum ada data...
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- SCRIPT DATA TABLES -->
+<script>
+$(document).ready(function() {
+  
+  $('#voucherTable').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: '/api/voucherHotspot',
+    columns: [
+      { data: 'no' },
+      { data: 'code' },
+      { data: 'secret' },
+      { data: 'type' },
+      { data: 'profilegroup' },
+      { data: 'price_format' },
+      { data: 'created_at_formatted' },
+      { data: 'owner_username' },
+      { data: 'expired' },
+      { data: 'status' }
+    ]
+  });
+
+});
+</script>
+
+<!-- MODAL GENERATE VOUCHER -->
+<div class="modal fade" id="modalGenerateVoucher" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-stars"></i> Hasilkan Voucher</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="mb-3">
+          <label>Jumlah Voucher</label>
+          <input type="number" class="form-control" placeholder="Contoh: 10" id="qty" name="qty">
+        </div>
+
+        <div class="mb-3">
+          <label>Profile Hotspot</label>
+          <select class="form-select" id="profile" name="profile">
+            <% if(profiles && profiles.length > 0) { %>
+            <option value="">pilih profile</option>
+            <% profiles.forEach(profile => { %>
+              <option value="<%= profile.id %>">
+                <%= profile.groupname %>
+              </option>
+            <% }) %>
+            <% } else { %>
+            <option value="">...ga ada profile...</option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label>Seller / Agen</label>
+          <select class="form-select" id="owner_id" name="owner_id">
+            <% owner.forEach(u => { %>
+              <option value="<%= u.id %>">
+                <%= u.username %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label>Type Random</label>
+          <select class="form-select" id="type" name="type">
+            <option value="VOUCHER">VOUCHER</option>
+            <option value="MEMBER">MEMBER</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label>Type Random</label>
+          <select class="form-select" id="salt" name="salt">
+            <option value="1">huruf kecil</option>
+            <option value="2">huruf besar</option>
+            <option value="3">huruf kecil & Number</option>
+            <option value="4">huruf besar & number</option>
+            <option value="5">huruf kecil & besar & number</option>
+            <option value="6">hanya number</option>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label>Panjang Kode</label>
+          <select class="form-select" id="code_length" name="code_length">
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label>Prefix (Opsional)</label>
+          <input type="text" class="form-control" id="prefix" name="prefix" placeholder="Contoh: MBR">
+          <small class="text-muted">Hanya huruf/angka. Tidak boleh spasi atau simbol aneh.</small>
+        </div>
+
+
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Buat Sekarang</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+$(document).ready(function () {
+  $('#voucherTable_filter input').attr('placeholder', 'Cari minimal 2 huruf...');
+  
+  $('#modalGenerateVoucher form').on('submit', function (e) {
+    e.preventDefault();
+    
+    const prefix = $('#prefix').val()?.trim();
+    const isPrefixValid = !prefix || /^[a-zA-Z0-9]+$/.test(prefix);
+    
+    if (!isPrefixValid) {
+      Swal.fire("Oops!", "Prefix hanya boleh berisi huruf, angka.", "warning");
+      return;
+    }
+
+    const data = {
+      jumlah: parseInt($('#qty').val()),
+      profile: $('#profile').val(),
+      owner_id: $('#owner_id').val() || null,
+      type: $('#type').val(),
+      kombinasi: parseInt($('#salt').val()),
+      panjang: parseInt($('#code_length').val()),
+      prefix: prefix || ""
+    };
+
+
+    // Validasi sederhana
+    if (!data.jumlah || !data.profile || !data.type || !data.kombinasi || !data.panjang) {
+      Swal.fire("Oops!", "Semua field wajib diisi.", "warning");
+      return;
+    }
+
+
+    // Kirim request
+    $.ajax({
+      url: '/admin/kartu-voucher',
+      method: 'POST',
+      contentType: 'application/json',
+      success: function (res) {
+        if (res.success) {
+          Swal.fire({
+            title: "Success!",
+            text: res.message,
+            icon: "success"
+          }).then(() => {
+            $('#modalGenerateVoucher').modal('hide');
+            location.reload(); // Optional, kalau mau reload
+          });
+        } else {
+          Swal.fire("Gagal", res.message || "Gagal generate voucher", "error");
+        }
+      },
+      error: function (err) {
+        console.error(err);
+        Swal.fire("Error", "Terjadi kesalahan saat request", "error");
+      }
+    });
+  });
+
+  // Reset form ketika modal ditutup
+  $('#modalGenerateVoucher').on('hidden.bs.modal', function () {
+    $(this).find('form')[0].reset();
+  });
+});
+</script>
+
+<!-- Modal Filter Cetak -->
+<div class="modal fade" id="modalCetakVoucher" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="formFilterCetak">
+      <div class="modal-content">
+        <div class="modal-header bg-secondary text-white">
+          <h5 class="modal-title">Filter Cetak / Export</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label>Tanggal</label>
+              <input type="date" name="tanggal" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label>Profile</label>
+              <select name="profile" class="form-select">
+                <option value="">Semua</option>
+                <% profiles.forEach(p => { %>
+                  <option value="<%= p.id %>"><%= p.groupname %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label>Owner</label>
+              <select name="owner_id" class="form-select">
+                <option value="">Semua</option>
+                <% owner.forEach(o => { %>
+                  <option value="<%= o.id %>"><%= o.username %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label>Pilih Template</label>
+              <select name="template_id" class="form-select" required>
+                <option value="">-- Pilih Template --</option>
+                <% templates.forEach(t => { %>
+                  <option value="<%= t.id %>"><%= t.name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label>Jenis Output</label><br>
+              <div class="form-check form-check-inline">
+                <input type="radio" name="output" value="preview" class="form-check-input" checked>
+                <label class="form-check-label">Preview Cetak</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input type="radio" name="output" value="pdf" class="form-check-input">
+                <label class="form-check-label">Export PDF</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search me-1"></i> Lanjutkan
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  $("#formFilterCetak").on("submit", function(e) {
+    e.preventDefault();
+    const data = $(this).serialize();
+    const url = `/admin/kartu-voucher/cetak?${data}`;
+    window.open(url, "_blank"); // preview di tab baru
+  });
+</script>
+
+
+<!-- MODAL CONFIRM DELETE -->
+<div class="modal fade" id="modalConfirmDelete" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i> Konfirmasi Hapus</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="fs-6 mb-2">Apakah kamu yakin ingin menghapus <strong>voucher yang dipilih</strong>?</p>
+        <p class="text-muted small">Data yang dihapus tidak dapat dikembalikan.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-danger">
+          <i class="bi bi-trash3-fill me-1"></i> Ya, Hapus
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

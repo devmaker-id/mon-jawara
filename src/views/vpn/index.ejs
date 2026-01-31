@@ -1,0 +1,269 @@
+<!-- Header Judul -->
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0"><%= title %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Konten Utama -->
+<div class="app-content">
+  <div class="container-fluid">
+
+    <!-- Flash Message -->
+    <% if (flashData) { %>
+      <div class="mt-2 alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% } %>
+
+    <!-- Kartu Info -->
+    <div class="row mt-3">
+      <div class="col-md-4 mb-2">
+        <div class="card border-success shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-person-lines-fill me-2"></i> Total Akun Dibuat</span>
+            <strong><%= stats.totalAkun %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card border-info shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-sliders2-vertical me-2"></i> Batas Akun</span>
+            <strong><%= stats.limitAkun %></strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-2">
+        <div class="card shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-plus-circle me-2"></i> Tambah Limit Akun</span>
+            <button class="btn btn-sm btn-primary" id="btnTambahLimit">Tambah</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Tambah Limit -->
+    <div class="modal fade" id="modalTambahLimit" tabindex="-1" aria-labelledby="modalTambahLimitLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form id="formTambahLimit" class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="modalTambahLimitLabel">Tambah Limit Akun</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <label for="limitAkun" class="form-label">Jumlah Limit Baru</label>
+            <input type="number" class="form-control" id="limitAkun" name="limit" min="1" required>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Form Buat VPN & Daftar Akun -->
+    <div class="row mt-3">
+      <!-- Form Buat VPN -->
+      <div class="col-12 col-md-4 mb-2">
+        <div class="card shadow-sm">
+          <div class="card-header bg-info text-white fw-semibold">
+            <i class="bi bi-gear me-2"></i> Pembuatan Akun VPN
+          </div>
+          <div class="card-body">
+            <form id="formBuatVpn" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label class="form-label">Pilih Server</label>
+                <select class="form-select" id="vpn" name="vpn" required>
+                  <option value="">Pilih server...</option>
+                  <% serverVpn.forEach(server => { %>
+                    <option value="<%= server.id %>"><%= server.name %></option>
+                  <% }); %>
+                </select>
+                <div class="invalid-feedback">Pilih server VPN terlebih dahulu</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Jenis VPN</label>
+                <select class="form-select" id="service" name="service" required>
+                  <option value="">Service...</option>
+                </select>
+                <div class="invalid-feedback">Pilih jenis VPN</div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-check-circle"></i> Buat Akun VPN
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daftar Akun VPN -->
+      <div class="col-12 col-md-8 mb-2">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-shield-lock me-2"></i> Akun VPN Kamu</span>
+            <input type="text" id="searchVpn" class="form-control form-control-sm w-50" placeholder="Cari akun...">
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="vpnTable" class="table table-hover align-middle text-nowrap">
+                <thead class="table-success text-center">
+                  <tr>
+                    <th>#</th>
+                    <th>Server</th>
+                    <th>Alamat</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Tipe</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="vpnTableBody">
+                  <% if (data && data.length > 0) { %>
+                    <% data.forEach((item, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= item.server_name %> <small>(<%= item.server_host %>)</small></td>
+                        <td><%= item.ip_vpn || '-' %></td>
+                        <td><%= item.username %></td>
+                        <td><%= item.password %></td>
+                        <td class="text-uppercase"><%= item.type_vpn %></td>
+                        <td><%= item.expired_at ? new Date(item.expired_at).toLocaleString('id-ID') : 'Unlimited' %></td>
+                        <td>
+                          <% if (item.status === 'active') { %>
+                            <span class="badge bg-success">Aktif</span>
+                          <% } else { %>
+                            <span class="badge bg-secondary">Nonaktif</span>
+                          <% } %>
+                        </td>
+                        <td class="text-center">
+                          <button class="btn btn-sm btn-danger btnHapus" data-id="<%= item.id %>">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr><td colspan="9" class="text-center">Tidak ada akun VPN tersedia.</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+            <div class="text-center mt-3">
+              <small class="text-muted">Menampilkan <%= data.length %> akun VPN</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================= -->
+<!-- SCRIPT SECTION -->
+<!-- ======================= -->
+<script>
+$(document).ready(function() {
+
+  // =====================
+  // Tambah Limit Akun
+  // =====================
+  $('#btnTambahLimit').on('click', function() {
+    $('#formTambahLimit')[0].reset();
+    new bootstrap.Modal('#modalTambahLimit').show();
+  });
+
+  $('#formTambahLimit').on('submit', function(e) {
+    e.preventDefault();
+    const limit = $('#limitAkun').val();
+
+    if (!limit || parseInt(limit) <= 0) {
+      return Swal.fire('Peringatan', 'Masukkan jumlah limit yang valid!', 'warning');
+    }
+
+    $.post('/vpn/limit', { limit })
+      .done(res => {
+        Swal.fire('Berhasil', 'Limit akun berhasil ditambahkan!', 'success')
+          .then(() => location.reload());
+      })
+      .fail(() => Swal.fire('Gagal', 'Terjadi kesalahan server.', 'error'));
+  });
+
+  // =====================
+  // Ambil service berdasarkan server
+  // =====================
+  $('#vpn').on('change', function() {
+    const serverId = $(this).val();
+    $('#service').html('<option value="">Memuat...</option>');
+    $.getJSON(`/vpn/${serverId}/vpn-types`, function(data) {
+      let options = '<option value="">Pilih jenis VPN...</option>';
+      data.forEach(vpn => {
+        options += `<option value="${vpn.vpn_type_id}">${vpn.vpn_type_name}</option>`;
+      });
+      $('#service').html(options);
+    });
+  });
+
+  // =====================
+  // Validasi Form Buat VPN
+  // =====================
+  $('#formBuatVpn').on('submit', function(e) {
+    if (!this.checkValidity()) {
+      e.preventDefault();
+      e.stopPropagation();
+    } else {
+      e.preventDefault();
+      const formData = $(this).serialize();
+      $.post('/vpn/create-akun', formData)
+        .done(res => Swal.fire('Berhasil', 'Akun VPN berhasil dibuat!', 'success')
+          .then(() => location.reload()))
+        .fail(() => Swal.fire('Gagal', 'Terjadi kesalahan saat membuat akun.', 'error'));
+    }
+    $(this).addClass('was-validated');
+  });
+
+  // =====================
+  // Live Search Akun VPN
+  // =====================
+  $('#searchVpn').on('keyup', function() {
+    const keyword = $(this).val().toLowerCase();
+    $('#vpnTableBody tr').filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(keyword) > -1);
+    });
+  });
+
+  // =====================
+  // Hapus Akun
+  // =====================
+  $('#vpnTable').on('click', '.btnHapus', function() {
+    const id = $(this).data('id');
+    Swal.fire({
+      title: 'Hapus Akun?',
+      text: 'Data ini akan hilang permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#d33'
+    }).then(result => {
+      if (result.isConfirmed) {
+        $.post(`/vpn/delete/${id}`, function(res) {
+          Swal.fire('Terhapus!', 'Akun VPN telah dihapus.', 'success')
+            .then(() => location.reload());
+        }).fail(() => Swal.fire('Gagal', 'Tidak dapat menghapus akun.', 'error'));
+      }
+    });
+  });
+
+});
+</script>

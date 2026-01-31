@@ -1,0 +1,345 @@
+<!-- Header -->
+<div class="content-header mt-2">
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3 class="mb-0"><%= title %></h3>
+    </div>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show mt-2" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-hdd-network me-1"></i> Data ODP & POP</h5>
+      </div>
+
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <input type="text" id="searchInput" class="form-control-sm" placeholder="Cari ODP...">
+          <a href="/admin/odp-pop/new" class="btn btn-sm btn-secondary">
+            Tambah Data
+          </a>
+        </div>
+        <div class="table-responsive mt-2">
+          <table id="odpTable" class="table table-bordered table-hover align-middle">
+            <thead class="table-primary text-center">
+              <tr>
+                <th class="text-nowrap">No</th>
+                <th class="text-nowrap">Nama</th>
+                <th class="text-nowrap">Port</th>
+                <th class="text-nowrap">Terpakai</th>
+                <th class="text-nowrap">Lokasi</th>
+                <th class="text-nowrap">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="odpBody">
+              <% if (data && data.length > 0) { %>
+              <% data.forEach((item, index) => { 
+                  const percentUsed = Math.round((item.used / item.capacity) * 100) || 0;
+                  let progressColor = 'success';
+                  if (percentUsed >= 100) {
+                    progressColor = 'danger';
+                  } else if (percentUsed >= 55) {
+                    progressColor = 'warning';
+                  }
+              %>
+                <tr data-id="<%= item.odp_id %>">
+                  <td class="text-nowrap text-center"><%= index + 1 %></td>
+                  <td class="text-nowrap"><%= item.name %></td>
+                  <td class="text-nowrap text-center"><%= item.capacity %></td>
+                  
+                  <td class="text-nowrap">
+                    <div class="progress progress-xs">
+                      <div class="progress-bar bg-<%= progressColor %>" style="width: <%= percentUsed %>%"></div>
+                    </div>
+                    <small>
+                      <%= percentUsed >= 100 ? 'FULL' : `${item.used} / ${item.capacity}` %>
+                    </small>
+                  </td>
+                  
+                  <td class="text-nowrap">
+                    <a href="<%= item.location %>" target="_blank">
+                      <span class="bi bi-geo-alt-fill"></span> Map
+                    </a>
+                  </td>
+                  <td class="text-nowrap text-center">
+                    <a href="/admin/odp-pop/view-onu/<%= item.id %>" class="btn btn-info btn-sm me-1">
+                      <span class="bi bi-eye"></span>
+                    </a>
+                    <button class="btn btn-sm btn-warning btn-edit me-1"
+                      data-id="<%= item.id %>"
+                      data-name="<%= item.name %>"
+                      data-capacity="<%= item.capacity %>"
+                      data-used="<%= item.used %>"
+                      data-location="<%= item.location %>"
+                      data-description="<%= item.description || '' %>">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-danger btn-delete"
+                      data-id="<%= item.id %>"
+                      data-name="<%= item.name %>"
+                      data-capacity="<%= item.capacity %>"
+                      data-used="<%= item.used %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Belum ada data ODP & POP.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <nav aria-label="Pagination">
+          <ul class="pagination justify-content-end mt-3" id="pagination"></ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="formEditODP">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title" id="editModalLabel">Edit Data ODP & POP</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!-- Nama ODP -->
+            <div class="col-md-6 mb-3">
+              <label for="edit_odp_name" class="form-label">Nama ODP</label>
+              <input type="text" class="form-control" id="edit_odp_name" name="odp_name" required>
+            </div>
+
+            <!-- Kapasitas -->
+            <div class="col-md-3 mb-3">
+              <label for="edit_odp_capacity" class="form-label">Kapasitas</label>
+              <input type="number" class="form-control" id="edit_odp_capacity" name="odp_capacity" required min="1">
+            </div>
+
+            <!-- Terpakai -->
+            <div class="col-md-3 mb-3">
+              <label for="edit_odp_used" class="form-label">Port Terpakai (jangan dirubah)</label>
+              <input type="number" class="form-control bg-info" id="edit_odp_used" name="odp_used" readonly>
+            </div>
+
+            <!-- Lokasi -->
+            <div class="col-md-6 mb-3">
+              <label for="edit_location" class="form-label">Lokasi</label>
+              <input type="text" class="form-control" id="edit_location" name="pop_location" required>
+            </div>
+            
+            <!-- Deskripsi -->
+            <div class="col-md-6 mb-3">
+              <label for="edit_description" class="form-label">Deskripsi</label>
+              <textarea class="form-control" id="edit_description" name="description" rows="2" placeholder="Opsional..."></textarea>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning text-white">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Hapus -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formDeleteODP" method="POST">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-trash me-1"></i> Konfirmasi Hapus</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <p>Apakah Anda yakin ingin menghapus data <strong id="odpToDeleteName"></strong>?</p>
+          <input type="hidden" id="delete_odp_id" name="odp_id">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- JS -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const rowsPerPage = 10;
+    const tableBody = document.getElementById("odpBody");
+    const pagination = document.getElementById("pagination");
+    const searchInput = document.getElementById("searchInput");
+    const allRows = Array.from(tableBody.querySelectorAll("tr"));
+    let currentPage = 1;
+
+    function renderTable(filteredRows = allRows) {
+      tableBody.innerHTML = "";
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const visibleRows = filteredRows.slice(start, end);
+      visibleRows.forEach(row => tableBody.appendChild(row));
+      renderPagination(filteredRows.length);
+    }
+
+    function renderPagination(totalRows) {
+      const pageCount = Math.ceil(totalRows / rowsPerPage);
+      pagination.innerHTML = "";
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${i === currentPage ? "active" : ""}`;
+        li.innerHTML = `<button class="page-link">${i}</button>`;
+        li.addEventListener("click", () => {
+          currentPage = i;
+          renderTable(getFilteredRows());
+        });
+        pagination.appendChild(li);
+      }
+    }
+
+    function getFilteredRows() {
+      const keyword = searchInput.value.toLowerCase();
+      return allRows.filter(row =>
+        row.innerText.toLowerCase().includes(keyword)
+      );
+    }
+
+    searchInput.addEventListener("input", () => {
+      currentPage = 1;
+      renderTable(getFilteredRows());
+    });
+
+    renderTable();
+    
+    // Saat tombol edit diklik
+    $(".btn-edit").on("click", function () {
+      const id = $(this).data("id");
+      $("#edit_odp_name").val($(this).data("name"));
+      $("#edit_odp_capacity").val($(this).data("capacity"));
+      $("#edit_odp_used").val($(this).data("used"));
+      $("#edit_location").val($(this).data("location"));
+      $("#edit_description").val($(this).data("description"));
+      $("#formEditODP").data("id", id);
+      $("#editModal").modal("show");
+    });
+    
+    // Submit update ODP
+    $("#formEditODP").on("submit", function (e) {
+      e.preventDefault();
+      const id = $(this).data("id");
+      const formData = {
+        odp_name: $("#edit_odp_name").val(),
+        odp_capacity: $("#edit_odp_capacity").val(),
+        odp_used: $("#edit_odp_used").val(),
+        pop_location: $("#edit_location").val(),
+        description: $("#edit_description").val()
+      };
+    
+      $.ajax({
+        url: `/admin/odp-pop/edit/${id}`,
+        type: "POST",
+        data: formData,
+        success: function (res) {
+          if (res.success) {
+            Swal.fire("Berhasil", res.message, "success").then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire("Gagal", res.message, "error");
+          }
+        },
+        error: function (xhr) {
+          console.error(xhr.responseText);
+          Swal.fire("Error", "Terjadi kesalahan saat menyimpan data.", "error");
+        }
+      });
+    });
+
+
+    //TOMBOL DELETE
+    $(".btn-delete").on("click", function () {
+      const id = $(this).data("id");
+      const name = $(this).data("name");
+      const used = parseInt($(this).data("used"), 10); // Ambil data-used
+      const row = $(this).closest("tr");
+  
+      // 🔒 Cegah hapus kalau sudah digunakan
+      if (used > 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tidak Bisa Dihapus",
+          html: `ODP/POP <strong>${name}</strong> sudah digunakan oleh pelanggan.<br>Silakan kosongkan port terlebih dahulu.`,
+        });
+        return;
+      }
+  
+      Swal.fire({
+        title: "Yakin ingin menghapus?",
+        html: `Data <strong>${name}</strong> akan dihapus secara permanen.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Ya, hapus",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: `/admin/odp-pop/${id}`,
+            type: "DELETE",
+            success: function (res) {
+              if (res.success) {
+                Swal.fire("Berhasil!", res.message, "success");
+  
+                // Hapus baris dari tabel
+                row.remove();
+  
+                // Cek jika tabel kosong
+                if ($("#odpBody tr").length === 0) {
+                  $("#odpBody").html(`
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">Belum ada data ODP & POP.</td>
+                    </tr>`);
+                }
+              } else {
+                Swal.fire("Gagal", res.message, "error");
+              }
+            },
+            error: function (xhr) {
+              const res = xhr.responseJSON;
+              const message = res?.message || "Terjadi kesalahan saat menghapus data.";
+              Swal.fire("Gagal", message, "error");
+            }
+          });
+        }
+      });
+    });
+
+
+    
+  });
+</script>

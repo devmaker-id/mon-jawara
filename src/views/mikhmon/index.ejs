@@ -1,0 +1,261 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h3 class="mb-0"><%= title %></h3>
+        <p>
+          Silahkan tentukan mikhmon ini kamu gunakan untuk Ros 6, atau Ros 7. Karna prilaku dan scripting berbeda, so gaboleh di campur ya, jika kamu pake ros 6 mikhmon jangan ada mikrotik ros 7, yang ditambahkan, begitu sebaliknya.
+        </p>
+        <h4>Catatan Kecil</h4>
+        <p>
+          Masih ada kekurangan di mikhmon untuk ros 7, (beta version), mohon maaf
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    
+    <% if (mikhmon.length > 0) { %>
+    <div class="card mb-2">
+      <div class="card-header bg-success text-white">
+        Domain Mikhmon List
+      </div>
+      <div class="card-body">
+        
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Domain</th>
+                <th>Ros</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% mikhmon.forEach((mkh, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td>
+                    <a href="http://<%= mkh.full_domain %>" target="_blank">
+                      <%= mkh.full_domain %>
+                    </a>
+                  </td>
+                  <td><%= mkh.ros_version %></td>
+                  <td><%= new Date(mkh.created_at).toLocaleString() %></td>
+                  <td>
+                    
+                    <button class="btn btn-sm btn-danger" onclick="deleteDomain(<%= mkh.id %>, '<%= mkh.full_domain %>');">
+                      <span class="bi bi-trash"></span>
+                      Hapus
+                    </button>
+
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        
+      </div>
+    </div>
+    <% } %>
+    
+    <div class="card mb-3">
+      <div class="card-header bg-info text-white">
+        Buat mikhmon domain
+      </div>
+      <div class="card-body">
+        <form id="formCreateDomain">
+          
+          <div class="mb-3">
+            <label for="domain" class="form-label">Nama Domain</label>
+            <input type="text" class="form-control" id="domain" name="domain" placeholder="Masukkan nama domain..." required>
+            <div id="domainFeedback" class="form-text"></div>
+          </div>
+
+          <div class="mb-3">
+            <label for="rosVersion" class="form-label">Ros Version</label>
+            <select class="form-select" id="rosVersion" name="rosVersion" required>
+              <option value="">-- Pilih Ros Version --</option>
+                <option value="6">Ros 6</option>
+                <option value="7">Ros 7</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="rootDomain" class="form-label">Root Domain</label>
+            <select class="form-select" id="rootDomain" name="rootDomain" required>
+              <option value="">-- Pilih Root Domain --</option>
+              <% rootdomaindata.forEach(function(item) { %>
+                <option value="<%= item.root_domain %>">
+                  <%= item.root_domain %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <input readonly class="form-control" id="fulldomain" placeholder="hasil domain...">
+            <div id="domainFeedback" class="form-text"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <span class="bi bi-save"></span>
+            Buat Domain
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function deleteDomain(id, fulldomain) {
+    Swal.fire({
+      title: "Yakin mau hapus?",
+      text: `Data ${fulldomain} tidak bisa di kembalikan!!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Memproses...',
+          text: 'Mohon tunggu sebentar',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        axios.post('/mikhmon/delete', { id: id, fulldomain: fulldomain }).then(response => {
+            Swal.fire({
+              title: response.data.title,
+              text: response.data.msg,
+              icon: response.data.icon
+            }).then(() => {
+              location.reload();
+            });
+          }).catch(error => {
+            Swal.fire('Error!', error.response?.data?.msg || 'Gagal menghapus domain.', 'error');
+          });
+      }
+    });
+  }
+
+  
+  const domainInput = document.getElementById('domain');
+  const domainFeedback = document.getElementById('domainFeedback');
+  const fullDomain = document.getElementById('fulldomain');
+  const rootDomain = document.getElementById('rootDomain');
+
+  domainInput.addEventListener('input', async () => {
+    const domain = domainInput.value.trim();
+    const regex = /^[a-z0-9]+$/;
+
+    // Cek minimal 5 karakter
+    if (domain.length < 5) {
+      domainFeedback.innerText = "Minimal 5 karakter.";
+      domainFeedback.style.color = "orange";
+      return;
+    }
+    
+    if (!regex.test(domain)) {
+      domainFeedback.innerText = "hanya boleh huruf kecil, (a-z dan 0-9)";
+      domainFeedback.style.color = "red";
+      return;
+    }
+
+    if (!domain) {
+      domainFeedback.innerText = "";
+      return;
+    }
+
+    try {
+      const response = await axios.post('/mikhmon/check-domain', {
+        domain
+      });
+
+      if (response.data.available) {
+        domainFeedback.innerText = "Domain tersedia!";
+        domainFeedback.style.color = "green";
+      } else {
+        domainFeedback.innerText = "Domain sudah digunakan!";
+        domainFeedback.style.color = "red";
+      }
+    } catch (error) {
+      domainFeedback.innerText = "Gagal memeriksa domain.";
+      domainFeedback.style.color = "red";
+    }
+  });
+  
+  rootDomain.addEventListener('change', async () => {
+    fullDomain.value = `${domainInput.value}.${rootDomain.value}`;
+  });
+
+  document.getElementById('formCreateDomain').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const domain = document.getElementById('domain').value.trim();
+  const rootDomain = document.getElementById('rootDomain').value.trim();
+  const rosVersion = document.getElementById('rosVersion').value.trim();
+
+  if (!domain || !rootDomain || !rosVersion) {
+    Swal.fire({
+      title: "Info",
+      text: 'Semua field wajib diisi!',
+      icon: "info"
+    });
+    return;
+  }
+
+  // Loading ditampilkan sebelum axios jalan
+  Swal.fire({
+    title: 'Memproses...',
+    text: 'Mohon tunggu sebentar',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  axios.post('/mikhmon/create', {
+    domain,
+    rootDomain,
+    rosVersion
+  }).then(response => {
+    const result = response.data;
+    if (result.success) {
+      Swal.fire({
+        title: "Berhasil",
+        text: result.msg,
+        icon: "success"
+      }).then(() => {
+        window.location.reload();
+      });
+    } else {
+      Swal.fire({
+        title: "Info",
+        text: result.msg,
+        icon: "info"
+      });
+    }
+  }).catch(error => {
+    const titleAlert = error.response?.data?.title || "Error";
+    const alertIcon = error.response?.data?.icon || "error";
+    const errorMsg = error.response?.data?.msg || "Gagal menghubungi server";
+    Swal.fire({
+      title: titleAlert,
+      text: errorMsg,
+      icon: alertIcon
+    });
+  });
+});
+
+</script>

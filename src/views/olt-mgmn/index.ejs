@@ -1,0 +1,301 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="row">
+      <div class="col-12">
+        <p>
+          Saat aplikasi ini dibuat Oktober 2025 <br>
+          Saya baru menjalankan di OLT HISFOCUS
+        </p>
+
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0"><i class="bi bi-hdd-network me-2"></i>Dashboard OLT</h3>
+            <!-- Tombol Add OLT modal -->
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddOlt">
+              <i class="bi bi-plus-circle"></i> Tambah OLT
+            </button>
+          </div>
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr class="text-nowrap">
+                    <th style="width:50px">#</th>
+                    <th>Nama OLT</th>
+                    <th>IP Address</th>
+                    <th>Brand</th>
+                    <th>Status</th>
+                    <th class="text-end">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (Array.isArray(olts) && olts.length > 0) { %>
+                    <% olts.forEach((olt, idx) => { %>
+                      <tr class="text-nowrap" data-id="<%= olt.id %>">
+                        <td><%= idx + 1 %></td>
+                        <td class="nama"><strong><%= olt.name %></strong></td>
+                        <td class="ip"><code><%= olt.host %></code></td>
+                        <td class="brand"><%= olt.brand_name %></td>
+                        <td class="status">
+                          <% if (olt.status === 'online') { %>
+                            <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle-fill"></i> Online</span>
+                          <% } else { %>
+                            <span class="badge bg-danger rounded-pill"><i class="bi bi-x-circle-fill"></i> Offline</span>
+                          <% } %>
+                        </td>
+                        <td class="text-end">
+                          <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-info btn-preview" data-id="<%= olt.id %>"><i class="bi bi-eye-fill"></i></button>
+                            <button class="btn btn-warning text-white btn-edit" data-id="<%= olt.id %>"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-danger btn-delete" data-id="<%= olt.id %>"><i class="bi bi-trash-fill"></i></button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">Belum ada data OLT</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card-footer text-muted text-end small">
+            Terakhir diperbarui: <%= new Date().toLocaleDateString() %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Preview -->
+<div class="modal fade" id="modalPreview" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-eye-fill"></i> Detail OLT</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add OLT -->
+<div class="modal fade" id="modalAddOlt" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="formAddOlt">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Tambah OLT</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Nama OLT</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>IP Address</label>
+            <input type="text" name="host" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Port Telnet</label>
+            <input type="number" name="port" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Username telnet</label>
+            <input type="text" name="username" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>password telnet</label>
+            <input type="text" name="password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Brand</label>
+            <select name="brand_id" class="form-select" required>
+              <% brands.forEach(brand => { %>
+                <option value="<%= brand.id %>"><%= brand.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label>Status</label>
+            <select name="status" class="form-select">
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit OLT -->
+<div class="modal fade" id="modalEditOlt" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="formEditOlt">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title"><i class="bi bi-pencil-fill"></i> Edit OLT</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="editId">
+          <div class="mb-3">
+            <label>Nama OLT</label>
+            <input type="text" name="name" id="editName" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>IP Address</label>
+            <input type="text" name="host" id="editHost" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Brand</label>
+            <select name="brand_id" id="editBrand" class="form-select" required>
+              <% brands.forEach(brand => { %>
+                <option value="<%= brand.id %>"><%= brand.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label>Status</label>
+            <select name="status" id="editStatus" class="form-select">
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning">Simpan</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Delete -->
+<div class="modal fade" id="modalDelete" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <form id="deleteForm">
+        <div class="modal-header text-danger">
+          <h5 class="modal-title"><i class="bi bi-trash-fill"></i> Hapus OLT</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Yakin ingin menghapus <strong id="deleteNama"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  const previewModal = new bootstrap.Modal($('#modalPreview')[0]);
+  const addModal = new bootstrap.Modal($('#modalAddOlt')[0]);
+  const editModal = new bootstrap.Modal($('#modalEditOlt')[0]);
+  const deleteModal = new bootstrap.Modal($('#modalDelete')[0]);
+
+  /** Preview */
+  $('.btn-preview').click(function() {
+    const id = $(this).data('id');
+    $.get(`/admin/olt/${id}`, res => {
+      if(res.success) {
+        const o = res.data;
+        $('#previewContent').html(`
+          <p><strong>Nama:</strong> ${o.name}</p>
+          <p><strong>IP:</strong> ${o.host}</p>
+          <p><strong>Brand:</strong> ${o.brand_name}</p>
+          <p><strong>Status:</strong> ${o.status}</p>
+        `);
+        previewModal.show();
+      } else Swal.fire('Error', res.message || 'Gagal ambil data', 'error');
+    });
+  });
+
+  /** Tambah OLT */
+  $('#formAddOlt').submit(function(e) {
+    e.preventDefault();
+    const data = $(this).serialize();
+    $.post('/admin/olt/add', data, res => {
+      if(res.success) {
+        addModal.hide();
+        Swal.fire({icon:'success', title:'OLT berhasil ditambahkan', timer:1200, showConfirmButton:false})
+          .then(()=> location.reload());
+      } else Swal.fire('Error', res.message || 'Gagal tambah OLT', 'error');
+    });
+  });
+
+  /** Edit OLT */
+  $('.btn-edit').click(function() {
+    const id = $(this).data('id');
+    $.get(`/admin/olt/${id}`, res => {
+      if(res.success) {
+        const o = res.data;
+        $('#editId').val(o.id);
+        $('#editName').val(o.name);
+        $('#editHost').val(o.host);
+        $('#editBrand').val(o.brand_id);
+        $('#editStatus').val(o.status);
+        editModal.show();
+      } else Swal.fire('Error', res.message || 'Gagal ambil data', 'error');
+    });
+  });
+
+  $('#formEditOlt').submit(function(e) {
+    e.preventDefault();
+    const id = $('#editId').val();
+    const data = $(this).serialize();
+    $.post(`/admin/olt/edit/${id}`, data, res => {
+      if(res.success) {
+        editModal.hide();
+        Swal.fire({icon:'success', title:'OLT berhasil diperbarui', timer:1200, showConfirmButton:false})
+          .then(()=> location.reload());
+      } else Swal.fire('Error', res.message || 'Gagal update OLT', 'error');
+    });
+  });
+
+  /** Delete OLT */
+  $('.btn-delete').click(function() {
+    const id = $(this).data('id');
+    const row = $(this).closest('tr');
+    $('#deleteNama').text(row.find('.nama').text());
+    deleteModal.show();
+
+    $('#deleteForm').off('submit').on('submit', function(e) {
+      e.preventDefault();
+      $.post(`/admin/olt/delete/${id}`, res => {
+        if(res.success) {
+          deleteModal.hide();
+          Swal.fire({icon:'success', title:'OLT berhasil dihapus', timer:1200, showConfirmButton:false})
+            .then(()=> location.reload());
+        } else Swal.fire('Error', res.message || 'Gagal hapus OLT', 'error');
+      });
+    });
+  });
+});
+</script>

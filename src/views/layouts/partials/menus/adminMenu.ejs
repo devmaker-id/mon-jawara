@@ -1,0 +1,485 @@
+<li class="nav-item has-treeview 
+  <%= currentUrl.startsWith('/admin/vps-server') ? 'menu-open' : '' %>">
+
+  <a href="#" class="nav-link d-flex align-items-center
+    <%= currentUrl.startsWith('/admin/vps-server') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-server"></i>
+    <p class="mb-0 flex-grow-1">Server VPS Linux</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/vps-server" class="nav-link
+        <%= currentUrl === '/admin/vps-server' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>List Server</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+
+<li class="nav-item has-treeview
+  <%= currentUrl.startsWith('/admin/vpn-server') ? 'menu-open' : '' %>">
+
+  <a href="#" class="nav-link d-flex align-items-center
+    <%= currentUrl.startsWith('/admin/vpn-server') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-shield-lock"></i>
+    <p class="mb-0 flex-grow-1">Server VPN</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/vpn-server" class="nav-link
+        <%= currentUrl === '/admin/vpn-server' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>List Server</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/admin/vpn-server/type" class="nav-link
+        <%= currentUrl.includes('/type') ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Vpn Type</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/admin/vpn-server/group" class="nav-link
+        <%= currentUrl.includes('/group') ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Vpn Group</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item">
+  <a href="/admin/radius-server" class="nav-link
+    <%= currentUrl === '/admin/radius-server' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-hdd-network"></i>
+    <p>Server RADIUS</p>
+  </a>
+</li>
+
+<li class="nav-item has-treeview
+  <%= currentUrl.startsWith('/whatsapp') ? 'menu-open' : '' %>">
+
+  <a href="#" class="nav-link d-flex align-items-center
+    <%= currentUrl.startsWith('/whatsapp') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-robot"></i>
+    <p class="mb-0 flex-grow-1">Bot Whatsapp</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+
+  <ul class="nav nav-treeview">
+
+    <li class="nav-item ms-2">
+      <a href="/whatsapp" class="nav-link
+        <%= currentUrl === '/whatsapp' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Connectted</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/whatsapp/kontak" class="nav-link
+        <%= currentUrl === '/whatsapp/kontak' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Kontak</p>
+      </a>
+    </li>
+
+  </ul>
+</li>
+
+<li class="nav-item">
+  <a href="/admin/mikrotik-client" class="nav-link <%= currentUrl === '/admin/mikrotik-client' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-hdd-network"></i>
+    <p>Mikrotik Client</p>
+  </a>
+</li>
+
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/admin-setting') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/admin-setting') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-gear"></i>
+    <p class="mb-0 flex-grow-1">Pengaturan</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/admin-setting/setting-general" class="nav-link <%= currentUrl.startsWith('/admin/admin-setting/setting-general') ? 'active' : '' %>">
+        <i class="bi bi-tools nav-icon"></i>
+        <p>Pengaturan Umum</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/admin-setting/api-telegram" class="nav-link <%= currentUrl.startsWith('/admin/admin-setting/api-telegram') ? 'active' : '' %>">
+        <i class="nav-icon bi bi-robot"></i>
+        <p>API Telegram</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/admin-setting/role-manajement" class="nav-link <%= currentUrl.startsWith('/admin/admin-setting/role-manajement') ? 'active' : '' %>">
+        <i class="bi bi-key nav-icon"></i>
+        <p>Manajemen Akses User</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/admin-setting/users" class="nav-link <%= currentUrl.startsWith('/admin/admin-setting/users') ? 'active' : '' %>">
+        <i class="bi bi-people nav-icon"></i>
+        <p>Manajemen User</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+
+<li class="nav-item">
+  <a href="/admin/notif" class="nav-link <%= currentUrl === '/admin/notif' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-bell"></i>
+    <p>Buat Notifikasi</p>
+  </a>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/seller') || currentUrl.startsWith('/admin/product') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/seller') || currentUrl.startsWith('/admin/product') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-box-seam"></i>
+    <p class="mb-0 flex-grow-1">Seller & Product</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/seller" class="nav-link <%= currentUrl === '/admin/seller' ? 'active' : '' %>">
+        <i class="bi bi-people nav-icon"></i>
+        <p>Manajemen Seller</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/product" class="nav-link <%= currentUrl === '/admin/product' ? 'active' : '' %>">
+        <i class="bi bi-box-seam nav-icon"></i>
+        <p>Produk</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/seller/aksess-free" class="nav-link <%= currentUrl.startsWith('/admin/seller/aksess-free') ? 'active' : '' %>">
+        <i class="bi bi-key nav-icon"></i>
+        <p>Seller Aksess</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/seller/products" class="nav-link <%= currentUrl.startsWith('/admin/seller/products') ? 'active' : '' %>">
+        <i class="bi bi-box-seam nav-icon"></i>
+        <p>Seller Produk</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/mgmn-pln') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/mgmn-pln') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-lightning-charge"></i>
+    <p class="mb-0 flex-grow-1">PLN MANAGEMENT</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/mgmn-pln" class="nav-link <%= currentUrl === '/admin/mgmn-pln' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Data Tagihan PLN</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/mgmn-pln/create" class="nav-link <%= currentUrl === '/admin/mgmn-pln/create' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Tambah Pln Baru</p>
+      </a>
+    </li>
+    <!-- Data Transaksi -->
+    <li class="nav-item ms-2">
+      <a href="/admin/mgmn-pln/transaksi" class="nav-link <%= currentUrl === '/admin/mgmn-pln/transaksi' ? 'active' : '' %>">
+        <i class="bi bi-receipt nav-icon"></i>
+        <p>Transaksi PLN</p>
+      </a>
+    </li>
+
+    <!-- Upload Bukti -->
+    <li class="nav-item ms-2">
+      <a href="/admin/mgmn-pln/upload-bukti" class="nav-link <%= currentUrl === '/admin/mgmn-pln/upload-bukti' ? 'active' : '' %>">
+        <i class="bi bi-upload nav-icon"></i>
+        <p>Upload Bukti</p>
+      </a>
+    </li>
+
+    <!-- Cetak / Struk -->
+    <li class="nav-item ms-2">
+      <a href="/admin/mgmn-pln/riwayat" class="nav-link <%= currentUrl === '/admin/mgmn-pln/riwayat' ? 'active' : '' %>">
+        <i class="bi bi-printer nav-icon"></i>
+        <p>Riwayat & Struk</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/olt') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/olt') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-hdd-network"></i>
+    <p class="mb-0 flex-grow-1">OLT</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/olt/type" class="nav-link <%= currentUrl === '/admin/olt/type' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Brand OLT</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/olt" class="nav-link <%= currentUrl === '/admin/olt' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Lihat Olt</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/olt/tambah" class="nav-link <%= currentUrl === '/admin/olt/tambah' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Tambah Olt</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/odp-pop') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/odp-pop') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-puzzle"></i>
+    <p class="mb-0 flex-grow-1">ODP | POP</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/odp-pop" class="nav-link <%= currentUrl === '/admin/odp-pop' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Lihat Data</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/odp-pop/new" class="nav-link <%= currentUrl === '/admin/odp-pop/new' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Tambah Baru</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/router-onu') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/router-onu') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-router"></i>
+    <p class="mb-0 flex-grow-1">Router ONU</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/router-onu" class="nav-link <%= currentUrl === '/admin/router-onu' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Semua Onu</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/router-onu/add-new" class="nav-link <%= currentUrl === '/admin/router-onu/add-new' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Tambah Onu Baru</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item">
+  <a href="/admin/nas-client" class="nav-link <%= currentUrl.startsWith('/admin/nas-client') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-hdd-rack"></i>
+    <p>Nas Client</p>
+  </a>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/banwith-management') || currentUrl.startsWith('/admin/profile') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/banwith-management') || currentUrl.startsWith('/admin/profile') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-box-seam"></i>
+    <p class="mb-0 flex-grow-1">Profile Paket</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/banwith-management" class="nav-link <%= currentUrl === '/admin/banwith-management' ? 'active' : '' %>">
+        <i class="nav-icon bi bi-speedometer2"></i>
+        <p>Banwith</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/profile/group" class="nav-link <%= currentUrl === '/admin/profile/group' ? 'active' : '' %>">
+        <i class="nav-icon bi bi-box-seam"></i>
+        <p>Profile Group</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/profile/hotspot" class="nav-link <%= currentUrl === '/admin/profile/hotspot' ? 'active' : '' %>">
+        <i class="bi bi-wifi nav-icon"></i>
+        <p>Paket Hotspot</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/profile/pppoe" class="nav-link <%= currentUrl === '/admin/profile/pppoe' ? 'active' : '' %>">
+        <i class="bi bi-plug nav-icon"></i>
+        <p>Paket PPPoE</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/user-hotspot') || currentUrl.startsWith('/admin/user-pppoe') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/user-hotspot') || currentUrl.startsWith('/admin/user-pppoe') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-people-fill"></i>
+    <p class="mb-0 flex-grow-1">List Pelanggan</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/user-hotspot" class="nav-link <%= currentUrl === '/admin/user-hotspot' ? 'active' : '' %>">
+        <i class="bi bi-wifi nav-icon"></i>
+        <p>User Hotspot</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/user-pppoe" class="nav-link <%= currentUrl === '/admin/user-pppoe' ? 'active' : '' %>">
+        <i class="bi bi-plug nav-icon"></i>
+        <p>User PPPoE</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<li class="nav-item <%= currentUrl === '/admin/kartu-voucher' ? 'active' : '' %>">
+  <a href="/admin/kartu-voucher" class="nav-link d-flex align-items-center <%= currentUrl === '/admin/kartu-voucher' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-ticket-perforated"></i>
+    <p class="mb-0">Kartu Voucher</p>
+  </a>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/closingan') || currentUrl.startsWith('/admin/keuangan') || currentUrl.startsWith('/admin/pengeluaran') || currentUrl.startsWith('/admin/hutangpiutang') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/closingan') || currentUrl.startsWith('/admin/keuangan') || currentUrl.startsWith('/admin/pengeluaran') || currentUrl.startsWith('/admin/hutangpiutang') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-coin"></i>
+    <p class="mb-0 flex-grow-1">Keuangan</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/admin/closingan" class="nav-link <%= currentUrl === '/admin/closingan' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Closingan</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/keuangan" class="nav-link <%= currentUrl === '/admin/keuangan' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Penjualan</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/pengeluaran" class="nav-link <%= currentUrl === '/admin/pengeluaran' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Pengeluaran</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/admin/hutangpiutang" class="nav-link <%= currentUrl === '/admin/hutangpiutang' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Piutang</p>
+      </a>
+    </li>
+  </ul>
+</li>
+
+<!-- Menu Tiket & Laporan -->
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/tiket') || currentUrl.startsWith('/laporan') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/tiket') || currentUrl.startsWith('/laporan') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-receipt-cutoff"></i>
+    <p class="mb-0 flex-grow-1">Tiket & Laporan</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    
+    <!-- Submenu Tiket -->
+    <li class="nav-item ms-2">
+      <a href="/tiket" class="nav-link <%= currentUrl === '/tiket' ? 'active' : '' %>">
+        <i class="bi bi-ticket-detailed nav-icon"></i>
+        <p>Manajemen Tiket</p>
+      </a>
+    </li>
+
+    <!-- Submenu Laporan -->
+    <li class="nav-item ms-2">
+      <a href="/laporan/aktivitas" class="nav-link <%= currentUrl === '/laporan/aktivitas' ? 'active' : '' %>">
+        <i class="bi bi-clipboard-data nav-icon"></i>
+        <p>Laporan Aktivitas</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/laporan/pendapatan" class="nav-link <%= currentUrl === '/laporan/pendapatan' ? 'active' : '' %>">
+        <i class="bi bi-cash-coin nav-icon"></i>
+        <p>Laporan Pendapatan</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/laporan/voucher" class="nav-link <%= currentUrl === '/laporan/voucher' ? 'active' : '' %>">
+        <i class="bi bi-printer nav-icon"></i>
+        <p>Laporan Voucher</p>
+      </a>
+    </li>
+
+  </ul>
+</li>
+
+<li class="nav-item has-treeview <%= currentUrl.startsWith('/tools') ? 'menu-open' : '' %>">
+  <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/tools') ? 'menu-open' : '' %>">
+    <i class="nav-icon bi bi-tools"></i>
+    <p class="mb-0 flex-grow-1">Tools System</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
+  </a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item ms-2">
+      <a href="/tools/ping-nas" class="nav-link <%= currentUrl === '/tools/ping-nas' ? 'active' : '' %>">
+        <i class="bi bi-wifi nav-icon"></i>
+        <p>Ping NAS</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/tools/check-radius" class="nav-link <%= currentUrl === '/tools/check-radius' ? 'active' : '' %>">
+        <i class="bi bi-speedometer nav-icon"></i>
+        <p>Cek Status RADIUS</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/tools/backup" class="nav-link <%= currentUrl === '/tools/backup' ? 'active' : '' %>">
+        <i class="bi bi-hdd-stack nav-icon"></i>
+        <p>Backup Data</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/tools/logs" class="nav-link <%= currentUrl === '/tools/logs' ? 'active' : '' %>">
+        <i class="bi bi-journal-text nav-icon"></i>
+        <p>System Logs</p>
+      </a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="/tools/auto-clean" class="nav-link <%= currentUrl === '/tools/auto-clean' ? 'active' : '' %>">
+        <i class="bi bi-recycle nav-icon"></i>
+        <p>Auto Clean Expired</p>
+      </a>
+    </li>
+  </ul>
+</li>

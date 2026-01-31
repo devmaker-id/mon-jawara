@@ -1,0 +1,116 @@
+<!-- views/server-radius.ejs -->
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="card shadow">
+      <div class="card-header bg-dark text-white">
+        <h3 class="card-title">
+          <i class="bi bi-router-fill"></i> Daftar Server RADIUS
+        </h3>
+      </div>
+
+      <div class="card-body">
+        <div class="row">
+          <% radiusServers.forEach(server => { %>
+            <div class="col-md-6 col-xl-4 mb-3">
+              <div class="card border shadow-sm h-100">
+                <div class="card-body">
+                  <h5 class="card-title d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-terminal-dash me-2"></i> <%= server.name %></span>
+                    <% if (server.status === 'online') { %>
+                      <span class="badge bg-success ms-1">Aktif</span>
+                    <% } else { %>
+                      <span class="badge bg-danger ms-1">Mati</span>
+                    <% } %>
+                  </h5>
+                  <br>
+
+                  <p class="mb-1"><i class="bi bi-globe"></i> IP: <code><%= server.ip %></code></p>
+                  <p class="mb-1"><i class="bi bi-geo-alt"></i> Lokasi: <%= server.location %></p>
+                  <p class="mb-1"><i class="bi bi-ubuntu"></i> OS: <%= server.os %></p>
+                  <p class="mb-1"><i class="bi bi-person-check"></i> Auth: <%= server.activeUsers %> pengguna aktif</p>
+                </div>
+
+                <div class="card-footer d-flex justify-content-end gap-2 bg-light">
+                  <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRemoteTerminal">
+                    <i class="bi bi-terminal-fill me-1"></i> Terminal Server
+                  </button>
+
+                  <button class="btn btn-sm btn-warning btn-edit" data-id="<%= server.id %>">
+                    <i class="bi bi-pencil-square"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= server.id %>">
+                    <i class="bi bi-trash"></i> Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Remote Terminal -->
+<div class="modal fade" id="modalRemoteTerminal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-terminal-dash"></i> Terminal Server (SSH Shell)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-black text-white p-3" style="font-family: monospace;">
+        <div id="terminalOutput" style="height: 300px; overflow-y: auto; white-space: pre-line;">
+          Connected to server: debian@192.168.88.1
+        </div>
+
+        <div class="d-flex mt-3">
+          <span class="me-2 text-success">$</span>
+          <input type="text" id="terminalInput" class="form-control bg-black text-white border-0 p-0" autofocus autocomplete="off" style="font-family: monospace;" placeholder="Ketik perintah dan tekan Enter...">
+        </div>
+      </div>
+
+      <div class="modal-footer bg-dark text-white">
+        <span class="me-auto">Status: <strong id="sshStatus">Terhubung</strong></span>
+        <button class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const terminalInput = document.getElementById('terminalInput');
+  const terminalOutput = document.getElementById('terminalOutput');
+
+  terminalInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const command = terminalInput.value.trim();
+      if (!command) return;
+
+      // Tampilkan input user
+      const userCommand = document.createElement('div');
+      userCommand.innerHTML = `<span class="text-success">$</span> ${command}`;
+      terminalOutput.appendChild(userCommand);
+
+      // Output dummy
+      const outputDummy = document.createElement('div');
+      outputDummy.textContent = `Output dari: ${command}\n(total dummy)`;
+      terminalOutput.appendChild(outputDummy);
+
+      terminalInput.value = '';
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+  });
+</script>

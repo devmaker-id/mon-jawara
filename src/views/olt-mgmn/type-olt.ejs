@@ -1,0 +1,248 @@
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
+        <%= flashData.text %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <div class="row">
+      <div class="col-12">
+
+        <p>
+          Saat aplikasi ini dibuat Oktober 2025 <br>
+          Saya baru menjalankan di OLT HISFOCUS
+        </p>
+
+        <!-- Tombol Tambah Brand -->
+        <div class="mb-3 text-end">
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddBrand">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Brand
+          </button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+              <i class="bi bi-hdd-network me-2"></i>Brand OLT
+            </h3>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 50px;">#</th>
+                    <th class="text-nowrap">Brand</th>
+                    <th class="text-nowrap">Status</th>
+                    <th class="text-nowrap">Keterangan</th>
+                    <th class="text-end">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (Array.isArray(oltbrand) && oltbrand.length > 0) { %>
+                    <% oltbrand.forEach((brand, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td class="text-nowrap"><strong><%= brand.name %></strong></td>
+                        <td class="text-nowrap">
+                          <% if(brand.status === 'enable') { %>
+                            <span class="badge bg-success">Enable</span>
+                          <% } else { %>
+                            <span class="badge bg-danger">Disable</span>
+                          <% } %>
+                        </td>
+                        <td class="text-nowrap"><%= brand.keterangan || '-' %></td>
+                        <td class="text-end">
+                          <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-info btn-preview" data-brand="<%= encodeURIComponent(JSON.stringify(brand)) %>">
+                              <i class="bi bi-eye-fill"></i>
+                            </button>
+                            <button class="btn btn-warning text-white btn-edit" data-brand="<%= encodeURIComponent(JSON.stringify(brand)) %>">
+                              <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn btn-danger btn-delete" data-brand="<%= encodeURIComponent(JSON.stringify(brand)) %>">
+                              <i class="bi bi-trash-fill"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">Belum ada data brand OLT</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Tambah Brand -->
+<div class="modal fade" id="modalAddBrand" tabindex="-1" aria-labelledby="modalAddBrandLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="formAddBrand" class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalAddBrandLabel">Tambah Brand OLT</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="brandName" class="form-label">Nama Brand</label>
+          <input type="text" class="form-control" id="brandName" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label d-block">Status</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="status" id="statusEnable" value="enable" checked>
+            <label class="form-check-label" for="statusEnable">Enable</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="status" id="statusDisable" value="disable">
+            <label class="form-check-label" for="statusDisable">Disable</label>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="keterangan" class="form-label">Keterangan (Opsional)</label>
+          <textarea class="form-control" id="keterangan" name="keterangan" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Brand</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Brand -->
+<div class="modal fade" id="modalEditBrand" tabindex="-1" aria-labelledby="modalEditBrandLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="formEditBrand" class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="modalEditBrandLabel">Edit Brand OLT</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="id" id="editBrandId">
+        <div class="mb-3">
+          <label for="editBrandName" class="form-label">Nama Brand</label>
+          <input type="text" class="form-control" id="editBrandName" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Status</label>
+          <div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="status" id="editStatusEnable" value="enable" required>
+              <label class="form-check-label text-success" for="editStatusEnable">Enable</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="status" id="editStatusDisable" value="disable" required>
+              <label class="form-check-label text-danger" for="editStatusDisable">Disable</label>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="editBrandKeterangan" class="form-label">Keterangan (opsional)</label>
+          <textarea class="form-control" id="editBrandKeterangan" name="keterangan" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  const parseBrand = (btn) => JSON.parse(decodeURIComponent($(btn).data('brand')));
+  const modalEdit = new bootstrap.Modal(document.getElementById('modalEditBrand'));
+
+  /** Tambah Brand via AJAX */
+  $('#formAddBrand').submit(function(e) {
+    e.preventDefault();
+    $.post('/admin/oltbrand/add', $(this).serialize(), function(res) {
+      if(res.success) {
+        $('#modalAddBrand').modal('hide');
+        Swal.fire({ icon: 'success', title: 'Brand berhasil ditambahkan', showConfirmButton: false, timer: 1500 })
+             .then(() => location.reload());
+      } else {
+        Swal.fire({ icon: 'error', title: 'Gagal menambahkan brand', text: res.message || 'Terjadi kesalahan' });
+      }
+    }).fail(function() {
+      Swal.fire({ icon: 'error', title: 'Gagal menambahkan brand', text: 'Terjadi kesalahan server' });
+    });
+  });
+
+  /** Hapus Brand via AJAX */
+  $('.btn-delete').click(function() {
+    const brand = parseBrand(this);
+    Swal.fire({
+      title: `Hapus brand ${brand.name}?`,
+      text: "Data akan dihapus permanen!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if(result.isConfirmed) {
+        $.post('/admin/oltbrand/delete/' + brand.id, function(res) {
+          if(res.success) Swal.fire({ icon: 'success', title: 'Brand berhasil dihapus', showConfirmButton: false, timer: 1200 })
+                          .then(() => location.reload());
+          else Swal.fire({ icon: 'error', title: 'Gagal hapus brand', text: res.message || 'Terjadi kesalahan' });
+        }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal hapus brand', text: 'Terjadi kesalahan server' }));
+      }
+    });
+  });
+
+  /** Preview Brand */
+  $('.btn-preview').click(function() {
+    const brand = parseBrand(this);
+    Swal.fire({
+      title: `<strong>${brand.name}</strong>`,
+      html: `<p>Status: <strong>${brand.status}</strong></p>
+             <p>Keterangan: ${brand.keterangan || '-'}</p>`,
+      icon: 'info'
+    });
+  });
+
+  /** Edit Brand via Modal + AJAX */
+  $('.btn-edit').click(function() {
+    const brand = parseBrand(this);
+    $('#editBrandId').val(brand.id);
+    $('#editBrandName').val(brand.name);
+    $('#editBrandKeterangan').val(brand.keterangan || '');
+    $(`input[name="status"][value="${brand.status}"]`).prop('checked', true);
+    modalEdit.show();
+  });
+
+  $('#formEditBrand').submit(function(e) {
+    e.preventDefault();
+    const id = $('#editBrandId').val();
+    $.post('/admin/oltbrand/edit/' + id, $(this).serialize(), function(res) {
+      if(res.success) {
+        modalEdit.hide();
+        Swal.fire({ icon: 'success', title: 'Brand berhasil diperbarui', showConfirmButton: false, timer: 1200 })
+             .then(() => location.reload());
+      } else {
+        Swal.fire({ icon: 'error', title: 'Gagal update brand', text: res.message || 'Terjadi kesalahan' });
+      }
+    }).fail(function() {
+      Swal.fire({ icon: 'error', title: 'Gagal update brand', text: 'Terjadi kesalahan server' });
+    });
+  });
+});
+</script>

@@ -1,0 +1,113 @@
+<!-- views/vpn-server.ejs -->
+<section class="content mt-2">
+  <div class="container-fluid">
+
+    <% if (flashData) { %>
+      <div class="alert alert-<%= flashData.type %>" role="alert">
+        <%= flashData.text %>
+      </div>
+    <% } %>
+
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h3 class="card-title m-0">
+          <i class="bi bi-shield-lock-fill me-1"></i> Daftar Server VPN
+        </h3>
+        <button class="btn btn-light btn-sm text-primary" data-bs-toggle="modal" data-bs-target="#modalAddVPN">
+          <i class="bi bi-plus-circle"></i> Tambah Server
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="row">
+          <% vpnServers.forEach(server => { %>
+            <div class="col-md-6 col-xl-4 mb-3">
+              <div class="card h-100 border shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-hdd-network me-1"></i> <%= server.name %></span>
+                    <% if (server.status === 'online') { %>
+                      <span class="badge bg-success ms-1" title="Terhubung"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
+                    <% } else { %>
+                      <span class="badge bg-danger ms-1" title="Tidak dapat dijangkau"><i class="bi bi-x-circle-fill me-1"></i> Mati</span>
+                    <% } %>
+                  </h5>
+                  <br>
+
+                  <p class="mb-1"><i class="bi bi-geo-alt-fill me-1"></i> Lokasi: <strong><%= server.lokasi %></strong></p>
+                  <p class="mb-1"><i class="bi bi-globe me-1"></i> IP Address: <code><%= server.host %></code></p>
+                  <p class="mb-1"><i class="bi bi-diagram-3-fill me-1"></i> Api Port: <%= server.port_api || 0 %></p>
+                  <% if (server.updated_at) { %>
+                    <small class="text-muted">Terakhir update: <%= server.updated_at %></small>
+                  <% } %>
+                </div>
+
+                <div class="card-footer bg-light d-flex justify-content-end gap-2">
+                  <a href="/admin/vpn-server/routing" class="btn btn-sm btn-info">
+                    <i class="bi bi-router"></i> Routing
+                  </a>
+                  <a href="/admin/vpn-server/firewall" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-shield-lock"></i> Firewall
+                  </a>
+                  <button class="btn btn-sm btn-warning btn-edit" data-id="<%= server.id %>">
+                    <i class="bi bi-pencil-fill"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= server.id %>">
+                    <i class="bi bi-trash-fill"></i> Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Tambah Server VPN -->
+    <div class="modal fade" id="modalAddVPN" tabindex="-1" aria-labelledby="modalAddVPNLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form action="/vpn-server/add" method="POST" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalAddVPNLabel">
+              <i class="bi bi-plus-circle me-1"></i> Tambah Server VPN
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="name" class="form-label">Nama Server</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label for="location" class="form-label">Lokasi</label>
+              <input type="text" class="form-control" name="location">
+            </div>
+            <div class="mb-3">
+              <label for="ip" class="form-label">IP Address</label>
+              <input type="text" class="form-control" name="ip" required>
+            </div>
+            <div class="mb-3">
+              <label for="mt_user" class="form-label">MikroTik Username</label>
+              <input type="text" class="form-control" name="mt_user" required>
+            </div>
+            <div class="mb-3">
+              <label for="mt_pass" class="form-label">MikroTik Password</label>
+              <input type="password" class="form-control" name="mt_pass" required>
+            </div>
+            <div class="mb-3">
+              <label for="mt_port" class="form-label">API Port</label>
+              <input type="number" class="form-control" name="mt_port" value="8728" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Simpan
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>

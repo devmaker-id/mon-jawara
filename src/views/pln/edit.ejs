@@ -1,0 +1,81 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h3 class="mb-0">Edit Pelanggan PLN</h3>
+      </div>
+      <div class="col-sm-6 text-end">
+        <a href="/admin/mgmn-pln" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <% if (flashData) { %>
+    <div class="mt-2 alert alert-<%= flashData.type %>" role="alert">
+      <%= flashData.text %>
+    </div>
+    <% } %>
+
+    <div class="card">
+      <div class="card-header bg-warning">Form Edit Pelanggan PLN</div>
+      <div class="card-body">
+        <form action="/admin/mgmn-pln/update/<%= pln.id %>" method="POST" class="needs-validation" novalidate>
+          
+          <div class="mb-3">
+            <label>Nama Pelanggan</label>
+            <input type="text" name="nama" value="<%= pln.nama %>" class="form-control" required>
+            <div class="invalid-feedback">Nama wajib diisi.</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Jenis PLN</label>
+            <select name="jenis_pln" class="form-control" required>
+              <option value="">-- Pilih Jenis PLN --</option>
+              <option value="prabayar" <%= pln.jenis_pln === 'prabayar' ? 'selected' : '' %>>Prabayar (Token)</option>
+              <option value="pascabayar" <%= pln.jenis_pln === 'pascabayar' ? 'selected' : '' %>>Pascabayar</option>
+            </select>
+            <div class="invalid-feedback">Pilih jenis PLN terlebih dahulu.</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Alamat</label>
+            <input type="text" name="alamat" value="<%= pln.alamat %>" class="form-control" required>
+            <div class="invalid-feedback">Alamat wajib diisi.</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Nomor PLN</label>
+            <input type="text" name="no_pln" value="<%= pln.no_pln || '' %>" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label>Status</label>
+            <select name="status" class="form-control">
+              <option value="aktif" <%= pln.status === 'aktif' ? 'selected' : '' %>>Aktif</option>
+              <option value="non-aktif" <%= pln.status === 'non-aktif' ? 'selected' : '' %>>Nonaktif</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Keterangan (Opsional)</label>
+            <textarea name="keterangan" class="form-control" rows="3"><%= pln.keterangan || '' %></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-warning w-100">
+            <i class="bi bi-save"></i> Perbarui Data
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    "use strict";
+    le

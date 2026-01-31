@@ -1,0 +1,25 @@
+<!-- Menu Kasir -->
+
+<!-- Dashboard Kasir -->
+<li class="nav-item">
+  <a href="/kasir" class="nav-link <%= currentUrl === '/kasir' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-cash-stack"></i>
+    <p>Dashboard</p>
+  </a>
+</li>
+
+<!-- CRUD Penjualan -->
+<li class="nav-item">
+  <a href="/kasir/tambah-penjualan" class="nav-link <%= currentUrl === '/kasir/tambah-penjualan' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-cart-plus"></i>
+    <p>Tambah Penjualan</p>
+  </a>
+</li>
+
+<!-- Laporan -->
+<li class="nav-item">
+  <a href="/kasir/data-penjualan" class="nav-link <%= currentUrl === '/kasir/data-penjualan' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-file-earmark-bar-graph"></i>
+    <p>Laporan Penjualan</p>
+  </a>
+</li>
