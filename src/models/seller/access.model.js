@@ -135,71 +135,80 @@ class AccessModel {
       try {
         await connection.beginTransaction();
 
-        // 0️⃣ Cek username Hotspot unik (kecuali sendiri)
-        if (username) {
+        // 0️⃣ Ambil username lama dari tbl_seller_access
+        const [oldRows] = await connection.query(
+          "SELECT user_hs FROM tbl_seller_access WHERE id = ?",
+          [accessId]
+        );
+        if (!oldRows[0]) throw new Error("Access seller tidak ditemukan");
+        const oldUsername = oldRows[0].user_hs;
+
+        // 1️⃣ Cek username baru unik (kecuali username lama)
+        if (username && username !== oldUsername) {
           const [existing] = await connection.query(
-            "SELECT COUNT(*) AS cnt FROM radcheck WHERE username = ? AND username NOT IN (SELECT user_hs FROM tbl_seller_access WHERE id = ?)",
-            [username, accessId]
+            "SELECT COUNT(*) AS cnt FROM radcheck WHERE username = ?",
+            [username]
           );
           if (existing[0].cnt > 0) {
             throw new Error(`Username Hotspot '${username}' sudah ada`);
           }
         }
 
-        // 1️⃣ Update tbl_seller_access
+        // 2️⃣ Update tbl_seller_access
         const sqlAccess = `
           UPDATE tbl_seller_access
-          SET seller_id = ?, onu_id = ?, user_hs = ?, pass_hs = ?, status = ?
+          SET seller_id = ?, onu_id = ?, akun_type = ?, user_hs = ?, pass_hs = ?, status = ?
           WHERE id = ?
         `;
-        const [resAccess] = await connection.query(sqlAccess, [seller_id, onu_id, username, password, status, accessId]);
+        const [resAccess] = await connection.query(
+          sqlAccess,
+          [seller_id, onu_id, akun_type, username, password, status, accessId]
+        );
         if (resAccess.affectedRows === 0) {
-          throw new Error("Access seller tidak ditemukan atau gagal diupdate");
+          throw new Error("Access seller gagal diupdate");
         }
 
-        // 2️⃣ Update tbl_onu
+        // 3️⃣ Update tbl_onu
         if (onu_id) {
-          const sqlOnu = `
-            UPDATE tbl_onu
-            SET selleraccess_id = ?
-            WHERE id = ?
-          `;
-          const [resOnu] = await connection.query(sqlOnu, [accessId, onu_id]);
+          const [resOnu] = await connection.query(
+            "UPDATE tbl_onu SET selleraccess_id = ? WHERE id = ?",
+            [accessId, onu_id]
+          );
           if (resOnu.affectedRows === 0) {
             throw new Error("ONU tidak ditemukan atau gagal diupdate");
           }
         }
 
-        // 3️⃣ Update tbl_sellers
+        // 4️⃣ Update tbl_sellers
         if (seller_id) {
-          const sqlSeller = `
-            UPDATE tbl_sellers
-            SET access_id = ?
-            WHERE id = ?
-          `;
-          const [resSeller] = await connection.query(sqlSeller, [accessId, seller_id]);
+          const [resSeller] = await connection.query(
+            "UPDATE tbl_sellers SET access_id = ? WHERE id = ?",
+            [accessId, seller_id]
+          );
           if (resSeller.affectedRows === 0) {
             throw new Error("Seller tidak ditemukan atau gagal diupdate");
           }
         }
 
-        // 4️⃣ Update FreeRADIUS
+        // 5️⃣ Update FreeRADIUS
         if (username && password) {
-          // radcheck → update atau insert
-          await connection.query(
-            `INSERT INTO radcheck (username, attribute, op, value)
-            VALUES (?, 'Cleartext-Password', ':=', ?)
-            ON DUPLICATE KEY UPDATE value = ?`,
-            [username, password, password]
-          );
-
-          // radusergroup → pastikan assign ke KELUARGA-BIBIT
-          await connection.query(
-            `INSERT INTO radusergroup (username, groupname, priority)
-            VALUES (?, 'KELUARGA-BIBIT', 8)
-            ON DUPLICATE KEY UPDATE groupname='KELUARGA-BIBIT', priority=8`,
-            [username]
-          );
+          if (oldUsername !== username) {
+            // username berubah → update radcheck & radusergroup
+            await connection.query(
+              "UPDATE radcheck SET username = ?, value = ? WHERE username = ? AND attribute='Cleartext-Password' ",
+              [username, password, oldUsername]
+            );
+            await connection.query(
+              "UPDATE radusergroup SET username = ?, groupname='KELUARGA-BIBIT', priority=8 WHERE username = ?",
+              [username, oldUsername]
+            );
+          } else {
+            // username sama → cukup update password
+            await connection.query(
+              "UPDATE radcheck SET value = ? WHERE username = ?",
+              [password, username]
+            );
+          }
         }
 
         await connection.commit();
@@ -219,6 +228,7 @@ class AccessModel {
         connection.release();
       }
     }
+
 
 
   
