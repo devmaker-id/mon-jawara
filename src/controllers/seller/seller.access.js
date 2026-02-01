@@ -92,7 +92,7 @@ class SellerController {
           password: pass
         };
     
-        console.log("Data yang akan dibuat:", params);
+        // console.log("Data yang akan dibuat:", params);
     
         // Simpan ke database
         const result = await AccessSeller.create(params);
@@ -111,6 +111,78 @@ class SellerController {
         });
       }
     }
+
+    static async updateAccess(req, res) {
+      const accessId = req.params.id;
+
+      try {
+        let user, pass;
+
+        const {
+          seller_id,
+          onu_id,
+          akun_type,
+          status,
+          voucher_code,
+          username,
+          password
+        } = req.body;
+
+        // Validasi akun_type
+        if (akun_type !== "vc" && akun_type !== "up") {
+          return res.status(400).json({
+            success: false,
+            message: "Akun type tidak didukung"
+          });
+        }
+
+        // Pilih user dan pass berdasarkan akun_type
+        if (akun_type === "vc") {
+          user = voucher_code;
+          pass = voucher_code;
+        } else if (akun_type === "up") {
+          user = username;
+          pass = password;
+        }
+
+        // Validasi status
+        if (status !== "enable" && status !== "disable") {
+          return res.status(400).json({
+            success: false,
+            message: "Status tidak didukung"
+          });
+        }
+
+        // Siapkan data untuk update
+        const params = {
+          seller_id,
+          onu_id,
+          akun_type,
+          status,
+          username: user,
+          password: pass
+        };
+
+        // console.log("Data yang akan diupdate:", params);
+
+        // Panggil model untuk update (pastikan implementasi update di model)
+        const result = await AccessSeller.update(accessId, params);
+
+        return res.json({
+          success: true,
+          message: "Access seller berhasil diupdate",
+          data: result
+        });
+
+      } catch (err) {
+        console.error("Error update AccessSeller:", err.message);
+        return res.status(500).json({
+          success: false,
+          message: "Terjadi kesalahan saat mengupdate access seller"
+        });
+      }
+    }
+
 
   static async delete(req, res) {
     const { id } = req.params; // kirim delete /admin/seller/access/:id

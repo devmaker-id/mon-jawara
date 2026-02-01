@@ -50,12 +50,17 @@
                 </td>
                 <td><% if (row.optic_status === 'linkup') { %> <span class="badge bg-success">Onu Online</span><% } else { %> <span class="badge bg-danger">Onu Offline</span><% } %> </td>
                 <td><% if (row.access_status === 'enable') { %> <span class="badge bg-success">Aktif</span><% } else { %> <span class="badge bg-secondary">Nonaktif</span><% } %> </td>
-                <td>
-                  <small class="text-muted"><%= row.user_hs %> </small>
+                <% if (row.user_hs === row.pass_hs) { %>
+                <td colspan="2" class="text-center">
+                  <small class="text-primary"><%= row.user_hs %> </small>
+                </td>
+                <% } else { %><td>
+                  <small class="text-primary"><%= row.user_hs %> </small>
                 </td>
                 <td>
-                  <small class="text-muted"><%= row.pass_hs %> </small>
+                  <small class="text-danger"><%= row.pass_hs %> </small>
                 </td>
+                <% } %>
                 <td>
                   <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#accessModal" data-action="edit" data-access='<%- JSON.stringify(row) %>'>
                     <i class="bi bi-pen"></i>
@@ -212,6 +217,9 @@ $(function () {
   const modeUP     = $('#mode-up');
   const modeUPPwd  = $('#mode-up-pass');
 
+  let editMode = false;
+  let editAccessId = null;
+
   /* ===============================
    * TOGGLE MODE AKUN
    * =============================== */
@@ -240,7 +248,43 @@ $(function () {
   /* ===============================
    * LOAD DATA SAAT MODAL DIBUKA
    * =============================== */
-  modal.on('shown.bs.modal', function () {
+  modal.on('shown.bs.modal', function (e) {
+
+    // reset form & flags
+    form[0].reset();
+    editMode = false;
+    editAccessId = null;
+
+    const button = $(e.relatedTarget);
+    const action = button.data('action');
+    const access = button.data('access');
+
+    if(action === 'edit' && access) {
+      editMode = true;
+      editAccessId = access.access_id;
+
+      console.log(access);
+
+      // isi form dengan data access
+      sellerSelect.val(access.seller_id).trigger('change');
+      onuSelect.val(access.onu_id).trigger('change');
+      akunType.val(access.akun_type).trigger('change');
+      form.find('select[name="status"]').val(access.access_status);
+
+      if(access.akun_type === 'vc') {
+        form.find('input[name="voucher_code"]').val(access.user_hs);
+      } else if(access.akun_type === 'up') {
+        form.find('input[name="username"]').val(access.user_hs);
+        form.find('input[name="password"]').val(access.pass_hs);
+      }
+
+      modal.find('.modal-title').html('<i class="bi bi-pen"></i> Edit Seller Access');
+      form.find('button[type="submit"]').html('<i class="bi bi-save-fill"></i> Update Akses');
+
+    } else {
+      modal.find('.modal-title').html('<i class="bi bi-shield-lock-fill"></i> Assign Seller Access');
+      form.find('button[type="submit"]').html('<i class="bi bi-save-fill"></i> Simpan Akses');
+    }
 
     /* ---------- SELLER ---------- */
     sellerSelect.empty()
@@ -264,6 +308,13 @@ $(function () {
           );
         }
 
+        if(editMode && access){
+          const exists = sellerSelect.find(`option[value="${access.seller_id}"]`).length;
+          if(!exists){
+            sellerSelect.append(`<option value="${access.seller_id}" selected>${access.seller_name}</option>`);
+          }
+        }
+
         // init / re-init select2
         if (sellerSelect.hasClass('select2-hidden-accessible')) {
           sellerSelect.select2('destroy');
@@ -275,6 +326,8 @@ $(function () {
           width: '100%',
           placeholder: '🔍 Pilih Seller'
         });
+
+        if(editMode && access) sellerSelect.val(access.seller_id).trigger('change');
 
       });
 
@@ -296,6 +349,14 @@ $(function () {
           });
         }
 
+        // ⚡ Tambahkan ONU yang sedang diedit, jika tidak ada di list
+        if(editMode && access){
+          const exists = onuSelect.find(`option[value="${access.onu_id}"]`).length;
+          if(!exists){
+            onuSelect.append(`<option value="${access.onu_id}" selected>${access.onu_nama} - ${access.onu_mac}</option>`);
+          }
+        }
+
         if (onuSelect.hasClass('select2-hidden-accessible')) {
           onuSelect.select2('destroy');
         }
@@ -306,6 +367,8 @@ $(function () {
           width: '100%',
           placeholder: '🔍 Pilih ONU'
         });
+
+        if(editMode && access) onuSelect.val(access.onu_id).trigger('change');
 
       });
 
@@ -344,21 +407,50 @@ $(function () {
     btn.prop('disabled', true)
        .html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
 
-    $.post('/admin/seller/access/create', form.serialize())
-      .done(function (res) {
+    // ✅ tentukan URL & method
+    const url = editMode ? `/admin/seller/access/${editAccessId}` : '/admin/seller/access/create';
+    const method = editMode ? 'PUT' : 'POST';
+
+    $.ajax({
+      url: url,
+      type: method,
+      data: form.serialize(),
+      success: function(res) {
         Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: res.message || 'Akses berhasil disimpan',
+          icon: res.success ? 'success' : 'error',
+          title: res.success ? 'Berhasil' : 'Error',
+          text: res.message,
           timer: 1500,
           showConfirmButton: false
-        }).then(() => location.reload());
-      })
-      .fail(function () {
-        Swal.fire('Error', 'Gagal menyimpan akses', 'error');
+        }).then(() => {
+          if(res.success) location.reload(); // reload table
+        });
+      },
+      error: function(xhr) {
+        const msg = xhr.responseJSON?.message || 'Gagal menyimpan akses';
+        Swal.fire('Error', msg, 'error');
+      },
+      complete: function() {
         btn.prop('disabled', false)
-           .html('<i class="bi bi-save-fill"></i> Simpan Akses');
-      });
+           .html(editMode ? '<i class="bi bi-save-fill"></i> Update Akses' : '<i class="bi bi-save-fill"></i> Simpan Akses');
+      }
+    });
+
+    // $.post('/admin/seller/access/create', form.serialize())
+    //   .done(function (res) {
+    //     Swal.fire({
+    //       icon: 'success',
+    //       title: 'Berhasil',
+    //       text: res.message || 'Akses berhasil disimpan',
+    //       timer: 1500,
+    //       showConfirmButton: false
+    //     }).then(() => location.reload());
+    //   })
+    //   .fail(function () {
+    //     Swal.fire('Error', 'Gagal menyimpan akses', 'error');
+    //     btn.prop('disabled', false)
+    //        .html('<i class="bi bi-save-fill"></i> Simpan Akses');
+    //   });
 
   });
 

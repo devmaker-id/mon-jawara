@@ -6,18 +6,22 @@ class AccessModel {
         try {
             const sql = `SELECT 
                 sa.id AS access_id,
+                sa.akun_type,
                 sa.user_hs,
                 sa.pass_hs,
                 sa.status AS access_status,
                 sa.created_at,
-  
+
+                s.id AS seller_id,
                 s.name AS seller_name,
                 s.alamat AS seller_alamat,
                 s.telepon AS seller_telepon,
                 s.email AS seller_email,
 
+                o.id AS onu_id,
                 o.nama AS onu_nama,
                 o.no_internet,
+                o.onu_mac,
                 o.optic_status
             FROM tbl_seller_access sa
             LEFT JOIN tbl_sellers s ON s.access_id = sa.id
@@ -38,149 +42,243 @@ class AccessModel {
         return rows;
     }
 
-  static async create(params) {
-    const { seller_id, onu_id, username, password, status } = params;
-  
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
-  
-      // 0️⃣ Cek apakah username Hotspot sudah ada
-      if (username) {
-        const [existing] = await connection.query(
-          "SELECT COUNT(*) AS cnt FROM radcheck WHERE username = ?",
-          [username]
-        );
-        if (existing[0].cnt > 0) {
-          throw new Error(`Username Hotspot '${username}' sudah ada`);
+    static async create(params) {
+      const { seller_id, onu_id, akun_type, username, password, status } = params;
+    
+      const connection = await db.getConnection();
+      try {
+        await connection.beginTransaction();
+    
+        // 0️⃣ Cek apakah username Hotspot sudah ada
+        if (username) {
+          const [existing] = await connection.query(
+            "SELECT COUNT(*) AS cnt FROM radcheck WHERE username = ?",
+            [username]
+          );
+          if (existing[0].cnt > 0) {
+            throw new Error(`Username Hotspot '${username}' sudah ada`);
+          }
         }
+    
+        // 1️⃣ Insert ke tbl_seller_access
+        const sqlAccess = `
+          INSERT INTO tbl_seller_access
+          (seller_id, onu_id, akun_type, user_hs, pass_hs, status, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `;
+        const [resultAccess] = await connection.query(sqlAccess, [seller_id, onu_id, akun_type, username, password, status]);
+        const accessId = resultAccess.insertId;
+    
+        // 2️⃣ Update tbl_onu
+        if (onu_id) {
+          const sqlOnu = `
+            UPDATE tbl_onu
+            SET selleraccess_id = ?
+            WHERE id = ?
+          `;
+          const [resOnu] = await connection.query(sqlOnu, [accessId, onu_id]);
+          if (resOnu.affectedRows === 0) {
+            throw new Error("ONU tidak ditemukan atau gagal diupdate");
+          }
+        }
+    
+        // 3️⃣ Update tbl_sellers
+        if (seller_id) {
+          const sqlSeller = `
+            UPDATE tbl_sellers
+            SET access_id = ?
+            WHERE id = ?
+          `;
+          const [resSeller] = await connection.query(sqlSeller, [accessId, seller_id]);
+          if (resSeller.affectedRows === 0) {
+            throw new Error("Seller tidak ditemukan atau gagal diupdate");
+          }
+        }
+    
+        // 4️⃣ Buat user Hotspot di FreeRADIUS (radcheck + radusergroup)
+        if (username && password) {
+          // radcheck
+          await connection.query(
+            "INSERT INTO radcheck (username, attribute, op, value) VALUES (?, 'Cleartext-Password', ':=', ?)",
+            [username, password]
+          );
+    
+          // radusergroup → assign ke KELUARGA-BIBIT
+          await connection.query(
+            "INSERT INTO radusergroup (username, groupname, priority) VALUES (?, 'KELUARGA-BIBIT', 8)",
+            [username]
+          );
+        }
+    
+        await connection.commit();
+    
+        return {
+          success: true,
+          accessId,
+          message: "Access seller dan user Hotspot berhasil dibuat"
+        };
+    
+      } catch (err) {
+        await connection.rollback();
+        console.error("Error create AccessSeller:", err.message);
+        throw err;
+    
+      } finally {
+        connection.release();
       }
-  
-      // 1️⃣ Insert ke tbl_seller_access
-      const sqlAccess = `
-        INSERT INTO tbl_seller_access
-        (seller_id, onu_id, user_hs, pass_hs, status, created_at)
-        VALUES (?, ?, ?, ?, ?, NOW())
-      `;
-      const [resultAccess] = await connection.query(sqlAccess, [seller_id, onu_id, username, password, status]);
-      const accessId = resultAccess.insertId;
-  
-      // 2️⃣ Update tbl_onu
-      if (onu_id) {
-        const sqlOnu = `
-          UPDATE tbl_onu
-          SET selleraccess_id = ?
+    }
+
+    static async update(accessId, params) {
+      const { seller_id, onu_id, akun_type, status, username, password } = params;
+      const connection = await db.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        // 0️⃣ Cek username Hotspot unik (kecuali sendiri)
+        if (username) {
+          const [existing] = await connection.query(
+            "SELECT COUNT(*) AS cnt FROM radcheck WHERE username = ? AND username NOT IN (SELECT user_hs FROM tbl_seller_access WHERE id = ?)",
+            [username, accessId]
+          );
+          if (existing[0].cnt > 0) {
+            throw new Error(`Username Hotspot '${username}' sudah ada`);
+          }
+        }
+
+        // 1️⃣ Update tbl_seller_access
+        const sqlAccess = `
+          UPDATE tbl_seller_access
+          SET seller_id = ?, onu_id = ?, user_hs = ?, pass_hs = ?, status = ?
           WHERE id = ?
         `;
-        const [resOnu] = await connection.query(sqlOnu, [accessId, onu_id]);
-        if (resOnu.affectedRows === 0) {
-          throw new Error("ONU tidak ditemukan atau gagal diupdate");
+        const [resAccess] = await connection.query(sqlAccess, [seller_id, onu_id, username, password, status, accessId]);
+        if (resAccess.affectedRows === 0) {
+          throw new Error("Access seller tidak ditemukan atau gagal diupdate");
         }
-      }
-  
-      // 3️⃣ Update tbl_sellers
-      if (seller_id) {
-        const sqlSeller = `
-          UPDATE tbl_sellers
-          SET access_id = ?
-          WHERE id = ?
-        `;
-        const [resSeller] = await connection.query(sqlSeller, [accessId, seller_id]);
-        if (resSeller.affectedRows === 0) {
-          throw new Error("Seller tidak ditemukan atau gagal diupdate");
+
+        // 2️⃣ Update tbl_onu
+        if (onu_id) {
+          const sqlOnu = `
+            UPDATE tbl_onu
+            SET selleraccess_id = ?
+            WHERE id = ?
+          `;
+          const [resOnu] = await connection.query(sqlOnu, [accessId, onu_id]);
+          if (resOnu.affectedRows === 0) {
+            throw new Error("ONU tidak ditemukan atau gagal diupdate");
+          }
         }
+
+        // 3️⃣ Update tbl_sellers
+        if (seller_id) {
+          const sqlSeller = `
+            UPDATE tbl_sellers
+            SET access_id = ?
+            WHERE id = ?
+          `;
+          const [resSeller] = await connection.query(sqlSeller, [accessId, seller_id]);
+          if (resSeller.affectedRows === 0) {
+            throw new Error("Seller tidak ditemukan atau gagal diupdate");
+          }
+        }
+
+        // 4️⃣ Update FreeRADIUS
+        if (username && password) {
+          // radcheck → update atau insert
+          await connection.query(
+            `INSERT INTO radcheck (username, attribute, op, value)
+            VALUES (?, 'Cleartext-Password', ':=', ?)
+            ON DUPLICATE KEY UPDATE value = ?`,
+            [username, password, password]
+          );
+
+          // radusergroup → pastikan assign ke KELUARGA-BIBIT
+          await connection.query(
+            `INSERT INTO radusergroup (username, groupname, priority)
+            VALUES (?, 'KELUARGA-BIBIT', 8)
+            ON DUPLICATE KEY UPDATE groupname='KELUARGA-BIBIT', priority=8`,
+            [username]
+          );
+        }
+
+        await connection.commit();
+
+        return {
+          success: true,
+          accessId,
+          message: "Access seller dan user Hotspot berhasil diupdate"
+        };
+
+      } catch (err) {
+        await connection.rollback();
+        console.error("Error update AccessSeller:", err.message);
+        throw err;
+
+      } finally {
+        connection.release();
       }
-  
-      // 4️⃣ Buat user Hotspot di FreeRADIUS (radcheck + radusergroup)
-      if (username && password) {
-        // radcheck
-        await connection.query(
-          "INSERT INTO radcheck (username, attribute, op, value) VALUES (?, 'Cleartext-Password', ':=', ?)",
-          [username, password]
-        );
-  
-        // radusergroup → assign ke KELUARGA-BIBIT
-        await connection.query(
-          "INSERT INTO radusergroup (username, groupname, priority) VALUES (?, 'KELUARGA-BIBIT', 8)",
-          [username]
-        );
-      }
-  
-      await connection.commit();
-  
-      return {
-        success: true,
-        accessId,
-        message: "Access seller dan user Hotspot berhasil dibuat"
-      };
-  
-    } catch (err) {
-      await connection.rollback();
-      console.error("Error create AccessSeller:", err.message);
-      throw err;
-  
-    } finally {
-      connection.release();
     }
-  }
+
+
   
-  static async delete(accessId) {
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
-  
-      // 1️⃣ Ambil data access dulu (username Hotspot, seller_id, onu_id)
-      const [rows] = await connection.query(
-        "SELECT user_hs, seller_id, onu_id FROM tbl_seller_access WHERE id = ?",
-        [accessId]
-      );
-  
-      if (rows.length === 0) {
-        throw new Error("Access seller tidak ditemukan");
-      }
-  
-      const { user_hs, seller_id, onu_id } = rows[0];
-  
-      // 2️⃣ Hapus / reset relasi di tbl_onu
-      if (onu_id) {
-        await connection.query(
-          "UPDATE tbl_onu SET selleraccess_id = NULL WHERE id = ?",
-          [onu_id]
+    static async delete(accessId) {
+      const connection = await db.getConnection();
+      try {
+        await connection.beginTransaction();
+    
+        // 1️⃣ Ambil data access dulu (username Hotspot, seller_id, onu_id)
+        const [rows] = await connection.query(
+          "SELECT user_hs, seller_id, onu_id FROM tbl_seller_access WHERE id = ?",
+          [accessId]
         );
+    
+        if (rows.length === 0) {
+          throw new Error("Access seller tidak ditemukan");
+        }
+    
+        const { user_hs, seller_id, onu_id } = rows[0];
+    
+        // 2️⃣ Hapus / reset relasi di tbl_onu
+        if (onu_id) {
+          await connection.query(
+            "UPDATE tbl_onu SET selleraccess_id = NULL WHERE id = ?",
+            [onu_id]
+          );
+        }
+    
+        // 3️⃣ Hapus / reset relasi di tbl_sellers
+        if (seller_id) {
+          await connection.query(
+            "UPDATE tbl_sellers SET access_id = NULL WHERE id = ?",
+            [seller_id]
+          );
+        }
+    
+        // 4️⃣ Hapus user Hotspot di FreeRADIUS
+        if (user_hs) {
+          await connection.query("DELETE FROM radcheck WHERE username = ?", [user_hs]);
+          await connection.query("DELETE FROM radusergroup WHERE username = ?", [user_hs]);
+        }
+    
+        // 5️⃣ Hapus access seller
+        const [resDelete] = await connection.query("DELETE FROM tbl_seller_access WHERE id = ?", [accessId]);
+    
+        if (resDelete.affectedRows === 0) {
+          throw new Error("Gagal menghapus access seller");
+        }
+    
+        await connection.commit();
+        return { success: true, message: "Access seller berhasil dihapus" };
+    
+      } catch (err) {
+        await connection.rollback();
+        console.error("Error delete AccessSeller:", err.message);
+        throw err;
+      } finally {
+        connection.release();
       }
-  
-      // 3️⃣ Hapus / reset relasi di tbl_sellers
-      if (seller_id) {
-        await connection.query(
-          "UPDATE tbl_sellers SET access_id = NULL WHERE id = ?",
-          [seller_id]
-        );
-      }
-  
-      // 4️⃣ Hapus user Hotspot di FreeRADIUS
-      if (user_hs) {
-        await connection.query("DELETE FROM radcheck WHERE username = ?", [user_hs]);
-        await connection.query("DELETE FROM radusergroup WHERE username = ?", [user_hs]);
-      }
-  
-      // 5️⃣ Hapus access seller
-      const [resDelete] = await connection.query("DELETE FROM tbl_seller_access WHERE id = ?", [accessId]);
-  
-      if (resDelete.affectedRows === 0) {
-        throw new Error("Gagal menghapus access seller");
-      }
-  
-      await connection.commit();
-      return { success: true, message: "Access seller berhasil dihapus" };
-  
-    } catch (err) {
-      await connection.rollback();
-      console.error("Error delete AccessSeller:", err.message);
-      throw err;
-    } finally {
-      connection.release();
     }
-  }
 
 
 }
