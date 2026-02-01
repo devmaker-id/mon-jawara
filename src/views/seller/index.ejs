@@ -22,7 +22,12 @@
           Menu
         </button>
         <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="/admin/seller/add-new">Tambah Seller</a></li>
+          <li>
+            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addSellerModal">
+              Tambah Seller
+            </button>
+          </li>
+
         </ul>
       </div>
     </div>
@@ -31,7 +36,7 @@
       <div class="card-body">
 
         <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle text-nowrap">
+          <table id="sellerTable" class="table table-bordered table-striped align-middle text-nowrap">
             <thead class="table-light">
               <tr>
                 <th>#</th>
@@ -74,14 +79,12 @@
                       </button>
             
                       <!-- Tombol hapus -->
-                      <button class="btn btn-sm btn-danger"
-                              data-bs-toggle="modal"
-                              data-bs-target="#actionModal"
-                              data-seller-id="<%= seller.seller_id %>"
-                              data-name="<%= seller.nama %>"
-                              data-action="delete">
-                        <span class="bi bi-trash"></span> Hapus
+                      <button class="btn btn-sm btn-danger btnDelete"
+                              data-id="<%= seller.seller_id %>"
+                              data-name="<%= seller.name %>">
+                        <i class="bi bi-trash"></i> Hapus
                       </button>
+
                     </td>
                   </tr>
                 <% }) %>
@@ -93,9 +96,227 @@
             </tbody>
 
           </table>
+
+          <div class="modal fade" id="sellerModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content">
+
+                <form id="sellerForm" method="POST">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="sellerModalTitle">Detail Seller</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <input type="hidden" name="seller_id" id="seller_id">
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Nama</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Telepon</label>
+                        <input type="text" class="form-control" name="telepon" id="telepon">
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" id="email">
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Alamat</label>
+                        <input type="text" class="form-control" name="alamat" id="alamat">
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label">Catatan</label>
+                        <textarea class="form-control" name="catatan" id="catatan"></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary d-none" id="btnSave">
+                      <i class="bi bi-save"></i> Simpan
+                    </button>
+                  </div>
+                </form>
+
+              </div>
+            </div>
+          </div>
+
+
         </div>
 
       </div>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="addSellerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-person-plus-fill"></i> Tambah Seller Baru
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="formSeller">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nama Seller</label>
+              <input type="text" name="nama" class="form-control" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Telepon</label>
+              <input type="text" name="telepon" class="form-control" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Alamat</label>
+              <input type="text" name="alamat" class="form-control">
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Catatan</label>
+              <textarea name="catatan" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-save"></i> Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+$(function () {
+  $('#formSeller').on('submit', function (e) {
+    e.preventDefault();
+
+    $.ajax({
+      url: '/admin/seller/add-new',
+      type: 'POST',
+      data: $(this).serialize(),
+      dataType: 'json',
+      success: function (res) {
+        if (res.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: res.message,
+            timer: 1200,
+            showConfirmButton: false
+          }).then(() => {
+            $('#addSellerModal').modal('hide');
+            location.reload(); // refresh tabel seller
+          });
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      },
+      error: function () {
+        Swal.fire('Error', 'Terjadi kesalahan server', 'error');
+      }
+    });
+  });
+
+  // reset form saat modal ditutup
+  $('#addSellerModal').on('hidden.bs.modal', function () {
+    $('#formSeller')[0].reset();
+  });
+});
+
+
+$('#sellerModal').on('show.bs.modal', function (e) {
+  const button = $(e.relatedTarget);
+  const action = button.data('action');
+  const seller = button.data('seller') || {};
+
+  const modal = $(this);
+  const form = $('#sellerForm');
+
+  // isi data
+  $('#seller_id').val(seller.seller_id || '');
+  $('#name').val(seller.name || '');
+  $('#alamat').val(seller.alamat || '');
+  $('#telepon').val(seller.telepon || '');
+  $('#email').val(seller.email || '');
+  $('#catatan').val(seller.catatan || '');
+
+  if (action === 'view') {
+    modal.find('.modal-title').text('Detail Seller');
+    form.find('input, textarea').prop('readonly', true);
+    $('#btnSave').addClass('d-none');
+  }
+
+  if (action === 'edit') {
+    modal.find('.modal-title').text('Edit Seller');
+    form.attr('action', `/admin/seller/update/${seller.seller_id}`);
+    form.find('input, textarea').prop('readonly', false);
+    $('#btnSave').removeClass('d-none');
+  }
+});
+
+$(document).on('click', '.btnDelete', function () {
+  const id = $(this).data('id');
+  const name = $(this).data('name');
+
+  Swal.fire({
+    title: 'Yakin hapus?',
+    text: `Seller "${name}" akan dihapus permanen`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Ya, hapus'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.location.href = `/admin/seller/delete/${id}`;
+    }
+  });
+});
+
+$(document).ready(function () {
+  $('#sellerTable').DataTable({
+    pageLength: 10,
+    lengthChange: false,
+    ordering: true,
+    searching: true,
+    responsive: true,
+    language: {
+      search: "Cari Seller:",
+      paginate: {
+        next: "›",
+        previous: "‹"
+      },
+      zeroRecords: "Data tidak ditemukan",
+      info: "Menampilkan _START_ - _END_ dari _TOTAL_ seller",
+      infoEmpty: "Tidak ada data"
+    },
+    columnDefs: [
+      { orderable: false, targets: 6 } // kolom Aksi
+    ]
+  });
+});
+</script>

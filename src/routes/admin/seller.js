@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { ensureAuthenticated } = require("../../middleware/auth");
 const Seller = require("../../controllers/admin/SellerController");
+const AccessSeller = require("../../controllers/seller/seller.access");
 
 router.get("/", ensureAuthenticated, Seller.index);
 router.get("/add-new", ensureAuthenticated, Seller.tambahBaru);
@@ -10,6 +11,10 @@ router.get("/products", ensureAuthenticated, Seller.sellerProduct);
 router.get("/add-product", ensureAuthenticated, Seller.addSellerProduct);
 router.post("/add-product", ensureAuthenticated, Seller.prosessAddSellerProduct);
 
-router.get("/aksess-free", ensureAuthenticated, Seller.aksessKhusus);
+router.get("/aksess-free", ensureAuthenticated, AccessSeller.index);
+router.get("/access/available-sellers", ensureAuthenticated, AccessSeller.getAvailableSellers);
+router.get("/access/available-onu", ensureAuthenticated, AccessSeller.onuAvailabel);
+router.post("/access/create", ensureAuthenticated, AccessSeller.create);
+
 
 module.exports = router;

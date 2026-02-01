@@ -78,3 +78,32 @@
     padding: 0.3rem;
     border: 1px solid #ccc;
   }
+
+  /* Fix border Select2 Bootstrap 5 */
+  .select2-container--bootstrap-5 .select2-selection {
+    min-height: 38px;
+    border: 1px solid #ced4da !important;
+    border-radius: .375rem;
+    padding: .375rem .75rem;
+  }
+
+  .select2-container--bootstrap-5 .select2-selection--single {
+    display: flex;
+    align-items: center;
+  }
+
+  .select2-container--bootstrap-5
+  .select2-selection__rendered {
+    padding-left: 0;
+  }
+
+  .select2-container--bootstrap-5
+  .select2-selection__arrow {
+    height: 100%;
+  }
+
+  /* border merah selec2 saat invalid */
+  .was-validated .select2-container--bootstrap-5
+  .select2-selection {
+    border-color: #dc3545 !important;
+  }

@@ -1,101 +1,346 @@
 <div class="app-content-header">
   <div class="container-fluid">
     <div class="d-flex align-items-center justify-content-between">
-      <h3 class="mb-0"><%= title %></h3>
+      <div>
+        <h3 class="mb-0"><%= title %> </h3>
+        <small class="text-muted"> Manajemen akses seller (Hotspot Free, ONU, dll) </small>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#accessModal">
+        <i class="bi bi-plus-circle"></i> Assign Akses </button>
     </div>
   </div>
 </div>
-
 <div class="app-content py-3">
-  <div class="container-fluid">
-    
-    <% if (flashData) { %>
-      <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert">
-        <%= flashData.text %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
-    
-    <div class="col-12 mb-2">
-      <div class="btn-group">
-        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          Menu
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="/admin/seller/add-new">Tambah Seller</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="card shadow-sm border-0">
+  <div class="container-fluid"><% if (flashData) { %> <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert"><%= flashData.text %> <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div><% } %> <div class="card shadow-sm border-0 mt-3">
       <div class="card-body">
-
         <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle text-nowrap">
+          <table id="accessTable" class="table table-bordered table-striped align-middle text-nowrap">
             <thead class="table-light">
               <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>Alamat</th>
-                <th>Telepon</th>
-                <th>Email</th>
-                <th>Catatan</th>
+                <th>Seller</th>
+                <th>Tipe Akses</th>
+                <th>Resource</th>
+                <th>Status</th>
+                <th>Assigned</th>
                 <th>Aksi</th>
               </tr>
             </thead>
-            
-            <tbody id="sellerTableBody">
-              <% if (data.sellers && data.sellers.length > 0) { %>
-                <% data.sellers.forEach((seller, index) => { %>
-                  <tr>
-                    <td><%= index + 1 %></td>
-                    <td><%= seller.name %></td>
-                    <td><%= seller.alamat %></td>
-                    <td><%= seller.telepon %></td>
-                    <td><%= seller.email %></td>
-                    <td><%= seller.catatan %></td>
-                    <td>
-                      <!-- Tombol View -->
-                      <button class="btn btn-sm btn-info"
-                              data-bs-toggle="modal"
-                              data-bs-target="#sellerModal"
-                              data-action="view"
-                              data-seller='<%- JSON.stringify(seller) %>'>
-                        <span class="bi bi-eye"></span> Lihat
-                      </button>
-            
-                      <!-- Tombol Edit -->
-                      <button class="btn btn-sm btn-secondary"
-                              data-bs-toggle="modal"
-                              data-bs-target="#sellerModal"
-                              data-action="edit"
-                              data-seller='<%- JSON.stringify(seller) %>'>
-                        <span class="bi bi-pen"></span> Edit
-                      </button>
-            
-                      <!-- Tombol hapus -->
-                      <button class="btn btn-sm btn-danger"
-                              data-bs-toggle="modal"
-                              data-bs-target="#actionModal"
-                              data-seller-id="<%= seller.seller_id %>"
-                              data-name="<%= seller.nama %>"
-                              data-action="delete">
-                        <span class="bi bi-trash"></span> Hapus
-                      </button>
-                    </td>
-                  </tr>
-                <% }) %>
-              <% } else { %>
-                <tr>
-                  <td colspan="7" class="text-center">Tidak ada data seller</td>
-                </tr>
-              <% } %>
-            </tbody>
-
+            <tbody><% if (allAccess && allAccess.length > 0) { %><% allAccess.forEach((row, index) => { %> <tr>
+                <td><%= index + 1 %> </td>
+                <td>
+                  <strong><%= row.seller_name %> </strong>
+                </td>
+                <td>
+                  <span class="badge bg-info text-dark"><%= row.resource_type %> </span>
+                </td>
+                <td>
+                  <code><%= row.resource_id %> </code>
+                </td>
+                <td><% if (row.status === 'active') { %> <span class="badge bg-success">Aktif</span><% } else { %> <span class="badge bg-secondary">Nonaktif</span><% } %> </td>
+                <td>
+                  <small class="text-muted"><%= row.assigned_at %> </small>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#accessModal" data-action="edit" data-access='<%- JSON.stringify(row) %>'>
+                    <i class="bi bi-pen"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= row.id %>">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr><% }) %><% } else { %> <tr>
+                <td colspan="7" class="text-center text-muted"> Belum ada akses yang di-assign </td>
+              </tr><% } %> </tbody>
           </table>
         </div>
-
       </div>
     </div>
   </div>
 </div>
+
+<!-- Modal Tambah / Edit Seller Access -->
+<div class="modal fade" id="accessModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+
+      <!-- HEADER -->
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-shield-lock-fill"></i> Assign Seller Access
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- FORM -->
+      <form id="accessForm" novalidate autocomplete="off">
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row g-3">
+
+              <!-- SELLER -->
+              <div class="col-md-6">
+                <label class="form-label">Seller</label>
+                <select id="seller_id" name="seller_id"
+                        class="form-select select2" required>
+                  <option value="">Loading seller...</option>
+                </select>
+                <div class="form-text text-muted">
+                  Hanya seller yang belum memiliki akses
+                </div>
+              </div>
+
+              <!-- ONU -->
+              <div class="col-md-6">
+                <label class="form-label">Router ONU</label>
+                <select id="onu_id" name="onu_id"
+                        class="form-select select2" required>
+                  <option value="">Loading ONU...</option>
+                </select>
+                <div class="form-text text-muted">
+                  ONU yang belum terikat seller / pelanggan
+                </div>
+              </div>
+
+              <!-- TIPE AKUN -->
+              <div class="col-md-6">
+                <label class="form-label">Tipe Akun</label>
+                <select id="akun_type" name="akun_type"
+                        class="form-select" required>
+                  <option value="">-- Pilih Tipe --</option>
+                  <option value="vc">Voucher (Username = Password)</option>
+                  <option value="up">Member (Username & Password)</option>
+                </select>
+              </div>
+
+              <!-- STATUS -->
+              <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                  <option value="active">Aktif</option>
+                  <option value="inactive">Nonaktif</option>
+                </select>
+              </div>
+
+              <!-- MODE VC -->
+              <div class="col-md-6 d-none" id="mode-vc">
+                <label class="form-label">Kode Voucher</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-ticket-perforated"></i>
+                  </span>
+                  <input type="text"
+                         name="voucher_code"
+                         class="form-control"
+                         placeholder="VC-AB12CD">
+                </div>
+                <div class="form-text text-muted">
+                  Username dan password akan disamakan
+                </div>
+              </div>
+
+              <!-- MODE UP -->
+              <div class="col-md-6 d-none" id="mode-up">
+                <label class="form-label">Username</label>
+                <input type="text"
+                       name="username"
+                       class="form-control"
+                       placeholder="username login">
+              </div>
+
+              <div class="col-md-6 d-none" id="mode-up-pass">
+                <label class="form-label">Password</label>
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="password login">
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            <i class="bi bi-x-circle"></i> Batal
+          </button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-save-fill"></i> Simpan Akses
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function () {
+
+  const modal      = $('#accessModal');
+  const form       = $('#accessForm');
+
+  const sellerSelect = $('#seller_id');
+  const onuSelect    = $('#onu_id');
+
+  const akunType   = $('#akun_type');
+  const modeVC     = $('#mode-vc');
+  const modeUP     = $('#mode-up');
+  const modeUPPwd  = $('#mode-up-pass');
+
+  /* ===============================
+   * TOGGLE MODE AKUN
+   * =============================== */
+  akunType.on('change', function () {
+    const type = $(this).val();
+
+    modeVC.addClass('d-none');
+    modeUP.addClass('d-none');
+    modeUPPwd.addClass('d-none');
+
+    // reset value
+    form.find('input[name="voucher_code"]').val('');
+    form.find('input[name="username"]').val('');
+    form.find('input[name="password"]').val('');
+
+    if (type === 'vc') {
+      modeVC.removeClass('d-none');
+    }
+
+    if (type === 'up') {
+      modeUP.removeClass('d-none');
+      modeUPPwd.removeClass('d-none');
+    }
+  });
+
+  /* ===============================
+   * LOAD DATA SAAT MODAL DIBUKA
+   * =============================== */
+  modal.on('shown.bs.modal', function () {
+
+    /* ---------- SELLER ---------- */
+    sellerSelect.empty()
+      .append('<option value="">Loading seller...</option>');
+
+    $.get('/admin/seller/access/available-sellers')
+      .done(function (res) {
+
+        sellerSelect.empty()
+          .append('<option value="">-- Pilih Seller --</option>');
+
+        if (res.data && res.data.length) {
+          res.data.forEach(s => {
+            sellerSelect.append(
+              `<option value="${s.id}">${s.name}</option>`
+            );
+          });
+        } else {
+          sellerSelect.append(
+            '<option value="">Semua seller sudah memiliki akses</option>'
+          );
+        }
+
+        // init / re-init select2
+        if (sellerSelect.hasClass('select2-hidden-accessible')) {
+          sellerSelect.select2('destroy');
+        }
+
+        sellerSelect.select2({
+          theme: 'bootstrap-5',
+          dropdownParent: modal,
+          width: '100%',
+          placeholder: '🔍 Pilih Seller'
+        });
+
+      });
+
+    /* ---------- ONU ---------- */
+    onuSelect.empty()
+      .append('<option value="">Loading ONU...</option>');
+
+    $.get('/admin/seller/access/available-onu')
+      .done(function (res) {
+
+        onuSelect.empty()
+          .append('<option value="">-- Pilih ONU --</option>');
+
+        if (res.data && res.data.length) {
+          res.data.forEach(o => {
+            onuSelect.append(
+              `<option value="${o.id}">${o.nama} - ${o.onu_mac}</option>`
+            );
+          });
+        }
+
+        if (onuSelect.hasClass('select2-hidden-accessible')) {
+          onuSelect.select2('destroy');
+        }
+
+        onuSelect.select2({
+          theme: 'bootstrap-5',
+          dropdownParent: modal,
+          width: '100%',
+          placeholder: '🔍 Pilih ONU'
+        });
+
+      });
+
+  });
+
+  /* ===============================
+   * SUBMIT FORM
+   * =============================== */
+  form.on('submit', function (e) {
+    e.preventDefault();
+
+    // VALIDASI WAJIB
+    const sellerVal = sellerSelect.val();
+    const onuVal    = onuSelect.val();
+    const akunVal   = akunType.val();
+
+    if (!sellerVal || !onuVal || !akunVal) {
+      Swal.fire('Oops', 'Seller, ONU, dan Tipe Akun wajib diisi', 'warning');
+      return;
+    }
+
+    if (akunVal === 'vc' && !form.find('input[name="voucher_code"]').val()) {
+      Swal.fire('Oops', 'Kode voucher wajib diisi', 'warning');
+      return;
+    }
+
+    if (akunVal === 'up') {
+      if (!form.find('input[name="username"]').val() ||
+          !form.find('input[name="password"]').val()) {
+        Swal.fire('Oops', 'Username & password wajib diisi', 'warning');
+        return;
+      }
+    }
+
+    const btn = form.find('button[type="submit"]');
+    btn.prop('disabled', true)
+       .html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+    $.post('/admin/seller/access/create', form.serialize())
+      .done(function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: res.message || 'Akses berhasil disimpan',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => location.reload());
+      })
+      .fail(function () {
+        Swal.fire('Error', 'Gagal menyimpan akses', 'error');
+        btn.prop('disabled', false)
+           .html('<i class="bi bi-save-fill"></i> Simpan Akses');
+      });
+
+  });
+
+});
+</script>

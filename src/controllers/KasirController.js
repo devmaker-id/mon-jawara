@@ -107,35 +107,6 @@ class KasirController {
     }
   }
   
-  static async tambahPenjualan(req, res) {
-    const flashData = req.session.flashData;
-    delete req.session.flashData;
-    
-    const products = await ModProducts.all();
-    const sellers = await ModSellers.allData();
-    
-    // Ambil data relasi seller-products
-    const [sellerProducts] = await db.query(`
-      SELECT 
-        sp.id AS seller_product_id,
-        sp.seller_id,
-        sp.product_id,
-        sp.harga AS harga_seller,
-        sp.stok_seller,
-        p.nama AS product_name,
-        p.kode_produk
-      FROM tbl_seller_products sp
-      JOIN tbl_products p ON sp.product_id = p.product_id
-    `);
-    
-    res.render("kasir/tambah-penjualan", {
-      title: "Laporan Penjualan",
-      products,
-      sellers,
-      sellerProducts,
-      flashData
-    });
-  }
   
   // POST /penjualan/tambah
   static async simpanPenjualan(req, res) {
