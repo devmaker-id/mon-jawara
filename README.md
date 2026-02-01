@@ -2,6 +2,9 @@
 
 monitor jaringan jawara
 
+## update 01/02/2026
+menambah catatan piutang, closingan, cek redaman onu, maping odp, whatsapp bot
+
 ## update 24/10/2025
 tambah telnet, olt hisfocus, cek detail onu
 
