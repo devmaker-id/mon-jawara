@@ -15,6 +15,7 @@ router.get("/aksess-free", ensureAuthenticated, AccessSeller.index);
 router.get("/access/available-sellers", ensureAuthenticated, AccessSeller.getAvailableSellers);
 router.get("/access/available-onu", ensureAuthenticated, AccessSeller.onuAvailabel);
 router.post("/access/create", ensureAuthenticated, AccessSeller.create);
+router.delete('/access/delete/:id', ensureAuthenticated, AccessSeller.delete);
 
 
 module.exports = router;

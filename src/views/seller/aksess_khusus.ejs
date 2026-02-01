@@ -20,10 +20,14 @@
               <tr>
                 <th>#</th>
                 <th>Seller</th>
-                <th>Tipe Akses</th>
-                <th>Resource</th>
+                <th>No Intermet</th>
+                <th>Alamat</th>
+                <th>Telepon</th>
+                <th>E-mail</th>
+                <th>Onu Status</th>
                 <th>Status</th>
-                <th>Assigned</th>
+                <th>Username</th>
+                <th>Password</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -33,20 +37,30 @@
                   <strong><%= row.seller_name %> </strong>
                 </td>
                 <td>
-                  <span class="badge bg-info text-dark"><%= row.resource_type %> </span>
+                  <code><%= row.no_internet %> </code>
                 </td>
                 <td>
-                  <code><%= row.resource_id %> </code>
+                  <%= row.seller_alamat %>
                 </td>
-                <td><% if (row.status === 'active') { %> <span class="badge bg-success">Aktif</span><% } else { %> <span class="badge bg-secondary">Nonaktif</span><% } %> </td>
                 <td>
-                  <small class="text-muted"><%= row.assigned_at %> </small>
+                  <%= row.seller_telepon %>
+                </td>
+                <td>
+                  <%= row.seller_email %>
+                </td>
+                <td><% if (row.optic_status === 'linkup') { %> <span class="badge bg-success">Onu Online</span><% } else { %> <span class="badge bg-danger">Onu Offline</span><% } %> </td>
+                <td><% if (row.access_status === 'enable') { %> <span class="badge bg-success">Aktif</span><% } else { %> <span class="badge bg-secondary">Nonaktif</span><% } %> </td>
+                <td>
+                  <small class="text-muted"><%= row.user_hs %> </small>
+                </td>
+                <td>
+                  <small class="text-muted"><%= row.pass_hs %> </small>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#accessModal" data-action="edit" data-access='<%- JSON.stringify(row) %>'>
                     <i class="bi bi-pen"></i>
                   </button>
-                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= row.id %>">
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= row.access_id %>">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
@@ -118,8 +132,8 @@
               <div class="col-md-6">
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select">
-                  <option value="active">Aktif</option>
-                  <option value="inactive">Nonaktif</option>
+                  <option value="enable">Aktif</option>
+                  <option value="disable">Nonaktif</option>
                 </select>
               </div>
 
@@ -136,7 +150,7 @@
                          placeholder="VC-AB12CD">
                 </div>
                 <div class="form-text text-muted">
-                  Username dan password akan disamakan
+                  Username dan password akan disamakan 1-8 digit
                 </div>
               </div>
 
@@ -147,6 +161,9 @@
                        name="username"
                        class="form-control"
                        placeholder="username login">
+                <div class="form-text text-muted">
+                  Username 1-8 digit Max
+                </div>
               </div>
 
               <div class="col-md-6 d-none" id="mode-up-pass">
@@ -155,6 +172,9 @@
                        name="password"
                        class="form-control"
                        placeholder="password login">
+                <div class="form-text text-muted">
+                  Password 1-8 digit Max
+                </div>
               </div>
 
             </div>
@@ -343,4 +363,49 @@ $(function () {
   });
 
 });
+
+$(document).on('click', '.btn-delete', function() {
+  const btn = $(this);
+  const accessId = btn.data('id');
+
+  Swal.fire({
+    title: 'Yakin ingin menghapus?',
+    text: `Data access seller ini akan dihapus permanen! ${accessId}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // disable tombol sementara
+      btn.prop('disabled', true).html('<i class="bi bi-trash"></i> Menghapus...');
+
+      $.ajax({
+        url: `/admin/seller/access/delete/${accessId}`,
+        type: 'DELETE',
+        success: function(res) {
+          Swal.fire({
+            icon: res.success ? 'success' : 'error',
+            title: res.success ? 'Berhasil' : 'Error',
+            text: res.message,
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            if(res.success) location.reload(); // reload page atau hapus row dari table
+          });
+        },
+        error: function(xhr) {
+          const msg = xhr.responseJSON?.message || 'Gagal menghapus access seller';
+          Swal.fire('Error', msg, 'error');
+        },
+        complete: function() {
+          btn.prop('disabled', false).html('<i class="bi bi-trash"></i>');
+        }
+      });
+    }
+  });
+});
+
 </script>
