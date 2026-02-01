@@ -10,10 +10,28 @@ class KasirController {
     
     try {
       // Summary total penjualan
-      const [rows1] = await db.query("SELECT SUM(grand_total) AS total_penjualan, COUNT(*) AS total_transaksi FROM tbl_sales");
+      // const [rows1] = await db.query("SELECT SUM(grand_total) AS total_penjualan, COUNT(*) AS total_transaksi FROM tbl_sales");
+      const [rows1] = await db.query(`
+        SELECT 
+          SUM(grand_total) AS total_penjualan,
+          COUNT(*) AS total_transaksi
+        FROM tbl_sales
+        WHERE created_at >= CURDATE()
+          AND created_at < CURDATE() + INTERVAL 1 DAY
+      `);
+
       
       // Produk terjual
-      const [rows2] = await db.query("SELECT SUM(qty) AS total_produk FROM tbl_sales_details");
+      // const [rows2] = await db.query("SELECT SUM(qty) AS total_produk FROM tbl_sales_details");
+      const [rows2] = await db.query(`
+        SELECT 
+          SUM(d.qty) AS total_produk
+        FROM tbl_sales_details d
+        JOIN tbl_sales s ON d.sales_id = s.sales_id
+        WHERE s.created_at >= CURDATE()
+          AND s.created_at < CURDATE() + INTERVAL 1 DAY
+      `);
+
 
       // Grafik penjualan bulanan (contoh group by month)
       const [rows3] = await db.query(`
@@ -24,13 +42,29 @@ class KasirController {
       `);
 
       // List penjualan terbaru
+      // const [rows4] = await db.query(`
+      //   SELECT s.sales_id, DATE_FORMAT(s.created_at, '%Y-%m-%d %H:%i:%s') AS tanggal, s.grand_total, s.status, sel.name AS nama_seller
+      //   FROM tbl_sales s
+      //   JOIN tbl_sellers sel ON s.seller_id = sel.id
+      //   ORDER BY s.created_at DESC
+      //   LIMIT 10
+      // `);
+
       const [rows4] = await db.query(`
-        SELECT s.sales_id, DATE_FORMAT(s.created_at, '%Y-%m-%d %H:%i:%s') AS tanggal, s.grand_total, s.status, sel.name AS nama_seller
+        SELECT 
+          s.sales_id,
+          DATE_FORMAT(s.created_at, '%Y-%m-%d %H:%i:%s') AS tanggal,
+          s.grand_total,
+          s.status,
+          sel.name AS nama_seller
         FROM tbl_sales s
         JOIN tbl_sellers sel ON s.seller_id = sel.id
+        WHERE s.created_at >= CURDATE()
+          AND s.created_at < CURDATE() + INTERVAL 1 DAY
         ORDER BY s.created_at DESC
         LIMIT 10
       `);
+
 
       res.render("kasir/index", {
         title: "Dashboard Penjualan",
@@ -192,6 +226,19 @@ class KasirController {
         JOIN tbl_sellers sel ON s.seller_id = sel.id
         ORDER BY s.created_at DESC
       `);
+    // const [rows] = await db.query(`
+    //   SELECT 
+    //     s.sales_id,
+    //     DATE_FORMAT(s.created_at, '%Y-%m-%d %H:%i:%s') AS tanggal,
+    //     s.grand_total,
+    //     s.status,
+    //     sel.name AS nama_seller
+    //   FROM tbl_sales s
+    //   JOIN tbl_sellers sel ON s.seller_id = sel.id
+    //   WHERE DATE(s.created_at) = CURDATE()
+    //   ORDER BY s.created_at DESC
+    // `);
+
     //console.log(rows);
     
     res.render("kasir/penjualan", {
