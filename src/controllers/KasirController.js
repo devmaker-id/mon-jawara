@@ -219,6 +219,22 @@ class KasirController {
     });
   }
   
+  static async tambahPenjualan(req, res) {
+    const flashData = req.session.flashData;
+    delete req.session.flashData;
+
+    const sellers = await ModSellers.allData();
+    const products = await ModProducts.all();
+    const sellerProducts = await db.query("SELECT * FROM tbl_seller_products");
+    
+    res.render("kasir/tambah-penjualan", {
+      title: "menu kasir",
+      sellers,
+      products,
+      sellerProducts,
+      flashData
+    });
+  }
 }
 
 module.exports = KasirController;

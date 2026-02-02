@@ -7,6 +7,7 @@ router.use(ensureAuthenticated, isKasir);
 
 // route utama kasir
 router.get("/", KasirController.index);
+router.get("/tambah-penjualan", ensureAuthenticated, KasirController.tambahPenjualan);
 router.post("/tambah-penjualan", ensureAuthenticated, KasirController.simpanPenjualan);
 router.get("/data-penjualan", ensureAuthenticated, KasirController.dataPenjualan);
 router.get("/transaksi-detail/:id", ensureAuthenticated, KasirController.detailTransaksi);
