@@ -107,3 +107,12 @@
   .select2-selection {
     border-color: #dc3545 !important;
   }
+
+  /* Membuat dropdown select2 bisa scroll di dalam modal */
+  .select2-dropdown {
+      max-height: 200px; /* atau sesuai kebutuhan */
+      overflow-y: auto;
+  }
+  .modal-body {
+      overflow: visible !important;
+  }

@@ -142,7 +142,7 @@
       };
     });
 
-    let optionsHtml = '<option value="">-- Pilih Produk --</option>';
+    let optionsHtml = '<option value="">Select...</option>';
     filtered.forEach(p => optionsHtml += `<option value="${p.product_id}" data-harga="${p.harga}">${p.nama} ${p.isSeller ? '(Seller)' : ''}</option>`);
 
     const row = `
@@ -151,7 +151,7 @@
   <td data-label="Harga"><input type="number" class="form-control harga" name="harga[]" value="0" readonly></td>
   <td data-label="Qty"><input type="number" class="form-control qty" name="qty[]" min="1" value="1" required></td>
   <td data-label="Subtotal"><input type="number" class="form-control subtotal" name="subtotal[]" value="0" readonly></td>
-  <td data-label="Aksi" class="text-center"><button type="button" class="btn btn-danger btnRemove w-100"><i class="bi bi-trash"></i> Hapus</button></td>
+  <td data-label="Aksi" class="text-center"><button type="button" class="btn btn-danger btn-sm btnRemove w-100"><i class="bi bi-trash"></i></button></td>
 </tr>`;
     $('#produkBody').append(row);
     $('.produkSelect').select2({ width: '100%' });
