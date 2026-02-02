@@ -112,7 +112,7 @@ class TelegramController {
       const url = `https://api.telegram.org/bot${tele.token_bot}/deleteWebhook`;
       const response = await axios.post(url);
       
-      console.log("DELETE: ", response.data);
+      //console.log("DELETE: ", response.data);
       
       const result = await TelegramModel.deleteTelegram(id);
   

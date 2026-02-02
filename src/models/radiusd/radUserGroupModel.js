@@ -9,7 +9,6 @@ class RadUserGroupMoel {
       const [results] = await db.query(sql, values);
       return results ? results[0] : null;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }
@@ -30,7 +29,6 @@ class RadUserGroupMoel {
       const [rows] = await db.query(sql, [profile, username]);
       return rows; // bisa juga rows[0] kalau cuma 1 record
     } catch (err) {
-      console.error("Database error:", err);
       throw err;
     }
   }

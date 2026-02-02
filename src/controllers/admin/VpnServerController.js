@@ -27,7 +27,7 @@ class VpnServerController {
       // 🔹 Ambil semua data akun VPN dari model
       const accounts = await LimitVpnModel.allAccount();
       
-      console.log(accounts);
+      //console.log(accounts);
   
       res.render("vpn-server/all_account", {
         title: "Manajemen Akun VPN",

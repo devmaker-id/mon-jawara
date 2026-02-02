@@ -8,7 +8,7 @@ class LimitModel {
       const [result] = await db.query(sql, [userid]);
       return result[0];
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
       throw err;
     }
   }

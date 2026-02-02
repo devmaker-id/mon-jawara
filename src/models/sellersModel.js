@@ -8,7 +8,7 @@ class SupplierUser {
       const [results] = await db.query(sql);
       return results;
     } catch (err) {
-      console.log(err);
+      console.error(err.message);
       throw err;
     }
   }
@@ -22,7 +22,7 @@ class SupplierUser {
       const [result] = await db.query(usergroup, value);
       return result;
     } catch (err) {
-      console.error(err);
+      console.error(err.message);
       throw err;
     }
   }

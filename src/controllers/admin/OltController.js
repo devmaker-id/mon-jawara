@@ -82,7 +82,7 @@ class OltController {
     
     const brands = await ModOlt.brandAll();
     const olts = await ModOlt.all();
-    console.log(olts);
+    //console.log(olts);
     
     res.render("olt-mgmn/index", {
       title: "List Olt",

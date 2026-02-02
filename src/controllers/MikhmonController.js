@@ -96,7 +96,7 @@ class MikhmonController {
       const command = `./create_subdomain.sh ${domain} ${rosVersion}`;
 
       conn.on('ready', () => {
-        console.log('SSH Connection Successful!');
+        //console.log('SSH Connection Successful!');
         
         conn.exec(command, (err, stream) => {
           if (err) {
@@ -111,7 +111,7 @@ class MikhmonController {
           let output = '';
       
           stream.on('close', (code, signal) => {
-            console.log(`Command finished with code ${code}, signal ${signal}`);
+            //console.log(`Command finished with code ${code}, signal ${signal}`);
             conn.end(); // Tutup koneksi setelah selesai
             if (output.includes('DONE')) {
               return res.status(200).json({
@@ -128,7 +128,7 @@ class MikhmonController {
             }
           }).on('data', (data) => {
             output += data.toString();
-            console.log('STDOUT:', data.toString());
+            //console.log('STDOUT:', data.toString());
           }).stderr.on('data', (data) => {
             console.error('STDERR:', data.toString());
           });
@@ -183,7 +183,7 @@ class MikhmonController {
       const conn = new Client();
       const command = `./delete_subdomain.sh ${domainName}`;
       conn.on('ready', () => {
-        console.log('SSH Connection Successful!');
+        //console.log('SSH Connection Successful!');
   
         conn.exec(command, (err, stream) => {
           if (err) {
@@ -198,7 +198,7 @@ class MikhmonController {
           let output = '';
   
           stream.on('close', (code, signal) => {
-            console.log(`Command finished with code ${code}, signal ${signal}`);
+            //console.log(`Command finished with code ${code}, signal ${signal}`);
             conn.end(); // Tutup koneksi
             if (output.includes('DONE')) {
               return res.status(200).json({
@@ -214,7 +214,7 @@ class MikhmonController {
               });
             }
           }).on('data', (data) => {
-            console.log('STDOUT:', data.toString());
+            //console.log('STDOUT:', data.toString());
             output += data.toString();
           }).stderr.on('data', (data) => {
             console.error('STDERR:', data.toString());

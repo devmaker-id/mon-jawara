@@ -15,75 +15,84 @@ class productController {
     });
   }
 
-  static async addNewProduct(req, res) {
-    const flashData = req.session.flashData;
-    delete req.session.flashData;
+static async saveNewProduct(req, res) {
+  try {
+    let { kode_produk, nama, harga, stok, satuan, deskripsi, status } = req.body;
 
-    res.render("product/add_new_product", {
-      title: "Tambah Produk",
-      flashData
-    });
-  }
+    // Normalisasi
+    kode_produk = kode_produk?.trim() || null;
+    nama = nama?.trim() || "";
+    satuan = satuan?.trim() || null;
+    deskripsi = deskripsi?.trim() || null;
+    status = status && ["active", "inactive"].includes(status) ? status : "active";
 
-  static async saveNewProduct(req, res) {
-    try {
-      // Ambil data dari form
-      let { kode_produk, nama, harga, stok, satuan, deskripsi, status } = req.body;
-      console.log(req.body);
+    // Validasi
+    const errors = [];
+    if (!nama) errors.push("Nama produk wajib diisi.");
+    if (!harga || isNaN(harga) || harga < 0) errors.push("Harga harus angka positif.");
+    if (!stok || isNaN(stok) || stok < 0) errors.push("Stok harus angka positif.");
 
-      // tTrim & normalisasi nilai
-      kode_produk = kode_produk?.trim() || null;
-      nama = nama?.trim() || "";
-      satuan = satuan?.trim() || null;
-      deskripsi = deskripsi?.trim() || null;
-      status = status && ["active", "inactive"].includes(status) ? status : "active";
-
-      //  Validasi ringan
-      const errors = [];
-      if (!nama) errors.push("Nama produk wajib diisi.");
-      if (!harga || isNaN(harga) || harga < 0) errors.push("Harga harus berupa angka positif.");
-      if (!stok || isNaN(stok) || stok < 0) errors.push("Stok harus berupa angka positif.");
-
-      // Jika error → kirim flash & redirect ke form
-      if (errors.length > 0) {
-        req.session.flashData = {
-          type: "danger",
-          text: errors.join(" "),
-        };
-        return res.redirect("/produk/tambah");
-      }
-
-      //  Siapkan data ke model
-      const data = {
-        kode_produk,
-        nama,
-        harga: parseInt(harga),
-        stok: parseInt(stok),
-        satuan,
-        deskripsi,
-        status,
-      };
-
-      //  Simpan ke DB
-      const newId = await ModProducts.create(data);
-
-      //  Flash sukses & redirect ke daftar produk
-      req.session.flashData = {
-        type: "success",
-        text: `Produk "${nama}" berhasil ditambahkan (ID: ${newId}).`,
-      };
-      return res.redirect("/admin/products");
-
-    } catch (error) {
-      console.error("Error saving product:", error);
-
-      req.session.flashData = {
-        type: "danger",
-        text: "Terjadi kesalahan saat menyimpan produk. Silakan coba lagi.",
-      };
-      return res.redirect("/admin/add_new_product");
+    if (errors.length > 0) {
+      return res.json({ status: "error", message: errors.join(" ") });
     }
+
+    // Data untuk DB
+    const data = {
+      kode_produk,
+      nama,
+      harga: parseInt(harga),
+      stok: parseInt(stok),
+      satuan,
+      deskripsi,
+      status
+    };
+
+    if (req.file) data.gambar = req.file.filename;
+
+    const newId = await ModProducts.create(data); // sesuaikan dengan model kamu
+
+    return res.json({
+      status: "success",
+      message: `Produk "${nama}" berhasil ditambahkan (ID: ${newId}).`
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.json({ status: "error", message: "Terjadi kesalahan saat menyimpan produk." });
   }
+}
+
+
+  static async updateProduct(req, res) {
+  try {
+    const { product_id, kode_produk, nama, harga, stok, satuan, deskripsi, status } = req.body;
+
+    if (!nama || !harga || !stok) {
+      return res.json({ status: "error", message: "Nama, harga, dan stok wajib diisi." });
+    }
+
+    const dataUpdate = {
+      kode_produk: kode_produk?.trim() || null,
+      nama: nama.trim(),
+      harga: parseInt(harga),
+      stok: parseInt(stok),
+      satuan: satuan?.trim() || null,
+      deskripsi: deskripsi?.trim() || null,
+      status: status && ["active", "inactive"].includes(status) ? status : "active",
+    };
+
+    if (req.file) dataUpdate.gambar = req.file.filename; // update gambar jika ada
+
+    await ModProducts.update(product_id, dataUpdate); // implementasi update sesuai model
+
+    return res.json({ status: "success", message: `Produk "${nama}" berhasil diperbarui.` });
+  } catch (err) {
+    console.error(err);
+    return res.json({ status: "error", message: "Terjadi kesalahan saat memperbarui produk." });
+  }
+}
+
+
 
 }
 

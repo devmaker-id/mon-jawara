@@ -10,7 +10,7 @@ class AkunVpn {
       ]);
       return results ? results[0] : null;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -22,7 +22,7 @@ class AkunVpn {
       ]);
       return results;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -35,7 +35,7 @@ class AkunVpn {
       ]);
       return results[0];
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -80,7 +80,7 @@ class AkunVpn {
       const [result] = await db.query(sql, values);
       return result;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -93,7 +93,7 @@ class AkunVpn {
       ]);
       return results;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -124,7 +124,7 @@ class AkunVpn {
       ]);
       return result;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }

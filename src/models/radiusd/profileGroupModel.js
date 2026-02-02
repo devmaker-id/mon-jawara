@@ -14,7 +14,6 @@ class ProfileGroup {
       }));
       return formattedResults;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }
@@ -25,7 +24,6 @@ class ProfileGroup {
       const [results] = await db.query(sql, values);
       return results ? results[0] : null;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }
@@ -36,7 +34,6 @@ class ProfileGroup {
       const [results] = await db.query(sql, values);
       return results ? results[0] : null;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }

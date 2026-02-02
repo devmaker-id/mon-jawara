@@ -47,7 +47,7 @@ class AdminController {
     delete req.session.flashData;
     
     const allUsers = await UserModel.findAll();
-    console.log(allUsers);
+    //console.log(allUsers);
     
     res.render("admin/mgmnUsers", {
       title: "Manajemen User",

@@ -8,7 +8,6 @@ class RadServerUserGroup {
       const [results] = await db.query(sql);
       return results;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }
@@ -24,7 +23,6 @@ class RadServerUserGroup {
       const [results] = await db.query(sql, [userId]);
       return results.length > 0 ? results[0] : null;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }

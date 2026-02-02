@@ -12,7 +12,7 @@ class NasController {
     
     const nasClients = await NasModel.findAll();
     
-    console.log("Nas:\n", nasClients);
+    //console.log("Nas:\n", nasClients);
 
     res.render("nas-client/index", {
       title: "Nas Client Manajemen",
@@ -38,7 +38,7 @@ class NasController {
     
     const radPort = await RadServer.getServersByUserId(req.user.id)
     
-    console.log(radPort);
+    //console.log(radPort);
     
     res.render("nas-client/nas_new_use_vpn", {
       title: "Tambah Nas Dengan Vpn",
@@ -64,7 +64,7 @@ class NasController {
         return res.json({ success: false, message: 'Mikrotik tidak ditemukan.' });
       }
 
-      console.log(`🛠️ Membuat radius client di Mikrotik: ${mkData.host} untuk ${name}`);
+      //console.log(`🛠️ Membuat radius client di Mikrotik: ${mkData.host} untuk ${name}`);
 
       const conn = new RouterOSAPI({
         host: mkData.host,
@@ -85,7 +85,7 @@ class NasController {
 
         // Hapus radius client sebelumnya (berdasarkan comment)
         const existing = await conn.write('/radius/print');
-        console.log(existing);
+        //console.log(existing);
         for (const item of existing) {
           if (item.comment === comment) {
             await conn.write('/radius/remove', [`=.id=${item['.id']}`]);
@@ -139,7 +139,7 @@ class NasController {
         };
         await NasModel.createNas(nasData);
         
-        console.log('✅ Radius client berhasil ditambahkan dan dikonfigurasi');
+        //console.log('✅ Radius client berhasil ditambahkan dan dikonfigurasi');
         res.json({ success: true });
 
       } catch (execErr) {

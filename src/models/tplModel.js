@@ -39,7 +39,7 @@ class TemplateModel {
       const [results] = await db.query(sql, [values]);
       return results ? results[0] : null;
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
       throw err;
     }
   }

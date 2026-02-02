@@ -8,7 +8,6 @@ class NasModel {
       const [results] = await db.query(sql);
       return results;
     } catch (error) {
-      console.log(error.message);
       throw error;
     }
   }
@@ -19,7 +18,6 @@ class NasModel {
       const [results] = await db.query(sql, [id]);
       return results ? results[0] : null;
     } catch (error) {
-      console.log(error.message);
       throw error;
     }
   }
@@ -63,7 +61,6 @@ class NasModel {
       const [result] = await db.query(sql, [id]);
       return result.affectedRows > 0;
     } catch (error) {
-      console.log(error.message);
       throw error;
     }
   }

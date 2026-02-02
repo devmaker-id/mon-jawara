@@ -111,7 +111,7 @@ class OltModel {
       const [results] = await db.query(sql, values);
       return results[0];
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }

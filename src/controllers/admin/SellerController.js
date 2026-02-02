@@ -109,7 +109,7 @@ class SellerController {
   
   static async prosessAddSellerProduct(req, res) {
     try {
-      console.log(req.body);
+      //console.log(req.body);
       const { product_id, seller_id, harga, stok_seller } = req.body;
   
       if (!product_id || !seller_id || !harga) {

@@ -20,7 +20,7 @@ class VcrModel {
   
       return formattedResults;
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
       throw err;
     }
   }

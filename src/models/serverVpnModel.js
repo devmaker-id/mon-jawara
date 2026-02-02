@@ -26,7 +26,7 @@ class ServerVpn {
       const [results] = await db.query(sql, [id]);
       return results;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -48,7 +48,7 @@ class ServerVpn {
       const [results] = await db.query(sql, [id]);
       return results;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -59,7 +59,7 @@ class ServerVpn {
       const [results] = await db.query(sql);
       return results;
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -86,7 +86,7 @@ class ServerVpn {
       const [results] = await db.query(sql, [id]);
       return results[0];
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -113,7 +113,7 @@ class ServerVpn {
       const [results] = await db.query(sql, [serverId, vpnTypeId]);
       return results[0];
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       throw error;
     }
   }
@@ -233,7 +233,7 @@ class ServerVpn {
       };
 
     } catch (error) {
-      console.log('VPN creation failed:', error);
+      console.error('VPN creation failed:', error.message);
       return { success: false, error: error.message };
     }
   }
@@ -288,7 +288,7 @@ class ServerVpn {
         success: true
       };
     } catch (error) {
-      console.log('VPN delete failed:', error);
+      console.error(error.message);
       return { success: false, error: error.message };
     }
   }

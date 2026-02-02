@@ -1,34 +1,20 @@
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-
 <div class="container-fluid mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>📦 Daftar Produk</h3>
-    <a href="/admin/product/add-new" class="btn btn-primary">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahProdukModal">
       <i class="bi bi-plus-lg"></i> Tambah Produk
-    </a>
-  </div>
+    </button>
 
-  <!-- Filter -->
-  <div class="row mb-3">
-    <div class="col-md-6 mb-2">
-      <input type="text" id="filterNama" class="form-control" placeholder="Cari nama produk...">
-    </div>
-    <div class="col-md-3 mb-2">
-      <select id="filterStatus" class="form-select">
-        <option value="">Semua Status</option>
-        <option value="active">Aktif</option>
-        <option value="inactive">Nonaktif</option>
-      </select>
-    </div>
-    <div class="col-md-3 mb-2">
-      <button id="applyFilter" class="btn btn-success w-100">Terapkan Filter</button>
-    </div>
   </div>
+</div>
 
-  <!-- Tabel Produk -->
-  <table id="produkTable" class="table table-bordered table-hover table-striped shadow-sm nowrap" style="width:100%">
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="card shadow-sm">
+      <div class="card-body">
+          <!-- Tabel Produk -->
+  <div class="table-responsive">
+    <table id="produkTable" class="table table-bordered table-hover table-striped shadow-sm nowrap" style="width:100%">
     <thead class="table-dark text-center">
       <tr>
         <th>#</th>
@@ -44,8 +30,15 @@
       <% products.forEach((p, i) => { %>
         <tr>
           <td class="text-center"><%= i + 1 %></td>
-          <td><%= p.nama %></td>
-          <td>Rp <%= p.harga.toLocaleString('id-ID') %></td>
+          <td>
+            <%= p.nama %>
+            <% if (p.gambar) { %>
+              <br>
+              <img src="<%= p.gambar ? '/uploads/product/' + p.gambar : '/images/no-image.png' %>" 
+     alt="<%= p.nama %>" class="img-thumbnail" width="100">
+            <% } %>
+          </td>
+          <td class="text-nowrap">Rp <%= p.harga.toLocaleString('id-ID') %></td>
           <td>
             <% if (p.stok <= 5) { %>
               <span class="badge bg-danger"><%= p.stok %> (Habis)</span>
@@ -61,10 +54,12 @@
             </span>
           </td>
           <td><%= new Date(p.created_at).toLocaleDateString('id-ID') %></td>
-          <td class="text-center">
-            <a href="/admin/product/edit/<%= p.product_id %>" class="btn btn-sm btn-outline-warning">
+          <td class="text-nowrap">
+            <button 
+              class="btn btn-sm btn-outline-warning btn-edit" 
+              data-id="<%= p.product_id %>" data-access='<%- JSON.stringify(p) %>'>
               <i class="bi bi-pencil-square"></i>
-            </a>
+            </button>
             <button 
               class="btn btn-sm btn-outline-danger btn-hapus" 
               data-id="<%= p.product_id %>"
@@ -76,7 +71,319 @@
       <% }) %>
     </tbody>
   </table>
+  </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Modal Tambah Produk -->
+<div class="modal fade" id="tambahProdukModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">➕ Tambah Produk Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formTambahProdukModal" enctype="multipart/form-data">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label">Nama Produk <span class="text-danger">*</span></label>
+              <input type="text" name="nama" class="form-control" required placeholder="Contoh: VCR 5000">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Kode Produk</label>
+              <input type="text" name="kode_produk" class="form-control" placeholder="Opsional">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Harga (Rp)</label>
+              <input type="number" name="harga" class="form-control" min="0" required placeholder="4000">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Stok Awal</label>
+              <input type="number" name="stok" class="form-control" min="0" required placeholder="Jumlah stok awal">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Satuan</label>
+              <input type="text" name="satuan" class="form-control" placeholder="Contoh: pcs, box, unit">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select" required>
+                <option value="active" selected>Aktif</option>
+                <option value="inactive">Nonaktif</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Deskripsi Produk</label>
+              <textarea name="deskripsi" class="form-control" rows="3" placeholder="Tuliskan detail produk..."></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Upload Gambar (Opsional)</label>
+              <input type="file" name="gambar" class="form-control" accept="image/*">
+              <div id="previewGambarContainer"></div>
+            </div>
+
+            <div class="col-12 text-end mt-4">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save"></i> Simpan Produk
+              </button>
+              <button type="reset" class="btn btn-secondary px-3">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(document).ready(function() {
+  // Preview gambar
+  $('input[name="gambar"]').on('change', function() {
+    const file = this.files[0];
+    const maxSizeMB = 2;
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('Oops...', 'File harus berupa gambar!', 'error');
+      $(this).val('');
+      $('#previewGambarContainer').empty();
+      return;
+    }
+
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      Swal.fire('Oops...', `Ukuran gambar maksimal ${maxSizeMB} MB`, 'error');
+      $(this).val('');
+      $('#previewGambarContainer').empty();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      $('#previewGambarContainer').html(`<img id="previewGambar" src="${e.target.result}" class="img-thumbnail mt-2" width="200">`);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Submit form AJAX
+  $('#formTambahProdukModal').on('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    $.ajax({
+      url: '/admin/product/add-new', // endpoint controller JSON
+      method: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      beforeSend: function() {
+        Swal.fire({ title: 'Sedang menyimpan...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      },
+      success: function(response) {
+        Swal.close();
+        if (response.status === 'success') {
+          Swal.fire('Berhasil!', response.message, 'success').then(() => {
+            // reload tabel / page untuk melihat produk baru
+            location.reload();
+          });
+        } else {
+          Swal.fire('Gagal!', response.message, 'error');
+        }
+      },
+      error: function() {
+        Swal.close();
+        Swal.fire('Terjadi kesalahan!', 'Silakan coba lagi nanti.', 'error');
+      }
+    });
+  });
+});
+</script>
+
+<!-- Modal Edit Produk -->
+<div class="modal fade" id="editProdukModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title">✏️ Edit Produk</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditProdukModal" enctype="multipart/form-data">
+          <input type="hidden" name="product_id">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label">Nama Produk <span class="text-danger">*</span></label>
+              <input type="text" name="nama" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Kode Produk</label>
+              <input type="text" name="kode_produk" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Harga (Rp)</label>
+              <input type="number" name="harga" class="form-control" min="0" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Stok</label>
+              <input type="number" name="stok" class="form-control" min="0" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Satuan</label>
+              <input type="text" name="satuan" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select" required>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Deskripsi Produk</label>
+              <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Upload Gambar (Opsional)</label>
+              <input type="file" name="gambar" class="form-control" accept="image/*">
+              <div id="previewEditGambarContainer"></div>
+            </div>
+
+            <div class="col-12 text-end mt-4">
+              <button type="submit" class="btn btn-warning px-4">
+                <i class="bi bi-save"></i> Simpan Perubahan
+              </button>
+              <button type="reset" class="btn btn-secondary px-3">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(document).ready(function() {
+
+  // Tombol edit klik → buka modal + load data
+  $(document).ready(function() {
+
+  // Tombol edit klik → langsung buka modal + isi form
+  $('#produkTable').on('click', '.btn-edit', function() {
+      const data = $(this).data('access'); // ambil data JSON dari atribut
+      const form = $('#formEditProdukModal');
+
+      console.log(data);
+
+      form.find('input[name="product_id"]').val(data.product_id);
+      form.find('input[name="nama"]').val(data.nama);
+      form.find('input[name="kode_produk"]').val(data.kode_produk);
+      form.find('input[name="harga"]').val(data.harga);
+      form.find('input[name="stok"]').val(data.stok);
+      form.find('input[name="satuan"]').val(data.satuan);
+      form.find('textarea[name="deskripsi"]').val(data.deskripsi);
+      form.find('select[name="status"]').val(data.status);
+
+      // Preview gambar jika ada
+      if (data.gambar) {
+        $('#previewEditGambarContainer').html(
+          `<img src="/uploads/${data.gambar}" class="img-thumbnail mt-2" width="200">`
+        );
+      } else {
+        $('#previewEditGambarContainer').empty();
+      }
+
+      $('#editProdukModal').modal('show');
+    });
+
+  });
+
+
+  // Preview gambar edit
+  $('#formEditProdukModal input[name="gambar"]').on('change', function() {
+    const file = this.files[0];
+    const maxSizeMB = 2;
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('Oops...', 'File harus berupa gambar!', 'error');
+      $(this).val('');
+      $('#previewEditGambarContainer').empty();
+      return;
+    }
+
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      Swal.fire('Oops...', `Ukuran gambar maksimal ${maxSizeMB} MB`, 'error');
+      $(this).val('');
+      $('#previewEditGambarContainer').empty();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      $('#previewEditGambarContainer').html(`<img src="${e.target.result}" class="img-thumbnail mt-2" width="200">`);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Submit form edit via AJAX
+  $('#formEditProdukModal').on('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    $.ajax({
+      url: '/admin/product/edit', // endpoint untuk update
+      method: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      beforeSend: function() {
+        Swal.fire({ title: 'Sedang menyimpan...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      },
+      success: function(response) {
+        Swal.close();
+        if (response.status === 'success') {
+          Swal.fire('Berhasil!', response.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Gagal!', response.message, 'error');
+        }
+      },
+      error: function() {
+        Swal.close();
+        Swal.fire('Error', 'Terjadi kesalahan saat menyimpan produk.', 'error');
+      }
+    });
+  });
+
+});
+</script>
+
 
 <!-- Modal Konfirmasi Hapus -->
 <div class="modal fade" id="confirmHapusModal" tabindex="-1" aria-hidden="true">
@@ -94,29 +401,30 @@
   </div>
 </div>
 
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-
 <script>
 $(document).ready(function() {
-  const table = $('#produkTable').DataTable({
-    responsive: true,
-    order: [[1, 'asc']],
-    language: {
-      search: "Cari:",
-      lengthMenu: "Tampilkan _MENU_ data",
-      zeroRecords: "Tidak ada data ditemukan",
-      info: "Menampilkan _START_ - _END_ dari _TOTAL_ produk",
-      infoEmpty: "Tidak ada data",
-      paginate: {
-        previous: "Sebelumnya",
-        next: "Berikutnya"
-      }
+const table = $('#produkTable').DataTable({
+  responsive: true,
+  order: [[1, 'asc']],
+  lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Semua"]],
+  pageLength: 25, // default tampilan 25 baris
+  dom: `
+    <'row mb-3'<'col-md-6 text-start'l><'col-md-6 text-end'f>>
+    <'row'<'col-12'tr>>
+    <'row mt-3'<'col-md-6'i><'col-md-6'p>>
+  `,
+  language: {
+    zeroRecords: "Tidak ada data ditemukan",
+    info: "Menampilkan _START_ - _END_ dari _TOTAL_ produk",
+    infoEmpty: "Tidak ada data",
+    lengthMenu: "Tampilkan _MENU_ data",
+    paginate: {
+      previous: "<i class='bi bi-chevron-left'></i>",
+      next: "<i class='bi bi-chevron-right'></i>"
     }
-  });
+  }
+});
+
 
   // Filter custom
   $.fn.dataTable.ext.search.push(function(settings, data) {
@@ -129,8 +437,6 @@ $(document).ready(function() {
     if (statusFilter && statusProduk !== statusFilter) return false;
     return true;
   });
-
-  $('#applyFilter').on('click', () => table.draw());
 
   // Tombol hapus
   $('#produkTable').on('click', '.btn-hapus', function() {

@@ -49,7 +49,7 @@ class PelangganController {
       if (!dbpaket) {
         return res.status(400).json({ success: false, message: "Paket tidak ditemukan." });
       }
-      console.log(dbpaket);
+      //console.log(dbpaket);
   
       // Jika VOUCHER → password = username
       const finalSecret = finalUserType === "VOUCHER" ? username : secret;

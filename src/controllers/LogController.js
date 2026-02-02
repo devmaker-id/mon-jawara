@@ -70,7 +70,7 @@ class LogController {
 
       await Bot.sendMessage(tele.token_bot, tele.telegram_id, parsed.message);
 
-      console.log("✔️ Pesan terkirim:", parsed.message);
+      //console.log("✔️ Pesan terkirim:", parsed.message);
       res.sendStatus(200);
     } catch (error) {
       console.error('❌ Error in LogController:', error);
