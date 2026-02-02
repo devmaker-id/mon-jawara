@@ -64,6 +64,12 @@
     <p>Server RADIUS</p>
   </a>
 </li>
+<li class="nav-item">
+  <a href="/admin/mikrotik-client" class="nav-link <%= currentUrl === '/admin/mikrotik-client' ? 'active' : '' %>">
+    <i class="nav-icon bi bi-hdd-network"></i>
+    <p>Mikrotik Client</p>
+  </a>
+</li>
 
 <li class="nav-item has-treeview
   <%= currentUrl.startsWith('/whatsapp') ? 'menu-open' : '' %>">
@@ -95,14 +101,6 @@
 
   </ul>
 </li>
-
-<li class="nav-item">
-  <a href="/admin/mikrotik-client" class="nav-link <%= currentUrl === '/admin/mikrotik-client' ? 'active' : '' %>">
-    <i class="nav-icon bi bi-hdd-network"></i>
-    <p>NAS Client</p>
-  </a>
-</li>
-
 
 <li class="nav-item has-treeview <%= currentUrl.startsWith('/admin/admin-setting') ? 'menu-open' : '' %>">
   <a href="#" class="nav-link d-flex align-items-center <%= currentUrl.startsWith('/admin/admin-setting') ? 'active' : '' %>">
