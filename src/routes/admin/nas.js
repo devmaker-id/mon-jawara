@@ -5,6 +5,7 @@ const ConNas = require("../../controllers/admin/NasController");
 
 router.get("/", ensureAuthenticated, ConNas.index);
 router.post("/buat-radius", ensureAuthenticated, ConNas.buatRadiusClient);
-router.delete("/:id", ensureAuthenticated, ConNas.deleteNas);
+router.put("/change/:id", ensureAuthenticated, ConNas.editNas);
+router.delete("/delete/:id", ensureAuthenticated, ConNas.deleteNas);
 
 module.exports = router;

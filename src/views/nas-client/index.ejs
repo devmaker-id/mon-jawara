@@ -109,8 +109,10 @@
               <input type="text" class="form-control" id="editNasShortname" required>
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">IP Address (nasname)</label>
-              <input type="text" class="form-control" id="editNasNasname" required>
+              <label class="form-label">Mikrotik Client (NAS)</label>
+              <select class="form-select" id="editNasNasname" required>
+                <option value="">Loading Mikrotik...</option>
+              </select>
             </div>
           </div>
 
@@ -316,18 +318,48 @@ $(function () {
 
 <script>
   // Ketika tombol edit diklik → isi form di modal
-  $('#editNasModal').on('show.bs.modal', function (event) {
-    const button = $(event.relatedTarget);
-    $('#editNasId').val(button.data('id'));
-    $('#editNasShortname').val(button.data('shortname'));
-    $('#editNasNasname').val(button.data('nasname'));
-    $('#editNasType').val(button.data('type'));
-    $('#editNasPorts').val(button.data('ports'));
-    $('#editNasSecret').val(button.data('secret'));
-    $('#editNasServer').val(button.data('server'));
-    $('#editNasCommunity').val(button.data('community'));
-    $('#editNasDescription').val(button.data('description'));
-  });
+  $('#editNasModal').on('show.bs.modal', async function (event) {
+  const button = $(event.relatedTarget);
+  const nasId = button.data('id');
+  const nasnameOld = button.data('nasname');
+
+  $('#editNasId').val(nasId);
+  $('#editNasShortname').val(button.data('shortname'));
+  $('#editNasType').val(button.data('type'));
+  $('#editNasPorts').val(button.data('ports'));
+  $('#editNasSecret').val(button.data('secret'));
+  $('#editNasServer').val(button.data('server'));
+  $('#editNasCommunity').val(button.data('community'));
+  $('#editNasDescription').val(button.data('description'));
+
+  const $nasSelect = $('#editNasNasname');
+  $nasSelect.html('<option value="">Loading Mikrotik...</option>');
+
+  try {
+    const res = await fetch(`/admin/mikrotik-client/byhost?nasId=${nasId}`);
+    const data = await res.json();
+
+    if (data.success && data.mikrotik && data.mikrotik.length > 0) {
+      $nasSelect.empty();
+      $nasSelect.append('<option value="">Pilih Mikrotik...</option>');
+
+      data.mikrotik.forEach(mk => {
+        const selected = mk.host === nasnameOld ? 'selected' : '';
+        $nasSelect.append(`
+          <option value="${mk.host}" ${selected}>
+            ${mk.name} - ${mk.host}
+          </option>
+        `);
+      });
+    } else {
+      $nasSelect.html('<option value="">Tidak ada Mikrotik tersedia</option>');
+    }
+
+  } catch (err) {
+    console.error(err);
+    $nasSelect.html('<option value="">Gagal memuat Mikrotik</option>');
+  }
+});
 
   // Submit form edit NAS
   $('#editNasForm').on('submit', async function (e) {
@@ -336,7 +368,7 @@ $(function () {
     const id = $('#editNasId').val();
     const payload = {
       shortname: $('#editNasShortname').val(),
-      nasname: $('#editNasNasname').val(),
+      nasname: $('#editNasNasname').val(), // dari select
       type: $('#editNasType').val(),
       ports: $('#editNasPorts').val() || null,
       secret: $('#editNasSecret').val(),
@@ -345,13 +377,15 @@ $(function () {
       description: $('#editNasDescription').val()
     };
 
+
     try {
-      const res = await fetch(`/admin/nas-client/${id}`, {
+      const res = await fetch(`/admin/nas-client/change/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      console.log(data);
 
       if (data.success) {
         Swal.fire("Berhasil", data.message || "NAS berhasil diperbarui.", "success")
@@ -379,7 +413,7 @@ $(function () {
     if (!konfirmasi.isConfirmed) return;
 
     try {
-      const res = await fetch(`/admin/nas-client/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/admin/nas-client/delete/${id}`, { method: 'DELETE' });
       const data = await res.json();
 
       if (data.success) {

@@ -240,6 +240,27 @@ class NasController {
       res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
     }
   }
+
+  static async editNas(req, res) {
+    const { id } = req.params;
+    const data = req.body;
+
+    const params = {
+      community: community || null,
+      description: description || null,
+      nasname, // host atau ip server
+      ports: ports || 1812,
+      secret,
+      server: server || null,
+      shortname, // nama nas client
+      type: type || "other"
+    }
+
+    return res.json({
+      success: true,
+      data
+    });
+  }
   
 }
 
