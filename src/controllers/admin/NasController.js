@@ -12,6 +12,9 @@ class NasController {
     
     const nasClients = await NasModel.findAll();
     const mkclient = await MikrotikModel.getByUserNoUsedNas(req.user.id);
+
+    // console.log('mikrotik client', mkclient);
+
     const radPort = await RadServer.getServersByUserId(req.user.id);
     
     //console.log("Nas:\n", nasClients);
@@ -27,111 +30,155 @@ class NasController {
 
   static async buatRadiusClient(req, res) {
     const radIp = "172.10.0.253";
-    const { name, pauth, pacct, mikrotik, deskripsi, domain } = req.body;
+    const SECRET = "Jawara1234";
+    const COMMENT = "added by mon-jawara";
 
-    // Validasi input
-    if (!name || !radIp || !pauth || !pacct || !mikrotik || !deskripsi) {
-      return res.json({ success: false, message: 'Semua field wajib diisi.' });
+    const {
+      name,
+      pauth,
+      pacct,
+      mikrotik,
+      deskripsi
+    } = req.body;
+
+    // ===============================
+    // 1️⃣ VALIDASI INPUT
+    // ===============================
+    if (!name || !pauth || !pacct || !mikrotik || !deskripsi) {
+      return res.json({
+        success: false,
+        message: 'Semua field wajib diisi'
+      });
     }
 
     try {
-      // Ambil data koneksi Mikrotik
+      // ===============================
+      // 2️⃣ AMBIL DATA MIKROTIK
+      // ===============================
       const mkData = await MikrotikModel.getById(mikrotik);
       if (!mkData) {
-        return res.json({ success: false, message: 'Mikrotik tidak ditemukan.' });
+        return res.json({
+          success: false,
+          message: 'Mikrotik tidak ditemukan'
+        });
       }
 
-      //console.log(`🛠️ Membuat radius client di Mikrotik: ${mkData.host} untuk ${name}`);
+      // const vpn = await AkunVpnModel.getIpPortApi(
+      //   mkData.host,
+      //   mkData.port_api
+      // );
 
+      // if (!vpn) {
+      //   return res.json({
+      //     success: false,
+      //     message: 'Akun VPN tidak ditemukan'
+      //   });
+      // }
+
+      // ===============================
+      // 3️⃣ INSERT DB DULU (AMAN)
+      // ===============================
+      const nasData = {
+        nasname: mkData.host,
+        shortname: name,
+        type: 'other',
+        secret: SECRET,
+        description: deskripsi,
+        status: 'online'
+      };
+
+      await NasModel.createNas(nasData);
+
+      // update relasi mikrotik
+      await MikrotikModel.updateNasUsed(mkData.id, name);
+
+      // ===============================
+      // 4️⃣ BARU KONEK KE MIKROTIK
+      // ===============================
       const conn = new RouterOSAPI({
         host: mkData.host,
         user: mkData.username,
         password: mkData.password,
         port: mkData.port_api,
+        timeout: 5_000 // ⏱️ penting!
       });
 
       try {
         await conn.connect();
-      } catch (connErr) {
-        console.error('❌ Gagal koneksi ke Mikrotik:', connErr);
-        return res.json({ success: false, message: 'Gagal terhubung ke Mikrotik.' });
-      }
 
-      try {
-        const comment = 'added by mon-jawara';
-
-        // Hapus radius client sebelumnya (berdasarkan comment)
+        // hapus radius lama (by comment)
         const existing = await conn.write('/radius/print');
-        //console.log(existing);
-        for (const item of existing) {
-          if (item.comment === comment) {
-            await conn.write('/radius/remove', [`=.id=${item['.id']}`]);
+        for (const r of existing) {
+          if (r.comment === COMMENT) {
+            await conn.write('/radius/remove', [
+              `=.id=${r['.id']}`
+            ]);
           }
         }
 
-        // Tambahkan radius client baru
+        // add radius (langsung aktif)
         await conn.write('/radius/add', [
           `=address=${radIp}`,
-          '=secret=Jawara1234',
-          '=service=ppp,hotspot',
-          `=accounting-port=${pacct}`,
+          `=secret=${SECRET}`,
+          `=service=ppp,hotspot`,
           `=authentication-port=${pauth}`,
+          `=accounting-port=${pacct}`,
           '=timeout=2s',
-          `=comment=${comment}`
+          `=comment=${COMMENT}`
         ]);
 
-        // Aktifkan incoming radius
-        await conn.write('/radius/incoming/set', ['=accept=yes']);
+        // enable incoming radius
+        await conn.write('/radius/incoming/set', [
+          '=accept=yes'
+        ]);
 
-        // Aktifkan use-radius di semua hotspot profile
-        const hotspotProfiles = await conn.write('/ip/hotspot/profile/print');
-        const hotspotSetPromises = hotspotProfiles.map(profile =>
-          conn.write('/ip/hotspot/profile/set', [
-            `=.id=${profile['.id']}`,
+        // hotspot profiles
+        const profiles = await conn.write(
+          '/ip/hotspot/profile/print'
+        );
+
+        for (const p of profiles) {
+          await conn.write('/ip/hotspot/profile/set', [
+            `=.id=${p['.id']}`,
             '=use-radius=yes',
             '=radius-interim-update=5m'
-          ])
-        );
-        await Promise.all(hotspotSetPromises);
+          ]);
+        }
 
-        // Aktifkan use-radius di ppp
+        // PPP
         await conn.write('/ppp/aaa/set', [
           '=use-radius=yes',
           '=accounting=yes',
           '=interim-update=5m'
         ]);
-        
-        await MikrotikModel.updateNasUsed(mkData.id, name);
-        const vpn = await AkunVpnModel.getIpPortApi(mkData.host, mkData.port_api);
-        if (!vpn) {
-          return res.json({ success: false, message: 'Akun Vpn Ga ditemukan' });
-        }
-        const nasData = {
-          nasname: vpn.ip_vpn,
-          shortname: name,
-          type: "other",
-          secret: "Jawara1234",
-          description: deskripsi,
-          status: "online" // [online, offline]
-        };
-        await NasModel.createNas(nasData);
-        
-        //console.log('✅ Radius client berhasil ditambahkan dan dikonfigurasi');
-        res.json({ success: true });
 
-      } catch (execErr) {
-        console.error('❌ Error saat menjalankan perintah Mikrotik:', execErr);
-        res.json({ success: false, message: 'Gagal menambahkan konfigurasi radius.' });
+        res.json({
+          success: true,
+          message: 'Radius client berhasil dibuat'
+        });
+
+      } catch (mkErr) {
+        console.error('Mikrotik error:', mkErr.message);
+
+        res.json({
+          success: false,
+          message: 'DB tersimpan, namun konfigurasi Mikrotik gagal'
+        });
+
       } finally {
-        // Tutup koneksi dengan Mikrotik
         await conn.close().catch(() => {});
       }
 
     } catch (err) {
-      console.error('❌ Error umum:', err);
-      res.json({ success: false, message: 'Terjadi kesalahan server.' });
+      console.error('Server error:', err);
+      res.json({
+        success: false,
+        message: 'Terjadi kesalahan server'
+      });
     }
   }
+
+
   
   static async deleteNas(req, res) {
     const { id } = req.params;
