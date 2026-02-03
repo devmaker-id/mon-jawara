@@ -11,43 +11,20 @@ class NasController {
     delete req.session.flashData;
     
     const nasClients = await NasModel.findAll();
+    const mkclient = await MikrotikModel.getByUserNoUsedNas(req.user.id);
+    const radPort = await RadServer.getServersByUserId(req.user.id);
     
     //console.log("Nas:\n", nasClients);
 
     res.render("nas-client/index", {
       title: "Nas Client Manajemen",
       nasClients,
-      flashData
-    });
-  }
-  static async newNas(req, res) {
-    const flashData = req.session.flashData;
-    delete req.session.flashData;
-    
-    res.render("nas-client/nas_new", {
-      title: "Tambah Nas Client",
-      flashData
-    });
-  }
-  static async newNasUseVpn(req, res) {
-    const flashData = req.session.flashData;
-    delete req.session.flashData;
-    
-    //const user = req.session.user;
-    const mkclient = await MikrotikModel.getByUserNoUsedNas(req.user.id);
-    
-    const radPort = await RadServer.getServersByUserId(req.user.id)
-    
-    //console.log(radPort);
-    
-    res.render("nas-client/nas_new_use_vpn", {
-      title: "Tambah Nas Dengan Vpn",
       mkclient,
-      flashData,
-      radPort
+      radPort,
+      flashData
     });
   }
-  
+
   static async buatRadiusClient(req, res) {
     const radIp = "172.10.0.253";
     const { name, pauth, pacct, mikrotik, deskripsi, domain } = req.body;

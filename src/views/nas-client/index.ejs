@@ -1,3 +1,19 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0"><%= title %> </h3>
+        <small class="text-muted"> Manajement Nas Client</small>
+      </div>
+      <button class="btn btn-primary text-nowrap mx-2" data-bs-toggle="modal" data-bs-target="#modalAddNas">
+        <i class="bi bi-plus-circle me-1"></i> NAS
+      </button>
+      <button class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddNasVpn">
+        <i class="bi bi-shield-lock me-1"></i> Tambah NAS (VPN)
+      </button>
+  </div>
+</div>
+
 <section class="content mt-3">
   <div class="container-fluid">
 
@@ -12,9 +28,6 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5><i class="bi bi-hdd-rack me-2"></i> NAS Client</h5>
-      <a href="/admin/new-nas-use-vpn" class="btn btn-secondary btn-sm">
-        <i class="bi bi-plus-circle me-1"></i> Nas Dengan Vpn
-      </a>
     </div>
 
     <!-- Tabel NAS Client -->
@@ -144,6 +157,264 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Tambah Nas -->
+<div class="modal fade" id="modalAddNas" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle me-2"></i> <%= title %>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="formAddNas">
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label class="form-label">Nama NAS</label>
+            <input type="text" name="name" class="form-control" placeholder="nama nas" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">IP Address</label>
+            <input type="text" name="ip" class="form-control" placeholder="host/ip" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <input type="text" name="type" class="form-control" value="other">
+            <small class="text-muted">Biarkan other, untuk Mikrotik</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Secret</label>
+            <input type="text" name="secret" class="form-control" placeholder="kunci radius" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-control" placeholder="keterangan tambahan" required>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Batal
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> Simpan
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Tambah Nas Use Vpn -->
+<div class="modal fade" id="modalAddNasVpn" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle me-2"></i> Tambah NAS Dengan Koneksi VPN
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="formAddNasVpn">
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label class="form-label">Nama NAS</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Auth</label>
+              <input type="text" name="p_auth" class="form-control"
+                value="<%= radPort ? radPort.port_auth : '' %>" readonly>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Acct</label>
+              <input type="text" name="p_acct" class="form-control"
+                value="<%= radPort ? radPort.port_acct : '' %>" readonly>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Mikrotik Dengan VPN</label>
+            <select name="mikrotik" class="form-select" required>
+              <% if(mkclient && mkclient.length > 0) { %>
+                <option value="">Pilih Mikrotik...</option>
+                <% mkclient.forEach(mk => { %>
+                  <option value="<%= mk.id %>"><%= mk.name %></option>
+                <% }) %>
+              <% } else { %>
+                <option value="">Tidak ada Mikrotik</option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <input type="text" name="deskripsi" class="form-control"
+              value="Nas-Client" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Domain Isolir (Opsional)</label>
+            <input type="text" name="domainisolir" class="form-control"
+              placeholder="https://isolir.example.net">
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Batal
+          </button>
+          <button type="submit" class="btn btn-primary" id="btn-radius">
+            <i class="bi bi-router me-1"></i> Buat Radius & Simpan
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+<script>
+$(function () {
+
+  $('#formAddNasVpn').on('submit', function (e) {
+    e.preventDefault();
+
+    const data = {
+      name: $('input[name="name"]').val(),
+      pauth: $('input[name="p_auth"]').val(),
+      pacct: $('input[name="p_acct"]').val(),
+      mikrotik: $('select[name="mikrotik"]').val(),
+      deskripsi: $('input[name="deskripsi"]').val(),
+      domain: $('input[name="domainisolir"]').val()
+    };
+
+    if (!data.name || !data.pauth || !data.pacct || !data.mikrotik || !data.deskripsi) {
+      Swal.fire('Error', 'Semua field wajib diisi.', 'error');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Buat Radius?',
+      text: 'Radius akan dibuat di Mikrotik via VPN',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Lanjutkan',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+
+      if (result.isConfirmed) {
+        $.ajax({
+          url: '/admin/buat-radius',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(data),
+          beforeSend: function () {
+            Swal.fire({
+              title: 'Memproses...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            });
+            $('#btn-radius').prop('disabled', true);
+          },
+          success: function (res) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message || 'Radius berhasil dibuat!'
+            }).then(() => {
+              $('#modalAddNasVpn').modal('hide');
+              window.location.href = '/admin/nas-client';
+            });
+          },
+          error: function (xhr) {
+            Swal.fire(
+              'Gagal',
+              xhr.responseJSON?.message || 'Terjadi kesalahan',
+              'error'
+            );
+            $('#btn-radius').prop('disabled', false);
+          }
+        });
+      }
+
+    });
+  });
+
+});
+</script>
+
+
+<script>
+$(document).ready(function () {
+
+  $('#formAddNas').on('submit', function (e) {
+    e.preventDefault();
+
+    let formData = $(this).serialize();
+
+    Swal.fire({
+      title: 'Simpan NAS?',
+      text: 'Pastikan data sudah benar',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Simpan',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+
+      if (result.isConfirmed) {
+        $.ajax({
+          url: '/admin/nas-prosess-add',
+          type: 'POST',
+          data: formData,
+          beforeSend: function () {
+            Swal.fire({
+              title: 'Memproses...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            });
+          },
+          success: function (res) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message || 'NAS berhasil ditambahkan'
+            }).then(() => {
+              $('#modalAddNas').modal('hide');
+              location.reload(); // reload table/list
+            });
+          },
+          error: function (xhr) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: xhr.responseJSON?.message || 'Terjadi kesalahan'
+            });
+          }
+        });
+      }
+
+    });
+  });
+
+});
+</script>
+
 
 <script>
   // Ketika tombol edit diklik → isi form di modal
