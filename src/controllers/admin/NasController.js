@@ -28,6 +28,32 @@ class NasController {
     });
   }
 
+  static async getHostMikrotik(req, res) {
+    const { id } = req.params;
+    const user = req.session.user;
+    try {
+
+      const nas = await NasModel.getById(id);
+      if (!nas) {
+        return res.json({
+          success: false,
+          message: "Nas Tidak Ditemukan"
+        });
+      }
+
+      const mikrotik = await MikrotikModel.getAllHostByUserId(user.id);
+      return res.json({
+        success: true,
+        mikrotik,
+        nas
+      });
+
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  }
+
   static async buatRadiusClient(req, res) {
     const radIp = "172.10.0.253";
     const SECRET = "Jawara1234";
@@ -246,19 +272,23 @@ class NasController {
     const data = req.body;
 
     const params = {
-      community: community || null,
-      description: description || null,
-      nasname, // host atau ip server
-      ports: ports || 1812,
-      secret,
-      server: server || null,
-      shortname, // nama nas client
-      type: type || "other"
+      description: data.description || null,
+      nasname: data.nasname,
+      secret: data.secret,
+      shortname: data.shortname,
+    }
+
+    const respon = await NasModel.editNas(id, params);
+    if ( !respon ) {
+      return res.json({
+        success: false,
+        message: "Gagal edit nas"
+      });
     }
 
     return res.json({
       success: true,
-      data
+      message: "Nas berhasil di update"
     });
   }
   

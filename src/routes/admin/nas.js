@@ -4,6 +4,7 @@ const { ensureAuthenticated } = require("../../middleware/auth");
 const ConNas = require("../../controllers/admin/NasController");
 
 router.get("/", ensureAuthenticated, ConNas.index);
+router.get("/mikrotik/:id", ensureAuthenticated, ConNas.getHostMikrotik);
 router.post("/buat-radius", ensureAuthenticated, ConNas.buatRadiusClient);
 router.put("/change/:id", ensureAuthenticated, ConNas.editNas);
 router.delete("/delete/:id", ensureAuthenticated, ConNas.deleteNas);

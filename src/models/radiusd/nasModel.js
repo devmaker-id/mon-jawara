@@ -54,6 +54,34 @@ class NasModel {
       throw error;
     }
   }
+
+  static async editNas(id, data) {
+    try {
+
+      const sql = `
+        UPDATE nas
+        SET
+          nasname = ?,
+          shortname = ?,
+          secret = ?,
+          description = ?
+        WHERE id = ?
+      `;
+      const params = [
+        data.nasname,
+        data.shortname,
+        data.secret,
+        data.description,
+        id
+      ];
+
+      const [rows] = await db.query(sql, params);
+      return rows.affectedRows;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  }
   
   static async deleteNas(id) {
     try {

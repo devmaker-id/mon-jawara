@@ -3,6 +3,16 @@ const VpnModel = require("./akunVpnModel");
 //const mikrotikHelper = require("../helpers/mikrotikHelper");
 
 class MikrotikModel {
+  static async getAllHostByUserId(userId) {
+    try {
+      const sql = `SELECT id, name, nas_used, host FROM tbl_mikrotik WHERE user_id = ?`;
+      const [rows] = await db.query(sql, [userId]);
+      return rows;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  }
   static async getByUsedNas(nasused) {
     try {
       const sql = `SELECT * FROM tbl_mikrotik WHERE nas_used = ?`;
