@@ -1,4 +1,19 @@
 <!-- views/server-radius.ejs -->
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0"><%= title %> </h3>
+        <small class="text-muted"> Manajement server radius </small>
+      </div>
+      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambah">
+          <i class="bi bi-plus-circle"></i> Tambah Server
+        </button>
+    </div>
+  </div>
+</div>
+
+
 <section class="content mt-2">
   <div class="container-fluid">
 
@@ -9,55 +24,235 @@
     <% } %>
 
     <div class="card shadow">
-      <div class="card-header bg-dark text-white">
-        <h3 class="card-title">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
           <i class="bi bi-router-fill"></i> Daftar Server RADIUS
         </h3>
       </div>
 
       <div class="card-body">
         <div class="row">
-          <% radiusServers.forEach(server => { %>
-            <div class="col-md-6 col-xl-4 mb-3">
-              <div class="card border shadow-sm h-100">
-                <div class="card-body">
-                  <h5 class="card-title d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-terminal-dash me-2"></i> <%= server.name %></span>
-                    <% if (server.status === 'online') { %>
-                      <span class="badge bg-success ms-1">Aktif</span>
-                    <% } else { %>
-                      <span class="badge bg-danger ms-1">Mati</span>
-                    <% } %>
-                  </h5>
-                  <br>
+          <% if (radiusServers && radiusServers.length > 0) { %>
 
-                  <p class="mb-1"><i class="bi bi-globe"></i> IP: <code><%= server.ip %></code></p>
-                  <p class="mb-1"><i class="bi bi-geo-alt"></i> Lokasi: <%= server.location %></p>
-                  <p class="mb-1"><i class="bi bi-ubuntu"></i> OS: <%= server.os %></p>
-                  <p class="mb-1"><i class="bi bi-person-check"></i> Auth: <%= server.activeUsers %> pengguna aktif</p>
-                </div>
+            <% radiusServers.forEach(server => { %>
+              <div class="col-md-6 col-xl-4 mb-3">
+                <div class="card border shadow-sm h-100">
+                  <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                      <span><i class="bi bi-router me-2"></i> <%= server.name %></span>
 
-                <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-                  <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRemoteTerminal">
-                    <i class="bi bi-terminal-fill me-1"></i> Terminal Server
-                  </button>
+                      <% if (server.status === 'enable') { %>
+                        <span class="badge bg-success">Aktif</span>
+                      <% } else { %>
+                        <span class="badge bg-danger">Mati</span>
+                      <% } %>
+                    </h5>
 
-                  <button class="btn btn-sm btn-warning btn-edit" data-id="<%= server.id %>">
-                    <i class="bi bi-pencil-square"></i> Edit
-                  </button>
-                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= server.id %>">
-                    <i class="bi bi-trash"></i> Hapus
-                  </button>
+                    <p class="mb-1"><i class="bi bi-globe"></i> IP: <code><%= server.host %></code></p>
+                    <p class="mb-1"><i class="bi bi-geo-alt"></i> Lokasi: <%= server.location || '-' %></p>
+                    <p class="mb-1"><i class="bi bi-ubuntu"></i> OS: <%= server.os || '-' %></p>
+                  </div>
+
+                  <div class="card-footer d-flex justify-content-end gap-2 bg-light">
+                    <button
+                      class="btn btn-sm btn-warning btn-edit"
+                      data-server='<%- JSON.stringify(server) %>'>
+                      <i class="bi bi-pencil-square"></i> Edit
+                    </button>
+
+                    <button
+                      class="btn btn-sm btn-danger btn-delete"
+                      data-id="<%= server.id %>"
+                      data-name="<%= server.name %>">
+                      <i class="bi bi-trash"></i> Hapus
+                    </button>
+                  </div>
                 </div>
               </div>
+            <% }) %>
+
+          <% } else { %>
+
+            <!-- JIKA DATA KOSONG -->
+            <div class="col-12">
+              <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i>
+                Belum ada server RADIUS yang terdaftar.
+                <br>
+                <small>Klik tombol <strong>Tambah Server</strong> untuk menambahkan.</small>
+              </div>
             </div>
-          <% }) %>
+
+          <% } %>
         </div>
       </div>
     </div>
 
   </div>
 </section>
+
+<!-- Modal tambah radius server -->
+<div class="modal fade" id="modalTambah" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <form id="formTambahServer" class="modal-content needs-validation" novalidate>
+
+      <!-- HEADER -->
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle"></i> Tambah Server RADIUS
+        </h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <div class="container-fluid">
+
+          <!-- INFO SERVER -->
+          <h6 class="text-muted mb-2">Informasi Server</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Nama Server</label>
+              <input type="text" class="form-control" name="name" required>
+              <div class="invalid-feedback">
+                Nama server wajib diisi
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">IP / Host</label>
+              <input type="text" class="form-control" name="host" required>
+              <div class="invalid-feedback">
+                Ip / Host wajib diisi
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Sistem Operasi</label>
+              <input type="text" class="form-control" name="os" placeholder="Ubuntu / Debian / dll" required>
+              <div class="invalid-feedback">
+                System operasi wajib diisi
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Lokasi</label>
+              <input type="text" class="form-control" name="location" placeholder="DC Jakarta / Office" required>
+              <div class="invalid-feedback">
+                Lokasi server wajib diisi
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- SSH -->
+          <h6 class="text-muted mb-2">Akses SSH</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label">Username SSH</label>
+              <input type="text" class="form-control" name="username">
+              <div class="invalid-feedback">
+                Username ssh server wajib diisi
+              </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Password SSH</label>
+              <input type="password" class="form-control" name="password">
+              <div class="invalid-feedback">
+                Password sshserver wajib diisi
+              </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Port SSH</label>
+              <input type="number" class="form-control" name="port_ssh" value="22">
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- RADIUS PORT -->
+          <h6 class="text-muted mb-2">Port RADIUS</h6>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Port Authentication</label>
+              <input type="number" class="form-control" name="port_auth" value="1812">
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Port Accounting</label>
+              <input type="number" class="form-control" name="port_acct" value="1813">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-success">
+          <i class="bi bi-save"></i> Simpan
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- Modal edit -->
+<div class="modal fade" id="modalEdit" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="/radius/update" method="POST" class="modal-content">
+      <input type="hidden" name="id" id="edit-id">
+
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Edit Server</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input class="form-control mb-2" id="edit-name" name="name">
+        <input class="form-control mb-2" id="edit-host" name="host">
+        <input class="form-control mb-2" id="edit-username" name="username">
+        <input class="form-control mb-2" id="edit-password" name="password">
+        <input class="form-control mb-2" id="edit-port_ssh" name="port_ssh">
+        <input class="form-control mb-2" id="edit-port_auth" name="port_auth">
+        <input class="form-control mb-2" id="edit-port_acct" name="port_acct">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-warning">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- modal hapus -->
+<div class="modal fade" id="modalHapus" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <form action="/radius/delete" method="POST" class="modal-content">
+      <input type="hidden" name="id" id="delete-id">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Hapus Server</h5>
+      </div>
+
+      <div class="modal-body text-center">
+        Yakin hapus server <br>
+        <strong id="delete-name"></strong> ?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-danger btn-sm">Hapus</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Modal Remote Terminal -->
 <div class="modal fade" id="modalRemoteTerminal" tabindex="-1">
@@ -90,6 +285,70 @@
 </div>
 
 <script>
+$(document).ready(function () {
+
+  $('#formTambahServer').on('submit', function (e) {
+    e.preventDefault();
+
+    // VALIDASI HTML5
+    if (!this.checkValidity()) {
+      this.classList.add('was-validated');
+      return;
+    }
+
+    const formData = $(this).serialize();
+
+    $.ajax({
+      url: '/admin/radius-server/store',
+      type: 'POST',
+      data: formData,
+      dataType: 'json',
+
+      beforeSend: function () {
+        Swal.fire({
+          title: 'Menyimpan...',
+          text: 'Mohon tunggu',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+      },
+
+      success: function (res) {
+        console.log(res);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: res.message
+        }).then(() => {
+          $('#modalTambah').modal('hide');
+          $('#formTambahServer')[0].reset();
+          location.reload(); // atau refresh list via ajax
+        });
+      },
+
+      error: function (xhr) {
+        let msg = 'Terjadi kesalahan';
+
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          msg = xhr.responseJSON.message;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: msg
+        });
+      }
+    });
+  });
+
+});
+</script>
+
+<script>
   const terminalInput = document.getElementById('terminalInput');
   const terminalOutput = document.getElementById('terminalOutput');
 
@@ -112,5 +371,29 @@
       terminalInput.value = '';
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
+  });
+  // EDIT
+  document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const server = JSON.parse(btn.dataset.server);
+
+      document.getElementById('edit-id').value = server.id;
+      document.getElementById('edit-name').value = server.name;
+      document.getElementById('edit-ip').value = server.ip;
+      document.getElementById('edit-location').value = server.location;
+      document.getElementById('edit-os').value = server.os;
+
+      new bootstrap.Modal(document.getElementById('modalEdit')).show();
+    });
+  });
+
+  // DELETE
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('delete-id').value = btn.dataset.id;
+      document.getElementById('delete-name').innerText = btn.dataset.name;
+
+      new bootstrap.Modal(document.getElementById('modalHapus')).show();
+    });
   });
 </script>
