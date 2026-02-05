@@ -1,6 +1,6 @@
 const { Client } = require("ssh2");
 
-class SSHInspector {
+class SSHConnectionChecker {
   constructor({ host, port = 22, username, password }) {
     this.host = host;
     this.port = port;
@@ -12,50 +12,19 @@ class SSHInspector {
     this.timer = null;
   }
 
-  inspect() {
+  check() {
     return new Promise((resolve, reject) => {
-      // ⏱ timeout manual
+      // ⏱ timeout manual (network / firewall / host down)
       this.timer = setTimeout(() => {
         this.timeoutHit = true;
         this.conn.end();
         reject("Timeout: server tidak merespon (host / firewall / port SSH)");
       }, 7000);
 
-      this.conn.on("ready", async () => {
+      this.conn.on("ready", () => {
         clearTimeout(this.timer);
-
-        try {
-          // 🖥 OS INFO (optional, tidak bikin gagal)
-          let os = "Unknown";
-          try {
-            const osRaw = await this.exec("cat /etc/os-release");
-            os = this.parseOS(osRaw);
-          } catch (_) {}
-
-          // 📡 FREERADIUS INFO (optional)
-          let radius = { installed: false, active: false };
-          try {
-            const raw = await this.exec(
-              "systemctl is-active freeradius || systemctl is-active radiusd"
-            );
-            radius = {
-              installed: true,
-              active: raw.trim() === "active"
-            };
-          } catch (_) {}
-
-          this.conn.end();
-
-          resolve({
-            connected: true,
-            os,
-            radius
-          });
-
-        } catch (err) {
-          this.conn.end();
-          reject(err);
-        }
+        this.conn.end();
+        resolve(true); // ✅ SSH OK
       });
 
       this.conn.on("error", (err) => {
@@ -86,32 +55,6 @@ class SSHInspector {
     });
   }
 
-  exec(command) {
-    return new Promise((resolve, reject) => {
-      this.conn.exec(command, (err, stream) => {
-        if (err) return reject("Gagal menjalankan perintah");
-
-        let stdout = "";
-        let stderr = "";
-
-        stream
-          .on("close", () => {
-            if (stderr) reject(stderr);
-            else resolve(stdout);
-          })
-          .on("data", d => (stdout += d.toString()))
-          .stderr.on("data", d => (stderr += d.toString()));
-      });
-    });
-  }
-
-  /* ================= PARSER ================= */
-
-  parseOS(raw) {
-    const match = raw.match(/^PRETTY_NAME="(.+)"$/m);
-    return match ? match[1] : "OS tidak terdeteksi";
-  }
-
   /* ================= ERROR MAP ================= */
 
   mapError(err) {
@@ -137,4 +80,4 @@ class SSHInspector {
   }
 }
 
-module.exports = SSHInspector;
+module.exports = SSHConnectionChecker;

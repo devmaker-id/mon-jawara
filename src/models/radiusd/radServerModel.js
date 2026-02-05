@@ -10,12 +10,14 @@ class RadiusServer {
   static async create(data) {
     const sql = `
       INSERT INTO tbl_rad_server
-      (name, host, username, password, port_ssh, port_auth, port_acct, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      (name, host, location, os, username, password, port_ssh, port_auth, port_acct, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'enable', NOW())
     `;
     return db.query(sql, [
       data.name,
       data.host,
+      data.location,
+      data.os,
       data.username,
       data.password,
       data.port_ssh,

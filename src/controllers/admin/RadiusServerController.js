@@ -1,5 +1,5 @@
 const RadiusServer = require("../../models/radiusd/radServerModel");
-const checkSSH = require("../../helpers/sshCheck");
+const SSHConnectionChecker = require("../../helpers/sshCheck");
 
 class RadiusServerController {
 
@@ -34,7 +34,8 @@ class RadiusServerController {
         port_acct
       } = req.body;
 
-      // 🔴 VALIDASI WAJIB
+      /* ================= VALIDASI ================= */
+
       if (!name || !host) {
         return res.status(400).json({
           status: false,
@@ -42,40 +43,44 @@ class RadiusServerController {
         });
       }
 
-      const inspector = new checkSSH({
+      const sshPort = Number(port_ssh) || 22;
+
+      /* ================= CEK SSH ================= */
+
+      const checker = new SSHConnectionChecker({
         host,
-        port: port_ssh,
+        port: sshPort,
         username,
         password
       });
 
-      const inspect = await inspector.inspect();
+      await checker.check(); // ✅ cukup tunggu, kalau gagal langsung throw
 
-      // 🧠 SIMPAN
-      // await RadiusServer.create({
-      //   name,
-      //   host,
-      //   os,
-      //   location,
-      //   username,
-      //   password,
-      //   port_ssh: port_ssh || 22,
-      //   port_auth: port_auth || 1812,
-      //   port_acct: port_acct || 1813
-      // });
+      /* ================= SIMPAN DB ================= */
+
+      await RadiusServer.create({
+        name,
+        host,
+        os: os || null,
+        location: location || null,
+        username: username || null,
+        password: password || null,
+        port_ssh: sshPort,
+        port_auth: Number(port_auth) || 1812,
+        port_acct: Number(port_acct) || 1813
+      });
 
       return res.json({
         status: true,
-        data: req.body,
-        ssh: inspect,
         message: "Server RADIUS berhasil ditambahkan"
       });
 
     } catch (err) {
-      console.error(err);
+      console.error("STORE RADIUS ERROR:", err);
+
       return res.status(400).json({
         status: false,
-        message: err
+        message: typeof err === "string" ? err : "Gagal menambahkan server"
       });
     }
   }
