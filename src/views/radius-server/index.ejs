@@ -39,14 +39,14 @@
                 <div class="card border shadow-sm h-100">
                   <div class="card-body">
                     <h5 class="card-title d-flex justify-content-between align-items-center">
-                      <span><i class="bi bi-router me-2"></i> <%= server.name %></span>
+                      <span><i class="bi bi-router me-2 "></i><%= server.name %> </span>
 
                       <% if (server.status === 'enable') { %>
                         <span class="badge bg-success">Aktif</span>
                       <% } else { %>
                         <span class="badge bg-danger">Mati</span>
                       <% } %>
-                    </h5>
+                    </h5> <br>
 
                     <p class="mb-1"><i class="bi bi-globe"></i> IP: <code><%= server.host %></code></p>
                     <p class="mb-1"><i class="bi bi-geo-alt"></i> Lokasi: <%= server.location || '-' %></p>
@@ -203,30 +203,102 @@
 </div>
 
 <!-- Modal edit -->
+<!-- Modal Edit Server RADIUS -->
 <div class="modal fade" id="modalEdit" tabindex="-1">
-  <div class="modal-dialog">
-    <form action="/radius/update" method="POST" class="modal-content">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <form id="formEditServer" class="modal-content needs-validation" novalidate>
       <input type="hidden" name="id" id="edit-id">
-
+      <!-- HEADER -->
       <div class="modal-header bg-warning">
-        <h5 class="modal-title">Edit Server</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square"></i> Edit Server RADIUS
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
+      <!-- BODY -->
       <div class="modal-body">
-        <input class="form-control mb-2" id="edit-name" name="name">
-        <input class="form-control mb-2" id="edit-host" name="host">
-        <input class="form-control mb-2" id="edit-username" name="username">
-        <input class="form-control mb-2" id="edit-password" name="password">
-        <input class="form-control mb-2" id="edit-port_ssh" name="port_ssh">
-        <input class="form-control mb-2" id="edit-port_auth" name="port_auth">
-        <input class="form-control mb-2" id="edit-port_acct" name="port_acct">
+        <div class="container-fluid">
+
+          <!-- INFO SERVER -->
+          <h6 class="text-muted mb-2">Informasi Server</h6>
+          <div class="row g-3 mb-3">
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Nama Server</label>
+              <input type="text" class="form-control" id="edit-name" name="name" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">IP / Host</label>
+              <input type="text" class="form-control" id="edit-host" name="host" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Sistem Operasi</label>
+              <input type="text" class="form-control" id="edit-os" name="os" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Lokasi</label>
+              <input type="text" class="form-control" id="edit-location" name="location" required>
+            </div>
+
+          </div>
+
+          <hr>
+
+          <!-- SSH -->
+          <h6 class="text-muted mb-2">Akses SSH</h6>
+          <div class="row g-3 mb-3">
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Username SSH</label>
+              <input type="text" class="form-control" id="edit-username" name="username">
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Password SSH</label>
+              <input type="password" class="form-control" id="edit-password" name="password">
+              <small class="text-muted">Kosongkan jika tidak diubah</small>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Port SSH</label>
+              <input type="number" class="form-control" id="edit-port_ssh" name="port_ssh">
+            </div>
+
+          </div>
+
+          <hr>
+
+          <!-- RADIUS -->
+          <h6 class="text-muted mb-2">Port RADIUS</h6>
+          <div class="row g-3">
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Port Authentication</label>
+              <input type="number" class="form-control" id="edit-port_auth" name="port_auth">
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Port Accounting</label>
+              <input type="number" class="form-control" id="edit-port_acct" name="port_acct">
+            </div>
+
+          </div>
+
+        </div>
       </div>
 
+      <!-- FOOTER -->
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-warning">Update</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-save"></i> Update
+        </button>
       </div>
+
     </form>
   </div>
 </div>
@@ -287,113 +359,157 @@
 <script>
 $(document).ready(function () {
 
+  /* ==========================
+   * TAMBAH SERVER (AJAX)
+   * ========================== */
   $('#formTambahServer').on('submit', function (e) {
     e.preventDefault();
 
-    // VALIDASI HTML5
     if (!this.checkValidity()) {
       this.classList.add('was-validated');
       return;
     }
 
-    const formData = $(this).serialize();
-
     $.ajax({
       url: '/admin/radius-server/store',
       type: 'POST',
-      data: formData,
+      data: $(this).serialize(),
       dataType: 'json',
 
-      beforeSend: function () {
+      beforeSend() {
         Swal.fire({
           title: 'Menyimpan...',
           text: 'Mohon tunggu',
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+          didOpen: () => Swal.showLoading()
         });
       },
 
-      success: function (res) {
-        console.log(res);
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: res.message
-        }).then(() => {
+      success(res) {
+        Swal.fire('Berhasil', res.message, 'success').then(() => {
           $('#modalTambah').modal('hide');
           $('#formTambahServer')[0].reset();
-          location.reload(); // atau refresh list via ajax
+          location.reload();
         });
       },
 
-      error: function (xhr) {
-        let msg = 'Terjadi kesalahan';
-
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-          msg = xhr.responseJSON.message;
-        }
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal',
-          text: msg
-        });
+      error(xhr) {
+        Swal.fire(
+          'Gagal',
+          xhr.responseJSON?.message || 'Terjadi kesalahan',
+          'error'
+        );
       }
     });
   });
 
-});
-</script>
+  /* ==========================
+   * EDIT SERVER (AJAX)
+   * ========================== */
+  $('#modalTambah, #modalEdit').on('hidden.bs.modal', function () {
+    const form = $(this).find('form')[0];
+    if (form) {
+      form.reset();
+      form.classList.remove('was-validated');
+    }
+  });
+  
+  $('#formEditServer').on('submit', function (e) {
+    e.preventDefault();
 
-<script>
+    if (!this.checkValidity()) {
+      this.classList.add('was-validated');
+      return;
+    }
+
+    $.ajax({
+      url: '/admin/radius-server/update',
+      type: 'POST',
+      data: $(this).serialize(),
+      dataType: 'json',
+
+      beforeSend() {
+        Swal.fire({
+          title: 'Mengupdate...',
+          text: 'Mohon tunggu',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+      },
+
+      success(res) {
+        console.log(res);
+
+        Swal.fire('Berhasil', res.message, 'success').then(() => {
+          $('#modalEdit').modal('hide');
+          location.reload();
+        });
+      },
+
+      error(xhr) {
+        Swal.fire(
+          'Gagal',
+          xhr.responseJSON?.message || 'Update gagal',
+          'error'
+        );
+      }
+    });
+  });
+
+  /* ==========================
+   * OPEN MODAL EDIT
+   * ========================== */
+  $(document).on('click', '.btn-edit', function () {
+    const server = JSON.parse(this.dataset.server);
+
+    $('#edit-id').val(server.id);
+    $('#edit-name').val(server.name);
+    $('#edit-host').val(server.host);
+    $('#edit-location').val(server.location || '');
+    $('#edit-os').val(server.os || '');
+    $('#edit-username').val(server.username || '');
+    $('#edit-port_ssh').val(server.port_ssh || 22);
+    $('#edit-port_auth').val(server.port_auth || 1812);
+    $('#edit-port_acct').val(server.port_acct || 1813);
+    $('#edit-password').val('');
+
+    new bootstrap.Modal('#modalEdit').show();
+  });
+
+  /* ==========================
+   * DELETE MODAL
+   * ========================== */
+  $(document).on('click', '.btn-delete', function () {
+    $('#delete-id').val(this.dataset.id);
+    $('#delete-name').text(this.dataset.name);
+
+    new bootstrap.Modal('#modalHapus').show();
+  });
+
+  /* ==========================
+   * TERMINAL DUMMY (SAFE)
+   * ========================== */
   const terminalInput = document.getElementById('terminalInput');
   const terminalOutput = document.getElementById('terminalOutput');
 
-  terminalInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
+  if (terminalInput && terminalOutput) {
+    terminalInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+
       e.preventDefault();
-      const command = terminalInput.value.trim();
-      if (!command) return;
+      const cmd = this.value.trim();
+      if (!cmd) return;
 
-      // Tampilkan input user
-      const userCommand = document.createElement('div');
-      userCommand.innerHTML = `<span class="text-success">$</span> ${command}`;
-      terminalOutput.appendChild(userCommand);
+      terminalOutput.insertAdjacentHTML(
+        'beforeend',
+        `<div><span class="text-success">$</span> ${cmd}</div>
+         <div>Output dari: ${cmd}\n(total dummy)</div>`
+      );
 
-      // Output dummy
-      const outputDummy = document.createElement('div');
-      outputDummy.textContent = `Output dari: ${command}\n(total dummy)`;
-      terminalOutput.appendChild(outputDummy);
-
-      terminalInput.value = '';
+      this.value = '';
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
-    }
-  });
-  // EDIT
-  document.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const server = JSON.parse(btn.dataset.server);
-
-      document.getElementById('edit-id').value = server.id;
-      document.getElementById('edit-name').value = server.name;
-      document.getElementById('edit-ip').value = server.ip;
-      document.getElementById('edit-location').value = server.location;
-      document.getElementById('edit-os').value = server.os;
-
-      new bootstrap.Modal(document.getElementById('modalEdit')).show();
     });
-  });
+  }
 
-  // DELETE
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('delete-id').value = btn.dataset.id;
-      document.getElementById('delete-name').innerText = btn.dataset.name;
-
-      new bootstrap.Modal(document.getElementById('modalHapus')).show();
-    });
-  });
+});
 </script>

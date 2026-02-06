@@ -87,13 +87,85 @@ class RadiusServerController {
 
   static async update(req, res) {
     try {
-      await RadiusServer.update(req.body.id, req.body);
-      req.flash("msg", { type: "warning", text: "Server berhasil diperbarui" });
-      res.redirect("/radius");
+      const {
+        id,
+        name,
+        host,
+        os,
+        location,
+        username,
+        password,
+        port_ssh,
+        port_auth,
+        port_acct
+      } = req.body;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID server tidak valid'
+        });
+      }
+
+      /* ==========================
+      * CEK KONEKSI SSH
+      * ========================== */
+      let sshConnected = false;
+
+      if (host && username && port_ssh) {
+        try {
+          const checker = new SSHConnectionChecker({
+            host,
+            port: Number(port_ssh),
+            username,
+            password
+          });
+
+          await checker.check();
+          sshConnected = true;
+
+        } catch (sshErr) {
+          return res.status(422).json({
+            success: false,
+            message: 'Gagal koneksi SSH. Periksa host, username, password, atau port.'
+          });
+        }
+      }
+
+      /* ==========================
+      * DATA UPDATE
+      * ========================== */
+      const updateData = {
+        name,
+        host,
+        os,
+        location,
+        username,
+        port_ssh,
+        port_auth,
+        port_acct
+      };
+
+      // password hanya diupdate kalau diisi
+      if (password) {
+        updateData.password = password;
+      }
+
+      await RadiusServer.update(id, updateData);
+
+      return res.json({
+        success: true,
+        sshConnected,
+        message: 'Server berhasil diperbarui'
+      });
+
     } catch (err) {
-      console.error(err);
-      req.flash("msg", { type: "danger", text: "Gagal update server" });
-      res.redirect("/radius");
+      console.error('UPDATE SERVER ERROR:', err);
+
+      return res.status(500).json({
+        success: false,
+        message: 'Terjadi kesalahan server'
+      });
     }
   }
 
