@@ -7,6 +7,19 @@ class RadiusServer {
     return rows;
   }
 
+  static async getById(id) {
+    try {
+      const sql = `
+        SELECT name, host, port_auth, port_acct FROM tbl_rad_server WHERE id = ?
+      `;
+      const [rows] = await db.query(sql, [id]);
+      return rows;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  }
+
   static async create(data) {
     const sql = `
       INSERT INTO tbl_rad_server

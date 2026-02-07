@@ -2,6 +2,7 @@ const RouterOSAPI = require("node-routeros").RouterOSAPI;
 const MikrotikModel = require("../../models/mikrotikModel");
 const NasModel = require("../../models/radiusd/nasModel");
 const RadServer = require("../../models/radiusd/radServerUserModel");
+const RadiusModel = require("../../models/radiusd/radServerModel");
 const AkunVpnModel = require("../../models/akunVpnModel");
 
 class NasController {
@@ -16,6 +17,7 @@ class NasController {
     // console.log('mikrotik client', mkclient);
 
     const radPort = await RadServer.getServersByUserId(req.user.id);
+    const radServer = await RadServer.getAll();
     
     //console.log("Nas:\n", nasClients);
 
@@ -24,6 +26,7 @@ class NasController {
       nasClients,
       mkclient,
       radPort,
+      radServer,
       flashData
     });
   }
@@ -61,8 +64,7 @@ class NasController {
 
     const {
       name,
-      pauth,
-      pacct,
+      svradius,
       mikrotik,
       deskripsi
     } = req.body;
@@ -70,10 +72,18 @@ class NasController {
     // ===============================
     // 1️⃣ VALIDASI INPUT
     // ===============================
-    if (!name || !pauth || !pacct || !mikrotik || !deskripsi) {
+    if (!name || !svradius || !mikrotik || !deskripsi) {
       return res.json({
         success: false,
         message: 'Semua field wajib diisi'
+      });
+    }
+
+    const rdSv = await RadiusModel.getById(svradius);
+    if (!rdSv) {
+      return res.json({
+        success: false,
+        message: 'Ga ada radius server yang cocok'
       });
     }
 

@@ -27,6 +27,19 @@ class RadServerUserGroup {
     }
   }
 
+  static async getAll() {
+    try {
+      const sql = `
+        SELECT id, name, host, port_auth, port_acct, status FROM tbl_rad_server
+      `;
+      const [rows] = await db.query(sql);
+      return rows;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  }
+
 }
 
 module.exports = RadServerUserGroup;

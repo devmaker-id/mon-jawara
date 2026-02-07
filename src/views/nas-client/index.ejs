@@ -151,18 +151,18 @@
             <input type="text" name="nasname" class="form-control" placeholder="Masukan nama NAS" required>
           </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Auth</label>
-              <input type="text" name="p_auth" class="form-control"
-                value="<%= radPort ? radPort.port_auth : '' %>" readonly>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Acct</label>
-              <input type="text" name="p_acct" class="form-control"
-                value="<%= radPort ? radPort.port_acct : '' %>" readonly>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">Radius Server</label>
+            <select name="svradius" class="form-select" required>
+              <% if(radServer && radServer.length > 0) { %>
+                <option value="">Pilih radius...</option>
+                <% radServer.forEach(rd => { %>
+                  <option value="<%= rd.id %>"><%= rd.name %></option>
+                <% }) %>
+              <% } else { %>
+                <option value="">Tidak ada radius server</option>
+              <% } %>
+            </select>
           </div>
 
           <div class="mb-3">
@@ -215,16 +215,16 @@ $(function () {
 
     const data = {
       name: $('input[name="nasname"]').val(),
-      pauth: $('input[name="p_auth"]').val(),
-      pacct: $('input[name="p_acct"]').val(),
       mikrotik: $('select[name="mikrotik"]').val(),
+      svradius: $('select[name="svradius"]').val(),
       deskripsi: $('input[name="deskripsi"]').val(),
       domain: $('input[name="domainisolir"]').val()
     };
 
     console.log(data);
+    return false;
 
-    if (!data.name || !data.pauth || !data.pacct || !data.mikrotik || !data.deskripsi) {
+    if (!data.name || !data.svradius || !data.mikrotik || !data.deskripsi) {
       Swal.fire('Error', 'Semua field wajib diisi.', 'error');
       return;
     }
