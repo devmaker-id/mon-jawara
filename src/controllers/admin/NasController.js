@@ -3,7 +3,6 @@ const MikrotikModel = require("../../models/mikrotikModel");
 const NasModel = require("../../models/radiusd/nasModel");
 const RadServer = require("../../models/radiusd/radServerUserModel");
 const RadiusModel = require("../../models/radiusd/radServerModel");
-const AkunVpnModel = require("../../models/akunVpnModel");
 
 class NasController {
   
@@ -58,21 +57,20 @@ class NasController {
   }
 
   static async buatRadiusClient(req, res) {
-    const radIp = "172.10.0.253";
-    const SECRET = "Jawara1234";
     const COMMENT = "added by mon-jawara";
 
     const {
       name,
       svradius,
       mikrotik,
-      deskripsi
+      deskripsi,
+      secret
     } = req.body;
 
     // ===============================
     // 1️⃣ VALIDASI INPUT
     // ===============================
-    if (!name || !svradius || !mikrotik || !deskripsi) {
+    if (!name || !svradius || !mikrotik || !deskripsi || !secret) {
       return res.json({
         success: false,
         message: 'Semua field wajib diisi'
@@ -87,6 +85,10 @@ class NasController {
       });
     }
 
+    const radIp = rdSv.host;
+    const pauth = rdSv.port_auth;
+    const pacct = rdSv.port_acct;
+
     try {
       // ===============================
       // 2️⃣ AMBIL DATA MIKROTIK
@@ -99,18 +101,6 @@ class NasController {
         });
       }
 
-      // const vpn = await AkunVpnModel.getIpPortApi(
-      //   mkData.host,
-      //   mkData.port_api
-      // );
-
-      // if (!vpn) {
-      //   return res.json({
-      //     success: false,
-      //     message: 'Akun VPN tidak ditemukan'
-      //   });
-      // }
-
       // ===============================
       // 3️⃣ INSERT DB DULU (AMAN)
       // ===============================
@@ -118,7 +108,7 @@ class NasController {
         nasname: mkData.host,
         shortname: name,
         type: 'other',
-        secret: SECRET,
+        secret: secret,
         description: deskripsi,
         status: 'online'
       };
@@ -139,62 +129,33 @@ class NasController {
         timeout: 5_000 // ⏱️ penting!
       });
 
+      const radius = require('../../helpers/radius.helper');
+      const hotspot = require('../../helpers/hotspot.helper');
+
       try {
         await conn.connect();
 
-        // hapus radius lama (by comment)
-        const existing = await conn.write('/radius/print');
-        for (const r of existing) {
-          if (r.comment === COMMENT) {
-            await conn.write('/radius/remove', [
-              `=.id=${r['.id']}`
-            ]);
-          }
-        }
+        await radius.removeRadiusByComment(conn, COMMENT);
 
-        // add radius (langsung aktif)
-        await conn.write('/radius/add', [
-          `=address=${radIp}`,
-          `=secret=${SECRET}`,
-          `=service=ppp,hotspot`,
-          `=authentication-port=${pauth}`,
-          `=accounting-port=${pacct}`,
-          '=timeout=2s',
-          `=comment=${COMMENT}`
-        ]);
+        await radius.addRadius(conn, {
+          address: radIp,
+          secret,
+          authPort: pauth,
+          acctPort: pacct,
+          comment: COMMENT
+        });
 
-        // enable incoming radius
-        await conn.write('/radius/incoming/set', [
-          '=accept=yes'
-        ]);
-
-        // hotspot profiles
-        const profiles = await conn.write(
-          '/ip/hotspot/profile/print'
-        );
-
-        for (const p of profiles) {
-          await conn.write('/ip/hotspot/profile/set', [
-            `=.id=${p['.id']}`,
-            '=use-radius=yes',
-            '=radius-interim-update=5m'
-          ]);
-        }
-
-        // PPP
-        await conn.write('/ppp/aaa/set', [
-          '=use-radius=yes',
-          '=accounting=yes',
-          '=interim-update=5m'
-        ]);
+        await radius.enableIncomingRadius(conn);
+        await hotspot.enableHotspotRadius(conn);
+        await hotspot.enablePPPRadius(conn);
 
         res.json({
           success: true,
           message: 'Radius client berhasil dibuat'
         });
 
-      } catch (mkErr) {
-        console.error('Mikrotik error:', mkErr.message);
+      } catch (err) {
+        console.error(err);
 
         res.json({
           success: false,
@@ -214,8 +175,6 @@ class NasController {
     }
   }
 
-
-  
   static async deleteNas(req, res) {
     const { id } = req.params;
 

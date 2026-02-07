@@ -104,6 +104,7 @@
               <label class="form-label">Nama (shortname)</label>
               <input type="text" class="form-control" id="editNasShortname" required>
             </div>
+
             <div class="col-md-6 mb-3">
               <label class="form-label">Mikrotik Client (NAS)</label>
               <select class="form-select" id="editNasNasname" required>
@@ -114,6 +115,7 @@
               <label class="form-label">Secret</label>
               <input type="text" class="form-control" id="editNasSecret" required>
             </div>
+            
           </div>
 
           <div class="mb-3">
@@ -151,32 +153,39 @@
             <input type="text" name="nasname" class="form-control" placeholder="Masukan nama NAS" required>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Radius Server</label>
-            <select name="svradius" class="form-select" required>
-              <% if(radServer && radServer.length > 0) { %>
-                <option value="">Pilih radius...</option>
-                <% radServer.forEach(rd => { %>
-                  <option value="<%= rd.id %>"><%= rd.name %></option>
-                <% }) %>
-              <% } else { %>
-                <option value="">Tidak ada radius server</option>
-              <% } %>
-            </select>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Radius Server</label>
+              <select name="svradius" class="form-select" required>
+                <% if(radServer && radServer.length > 0) { %>
+                  <option value="">Pilih radius...</option>
+                  <% radServer.forEach(rd => { %>
+                    <option value="<%= rd.id %>"><%= rd.name %></option>
+                  <% }) %>
+                <% } else { %>
+                  <option value="">Tidak ada radius server</option>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Mikrotik Client</label>
+              <select name="mikrotik" class="form-select" required>
+                <% if(mkclient && mkclient.length > 0) { %>
+                  <option value="">Pilih Mikrotik...</option>
+                  <% mkclient.forEach(mk => { %>
+                    <option value="<%= mk.id %>"><%= mk.name %></option>
+                  <% }) %>
+                <% } else { %>
+                  <option value="">Tidak ada Mikrotik</option>
+                <% } %>
+              </select>
+            </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Mikrotik Client</label>
-            <select name="mikrotik" class="form-select" required>
-              <% if(mkclient && mkclient.length > 0) { %>
-                <option value="">Pilih Mikrotik...</option>
-                <% mkclient.forEach(mk => { %>
-                  <option value="<%= mk.id %>"><%= mk.name %></option>
-                <% }) %>
-              <% } else { %>
-                <option value="">Tidak ada Mikrotik</option>
-              <% } %>
-            </select>
+            <label class="form-label">Secret radius</label>
+            <input type="text" name="secret" class="form-control" placeholder="Buat kunci radius" required>
           </div>
 
           <div class="mb-3">
@@ -217,21 +226,19 @@ $(function () {
       name: $('input[name="nasname"]').val(),
       mikrotik: $('select[name="mikrotik"]').val(),
       svradius: $('select[name="svradius"]').val(),
+      secret: $('input[name="secret"]').val(),
       deskripsi: $('input[name="deskripsi"]').val(),
       domain: $('input[name="domainisolir"]').val()
     };
 
-    console.log(data);
-    return false;
-
-    if (!data.name || !data.svradius || !data.mikrotik || !data.deskripsi) {
+    if (!data.name || !data.svradius || !data.mikrotik || !data.secret || !data.deskripsi) {
       Swal.fire('Error', 'Semua field wajib diisi.', 'error');
       return;
     }
 
     Swal.fire({
       title: 'Buat Radius?',
-      text: 'Radius akan dibuat di Mikrotik via VPN',
+      text: 'Server akan mengaktifkan radius pada mikrotik via api',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Ya, Lanjutkan',
@@ -253,6 +260,8 @@ $(function () {
             $('#btn-radius').prop('disabled', true);
           },
           success: function (res) {
+            console.log(res);
+
             if (res.success) {
               Swal.fire({
                 icon: 'success',
@@ -378,15 +387,34 @@ $(function () {
 
     if (!konfirmasi.isConfirmed) return;
 
+    // 🔄 tampilkan loading
+    Swal.fire({
+      title: "Menghapus data...",
+      text: "Mohon tunggu sebentar",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
-      const res = await fetch(`/admin/nas-client/delete/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/admin/nas-client/delete/${id}`, {
+        method: 'DELETE'
+      });
+
       const data = await res.json();
 
       if (data.success) {
-        Swal.fire("Berhasil", data.message, "success").then(() => location.reload());
+        Swal.fire({
+          title: "Berhasil",
+          text: data.message,
+          icon: "success"
+        }).then(() => location.reload());
       } else {
-        Swal.fire("Gagal", data.message || "Terjadi kesalahan saat menghapus.", "error");
+        Swal.fire("Gagal", data.message || "Terjadi kesalahan.", "error");
       }
+
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Gagal menghubungi server.", "error");

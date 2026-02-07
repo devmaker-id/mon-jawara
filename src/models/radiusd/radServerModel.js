@@ -13,7 +13,7 @@ class RadiusServer {
         SELECT name, host, port_auth, port_acct FROM tbl_rad_server WHERE id = ?
       `;
       const [rows] = await db.query(sql, [id]);
-      return rows;
+      return rows ? rows[0] : null;
     } catch (err) {
       console.error(err.message);
       throw err;
