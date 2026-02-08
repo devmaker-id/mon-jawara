@@ -36,7 +36,7 @@
                   <td>Rp, <%= profile.jual_format %></td>
                   <td class="text-nowrap"><%= profile.durasi %> | <%= profile.quota || 'Unlimited' %></td>
                   <td><%= profile.expired || '-' %></td>
-                  <td><%= profile.speed_internet || '-' %></td>
+                  <td class="text-nowrap"><%= profile.speed_internet || '-' %></td>
                   <td><%= profile.shared_users %></td>
                   <td>
                     <span class="bi bi-ticket-detailed"></span> 0 | <span class="bi bi-people"></span> 0
@@ -374,12 +374,12 @@
       contentType: "application/json",
       data: JSON.stringify(data),
       success: function (res) {
+        console.log(res);
         Swal.fire({
           icon: 'success',
           title: 'Berhasil',
           text: res.message || 'Data berhasil disimpan',
           timer: 2000,
-          showConfirmButton: false
         }).then(() => location.reload());
       },
       error: function (xhr) {
