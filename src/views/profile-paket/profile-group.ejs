@@ -2,7 +2,9 @@
   <div class="container-fluid">
     <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h3 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i><%= title %> </h3>
+        <h3 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i>
+          <%= title %>
+        </h3>
         <small class="text-muted">Manajemen profile group hotspot dan pppoe </small>
       </div>
       <div class="dropdown">
@@ -11,14 +13,14 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalAddGroup">
-            <i class="bi bi-folder-plus me-1"></i> Tambah Group Profile
-          </a></li>
+              <i class="bi bi-folder-plus me-1"></i> Tambah Group Profile
+            </a></li>
           <li><a class="dropdown-item" href="#">
-            <i class="bi bi-upload me-1"></i> Export Group ke Mikrotik
-          </a></li>
+              <i class="bi bi-upload me-1"></i> Export Group ke Mikrotik
+            </a></li>
           <li><a class="dropdown-item text-danger" href="#">
-            <i class="bi bi-trash me-1"></i> Hapus Yang Dipilih
-          </a></li>
+              <i class="bi bi-trash me-1"></i> Hapus Yang Dipilih
+            </a></li>
         </ul>
       </div>
     </div>
@@ -47,30 +49,53 @@
             </tr>
           </thead>
           <tbody>
-            <% if (module && module.length > 0) { module.forEach(group => { %>
+            <% if (module && module.length> 0) { module.forEach(group => { %>
               <tr>
                 <td><input type="checkbox" value="<%= group.id %>" /></td>
-                <td class="text-nowrap"><%= group.name %></td>
-                <td><span class="badge bg-<%= group.service_type === 'HOTSPOT' ? 'info' : 'success' %>"><%= group.service_type %></span></td>
-                <td class="text-nowrap"><%= group.module_ip %></td>
-                <td><%= group.local_ip ? group.local_ip : "-" %></td>
-                <td><%= group.start_ip ? group.start_ip : "-" %></td>
-                <td><%= group.end_ip ? group.end_ip : "-" %></td>
-                <td><%= group.dns %></td>
-                <td><%= group.owner_name %></td>
                 <td class="text-nowrap">
-                  <button class="btn btn-sm btn-warning">
+                  <%= group.name %>
+                </td>
+                <td><span class="badge bg-<%= group.service_type === 'HOTSPOT' ? 'info' : 'success' %>">
+                    <%= group.service_type %>
+                  </span></td>
+                <td class="text-nowrap">
+                  <%= group.module_ip %>
+                </td>
+                <td>
+                  <%= group.local_ip ? group.local_ip : "-" %>
+                </td>
+                <td>
+                  <%= group.start_ip ? group.start_ip : "-" %>
+                </td>
+                <td>
+                  <%= group.end_ip ? group.end_ip : "-" %>
+                </td>
+                <td>
+                  <%= group.dns %>
+                </td>
+                <td>
+                  <%= group.owner_name %>
+                </td>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-warning btn-edit" data-id="<%= group.id %>"
+                    data-name="<%= group.name %>" data-nas="<%= group.nas_id %>" data-owner="<%= group.owner_id %>"
+                    data-type="<%= group.service_type.toLowerCase() %>" data-module="<%= group.module_ip %>"
+                    data-ipgw="<%= group.local_ip %>" data-startip="<%= group.start_ip %>"
+                    data-endip="<%= group.end_ip %>" data-dns="<%= group.dns %>">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-sm btn-danger">
+
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= group.id %>"
+                    data-name="<%= group.name %>">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
-            <% }) } else {%>
-              <tr>
-                <td colspan="7" class="text-center text-muted"> Belum ada group yang di-assign </td>
-              </tr><% } %>
+              <% }) } else {%>
+                <tr>
+                  <td colspan="7" class="text-center text-muted"> Belum ada group yang di-assign </td>
+                </tr>
+                <% } %>
           </tbody>
         </table>
       </div>
@@ -78,6 +103,7 @@
   </div>
 </section>
 
+<!-- Modal Add Group -->
 <div class="modal fade" id="modalAddGroup" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <form class="modal-content" id="formAddGroup">
@@ -96,9 +122,11 @@
           <div class="col-md-6">
             <label>Router Client</label>
             <select class="form-select" name="nasclient">
-                <option value="">Router Nas ...</option>
-              <% if (nas && nas.length > 0) { nas.forEach(n => { %>
-                <option value="<%= n.id %>"><%= n.shortname %> - <%= n.nasname %></option>
+              <option value="">Router Nas ...</option>
+              <% if (nas && nas.length> 0) { nas.forEach(n => { %>
+                <option value="<%= n.id %>">
+                  <%= n.shortname %> - <%= n.nasname %>
+                </option>
               <% }) } else {%>
                 <option value="">- Tidak Ada Nas -</option>
               <% } %>
@@ -108,13 +136,15 @@
           <div class="col-md-6">
             <label>Owner</label>
             <select class="form-select" name="owner">
-                <option value="">Owner ...</option>
-              <% owners.forEach(own => { %>
-                <option value="<%= own.id %>"><%= own.username %> - <%= own.akun_type %></option>
+              <option value="">Owner ...</option>
+              <% owners.forEach(own=> { %>
+                <option value="<%= own.id %>">
+                  <%= own.username %> - <%= own.akun_type %>
+                </option>
               <% })%>
             </select>
           </div>
-          
+
           <div class="col-md-6">
             <label>Service Type</label>
             <select class="form-select" name="grouptype">
@@ -139,17 +169,17 @@
           </div>
           <div class="col-md-6 ip-pool-field">
             <label>Ip Awal</label>
-            <input type="text" class="form-control" placeholder="192.168.80.2" name="startip"/>
+            <input type="text" class="form-control" placeholder="192.168.80.2" name="startip" />
           </div>
           <div class="col-md-6 ip-pool-field">
             <label>Ip Terakhir</label>
-            <input type="text" class="form-control" placeholder="192.168.80.254" name="endip"/>
+            <input type="text" class="form-control" placeholder="192.168.80.254" name="endip" />
           </div>
           <!-- sampai ini -->
 
           <div class="col-md-6">
             <label>Dns</label>
-            <input type="text" class="form-control" value="8.8.8.8,8.8.4.4" name="dns"/>
+            <input type="text" class="form-control" value="8.8.8.8,8.8.4.4" name="dns" />
           </div>
         </div>
       </div>
@@ -166,106 +196,297 @@
   </div>
 </div>
 
+<!-- Modal Edit -->
+<div class="modal fade" id="modalEditGroup" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" id="formEditGroup">
+      <input type="hidden" name="id">
+
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil"></i> Edit Group Profile
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label>Nama Group</label>
+            <input type="text" class="form-control" placeholder="Masukan nama group" name="groupname" required />
+          </div>
+
+          <div class="col-md-6">
+            <label>Router Client</label>
+            <select class="form-select" name="nasclient">
+              <option value="">Router Nas ...</option>
+              <% if (nas && nas.length> 0) { nas.forEach(n => { %>
+                <option value="<%= n.id %>">
+                  <%= n.shortname %> - <%= n.nasname %>
+                </option>
+              <% }) } else {%>
+                <option value="">- Tidak Ada Nas -</option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Owner</label>
+            <select class="form-select" name="owner">
+              <option value="">Owner ...</option>
+              <% owners.forEach(own=> { %>
+                <option value="<%= own.id %>">
+                  <%= own.username %> - <%= own.akun_type %>
+                </option>
+                <% })%>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Service Type</label>
+            <select class="form-select" name="grouptype">
+              <option value="">Pilih type ...</option>
+              <option value="hotspot">HOTSPOT</option>
+              <option value="ppp">PPP</option>
+            </select>
+          </div>
+
+          <!-- jika yang dipilih service type = hotspot matikan pilihan onlyhotspot -->
+          <div class="col-md-6">
+            <label>Module Ip Pool</label>
+            <select class="form-select" name="poolmodule">
+              <option value="onlyhotspot">GROUP ONLY (Hotspot Saja)</option>
+              <option value="poolmikrotik">IP POOL MIKROTIK</option>
+            </select>
+          </div>
+          <!-- jika dalam module ip pool memilih onlyhotspot hilangkan ini -->
+          <div class="col-md-6 ip-pool-field">
+            <label>Ip Lokal</label>
+            <input type="text" class="form-control" placeholder="192.168.80.1" name="ipgw" />
+          </div>
+          <div class="col-md-6 ip-pool-field">
+            <label>Ip Awal</label>
+            <input type="text" class="form-control" placeholder="192.168.80.2" name="startip" />
+          </div>
+          <div class="col-md-6 ip-pool-field">
+            <label>Ip Terakhir</label>
+            <input type="text" class="form-control" placeholder="192.168.80.254" name="endip" />
+          </div>
+          <!-- sampai ini -->
+
+          <div class="col-md-6">
+            <label>Dns</label>
+            <input type="text" class="form-control" value="8.8.8.8,8.8.4.4" name="dns" />
+          </div>
+        </div>
+
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-warning" type="submit">
+          <i class="bi bi-save"></i> Update
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Hapus -->
+<div class="modal fade" id="modalDeleteGroup" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-trash"></i> Hapus Group
+        </h5>
+      </div>
+
+      <div class="modal-body text-center">
+        <input type="hidden" id="deleteId">
+        <p>Yakin hapus group:</p>
+        <strong id="deleteName"></strong>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="confirmDelete">
+          Ya, Hapus
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-$(document).ready(function () {
+  $(document).ready(function () {
+    const ipPoolField = $('.ip-pool-field');
+    const serviceType = $('select[name="grouptype"]');
+    const poolModule = $('select[name="poolmodule"]');
 
-  const ipPoolField = $('.ip-pool-field');
-  const serviceType = $('select[name="grouptype"]');
-  const poolModule  = $('select[name="poolmodule"]');
+    // default
+    ipPoolField.hide();
 
-  // default
-  ipPoolField.hide();
+    // SERVICE TYPE CHANGE
+    serviceType.on('change', function () {
+      const val = $(this).val();
 
-  // SERVICE TYPE CHANGE
-  serviceType.on('change', function () {
-    const val = $(this).val();
+      if (val === 'ppp') {
+        // PPP TIDAK BOLEH onlyhotspot
+        poolModule.val('poolmikrotik');
+        poolModule.find('option[value="onlyhotspot"]').prop('disabled', true);
+        ipPoolField.slideDown();
+      }
+      else if (val === 'hotspot') {
+        // HOTSPOT BOLEH KEDUANYA
+        poolModule.find('option').prop('disabled', false);
 
-    if (val === 'ppp') {
-      // PPP TIDAK BOLEH onlyhotspot
-      poolModule.val('poolmikrotik');
-      poolModule.find('option[value="onlyhotspot"]').prop('disabled', true);
-      ipPoolField.slideDown();
-    } 
-    else if (val === 'hotspot') {
-      // HOTSPOT BOLEH KEDUANYA
-      poolModule.find('option').prop('disabled', false);
-
-      if (poolModule.val() === 'onlyhotspot') {
+        if (poolModule.val() === 'onlyhotspot') {
+          ipPoolField.hide();
+        } else {
+          ipPoolField.show();
+        }
+      }
+      else {
+        poolModule.find('option').prop('disabled', false);
         ipPoolField.hide();
-      } else {
-        ipPoolField.show();
-      }
-    } 
-    else {
-      poolModule.find('option').prop('disabled', false);
-      ipPoolField.hide();
-    }
-  });
-
-  // POOL MODULE CHANGE
-  poolModule.on('change', function () {
-    if ($(this).val() === 'poolmikrotik') {
-      ipPoolField.slideDown();
-    } else {
-      ipPoolField.slideUp();
-    }
-  });
-
-  // SUBMIT FORM
-  $('#formAddGroup').on('submit', function (e) {
-    e.preventDefault();
-
-    // VALIDASI
-    if (!serviceType.val()) {
-      Swal.fire('Oops!', 'Service type wajib dipilih', 'warning');
-      return;
-    }
-
-    if (serviceType.val() === 'ppp' && poolModule.val() === 'onlyhotspot') {
-      Swal.fire('Tidak valid!', 'PPP tidak boleh menggunakan module onlyhotspot', 'error');
-      return;
-    }
-
-    if (poolModule.val() === 'poolmikrotik') {
-      if (
-        !$('input[name="ipgw"]').val() ||
-        !$('input[name="startip"]').val() ||
-        !$('input[name="endip"]').val()
-      ) {
-        Swal.fire('Oops!', 'IP Pool wajib diisi', 'warning');
-        return;
-      }
-    }
-
-    $.ajax({
-      url: '/admin/profile/group/add',
-      type: 'POST',
-      data: $(this).serialize(),
-      beforeSend() {
-        Swal.fire({
-          title: 'Menyimpan...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading()
-        });
-      },
-      success(res) {
-        console.log(res);
-        Swal.fire('Berhasil', res.message || 'Data tersimpan', 'success')
-          .then(() => {
-            $('#modalAddGroup').modal('hide');
-            $('#formAddGroup')[0].reset();
-            ipPoolField.hide();
-          });
-      },
-      error(xhr) {
-        Swal.fire(
-          'Gagal',
-          xhr.responseJSON?.message || 'Server error',
-          'error'
-        );
       }
     });
-  });
 
-});
+    // POOL MODULE CHANGE
+    poolModule.on('change', function () {
+      if ($(this).val() === 'poolmikrotik') {
+        ipPoolField.slideDown();
+      } else {
+        ipPoolField.slideUp();
+      }
+    });
+
+    // SUBMIT FORM
+    $('#formAddGroup').on('submit', function (e) {
+      e.preventDefault();
+
+      // VALIDASI
+      if (!serviceType.val()) {
+        Swal.fire('Oops!', 'Service type wajib dipilih', 'warning');
+        return;
+      }
+
+      if (serviceType.val() === 'ppp' && poolModule.val() === 'onlyhotspot') {
+        Swal.fire('Tidak valid!', 'PPP tidak boleh menggunakan module onlyhotspot', 'error');
+        return;
+      }
+
+      if (poolModule.val() === 'poolmikrotik') {
+        if (
+          !$('input[name="ipgw"]').val() ||
+          !$('input[name="startip"]').val() ||
+          !$('input[name="endip"]').val()
+        ) {
+          Swal.fire('Oops!', 'IP Pool wajib diisi', 'warning');
+          return;
+        }
+      }
+
+      $.ajax({
+        url: '/admin/profile/group/add',
+        type: 'POST',
+        data: $(this).serialize(),
+        beforeSend() {
+          Swal.fire({
+            title: 'Menyimpan...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+          });
+        },
+        success(res) {
+          console.log(res);
+          Swal.fire('Berhasil', res.message || 'Data tersimpan', 'success')
+            .then(() => {
+              $('#modalAddGroup').modal('hide');
+              $('#formAddGroup')[0].reset();
+              ipPoolField.hide();
+            });
+        },
+        error(xhr) {
+          Swal.fire(
+            'Gagal',
+            xhr.responseJSON?.message || 'Server error',
+            'error'
+          );
+        }
+      });
+    });
+
+    // ================== EDIT ==================
+    $('.btn-edit').on('click', function () {
+      const modal = $('#modalEditGroup');
+      const form = $('#formEditGroup');
+
+      form.find('[name="id"]').val($(this).data('id'));
+      form.find('[name="groupname"]').val($(this).data('name'));
+      form.find('[name="nasclient"]').val($(this).data('nas'));
+      form.find('[name="owner"]').val($(this).data('owner'));
+      form.find('[name="grouptype"]').val($(this).data('type')).trigger('change');
+      form.find('[name="poolmodule"]').val($(this).data('module')).trigger('change');
+      form.find('[name="ipgw"]').val($(this).data('ipgw'));
+      form.find('[name="startip"]').val($(this).data('startip'));
+      form.find('[name="endip"]').val($(this).data('endip'));
+      form.find('[name="dns"]').val($(this).data('dns'));
+
+      modal.modal('show');
+    });
+
+    // SUBMIT EDIT
+    $('#formEditGroup').on('submit', function (e) {
+      e.preventDefault();
+
+      $.ajax({
+        url: '/admin/profile/group/update',
+        type: 'POST',
+        data: $(this).serialize(),
+        beforeSend() {
+          Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading() });
+        },
+        success(res) {
+          console.log("response: ", res);
+          Swal.fire('Berhasil', res.message, 'success')
+            .then(() => location.reload());
+        },
+        error(xhr) {
+          Swal.fire('Gagal', xhr.responseJSON?.message, 'error');
+        }
+      });
+    });
+
+    // ================== DELETE ==================
+    $('.btn-delete').on('click', function () {
+      $('#deleteId').val($(this).data('id'));
+      $('#deleteName').text($(this).data('name'));
+      $('#modalDeleteGroup').modal('show');
+    });
+
+    $('#confirmDelete').on('click', function () {
+      const id = $('#deleteId').val();
+
+      $.ajax({
+        url: '/admin/profile/group/delete',
+        type: 'POST',
+        data: { id },
+        beforeSend() {
+          Swal.fire({ title: 'Menghapus...', didOpen: () => Swal.showLoading() });
+        },
+        success(res) {
+          Swal.fire('Terhapus', res.message, 'success')
+            .then(() => location.reload());
+        },
+        error(xhr) {
+          Swal.fire('Gagal', xhr.responseJSON?.message, 'error');
+        }
+      });
+    });
+
+  });
 </script>

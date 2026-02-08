@@ -5,6 +5,7 @@ const ConProfilePaket = require("../../controllers/ProfilePaketController");
 // profile module pool
 router.get("/group", ensureAuthenticated, ConProfilePaket.profileGroup);
 router.post("/group/add", ensureAuthenticated, ConProfilePaket.profileGroupAdd);
+router.post("/group/update", ensureAuthenticated, ConProfilePaket.profileGroupUpdate);
 
 // profile global
 router.get("/hotspot", ensureAuthenticated, ConProfilePaket.profileHotspot);
