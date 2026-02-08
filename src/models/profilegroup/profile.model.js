@@ -7,6 +7,12 @@ class ProfileModelGroup {
         return rows;
     }
 
+    static async getById(id) {
+        const sql = `SELECT * FROM tbl_profile_model WHERE id = ?`;
+        const [rows] = await db.query(sql, [id]);
+        return rows ? rows[0] : null;
+    }
+
     static async getByName(name) {
         const sql = `SELECT name FROM tbl_profile_model WHERE name = ?`;
         const [rows] = await db.query(sql, [name]);
@@ -64,6 +70,11 @@ class ProfileModelGroup {
 
         const [result] = await db.query(query, values);
         return result.insertId;
+    }
+
+    static async deleteById(id) {
+        const sql = `DELETE FROM tbl_profile_model WHERE id = ?`;
+        return await db.query(sql, [id]);
     }
 
 }

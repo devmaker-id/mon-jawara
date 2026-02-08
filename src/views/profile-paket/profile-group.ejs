@@ -93,7 +93,7 @@
               </tr>
               <% }) } else {%>
                 <tr>
-                  <td colspan="7" class="text-center text-muted"> Belum ada group yang di-assign </td>
+                  <td colspan="10" class="text-center text-muted"> Belum ada group yang di-assign </td>
                 </tr>
                 <% } %>
           </tbody>
@@ -404,11 +404,7 @@
         success(res) {
           console.log(res);
           Swal.fire('Berhasil', res.message || 'Data tersimpan', 'success')
-            .then(() => {
-              $('#modalAddGroup').modal('hide');
-              $('#formAddGroup')[0].reset();
-              ipPoolField.hide();
-            });
+            .then(() => location.reload());
         },
         error(xhr) {
           Swal.fire(
@@ -473,14 +469,20 @@
 
       $.ajax({
         url: '/admin/profile/group/delete',
-        type: 'POST',
+        type: 'DELETE',
         data: { id },
         beforeSend() {
           Swal.fire({ title: 'Menghapus...', didOpen: () => Swal.showLoading() });
         },
         success(res) {
-          Swal.fire('Terhapus', res.message, 'success')
+          console.log(res);
+          if(res.success) {
+            Swal.fire('Terhapus', res.message, 'success')
             .then(() => location.reload());
+          } else {
+            Swal.fire('Gagal', res.message, 'info')
+            .then(() => location.reload());
+          }
         },
         error(xhr) {
           Swal.fire('Gagal', xhr.responseJSON?.message, 'error');

@@ -334,7 +334,7 @@ class ProfilePaketController {
           const params = {
             name: groupname,
             nas_id: nas.id,
-            nasname: nas.shortname,
+            nasname: nas.nasname,
             owner_id: user.id,
             owner_name: user.username,
             service_type: grouptype,
@@ -367,6 +367,81 @@ class ProfilePaketController {
       success: true,
       data
     });
+  }
+
+  static async profileGroupDelete(req, res) {
+
+    const { id } = req.body;
+    // cari data
+    const group = await ProfileModule.getById(id);
+    if(!group){
+      return res.status(404).json({
+        success: false,
+        message: "Data ga ditemukan"
+      });
+    }
+    const mikrotik = await MikrotikModel.getByHost(group.nasname);
+    if(!mikrotik){
+      return res.status(404).json({
+        success: false,
+        message: "Data nas client ga ditemukan"
+      });
+    }
+    let deleted;
+    if (group.module_ip === "onlyhotspot") {
+      deleted = await ProfileModule.deleteById(id);
+    } else if (group.module_ip === "poolmikrotik") {
+      let conn;
+      const mk = {
+        host: mikrotik.host,
+        user: mikrotik.username,
+        password: mikrotik.password,
+        port: mikrotik.port_api
+      }
+      try {
+        const result = await MikrotikConnection.connect(mk);
+        conn = result.conn;
+
+        const poolname = `pool_${group.name}`;
+        await PoolHelper.deleteByName(conn, poolname);
+        if (group.service_type === "PPP") {
+          await PPPHelper.deleteByName(conn, group.name);
+        } else if (group.service_type === "HOTSPOT") {
+          await HotspotHelper.deleteByName(conn, group.name);
+        } else {
+          await conn.close();
+          return res.status(403).json({
+            success: false,
+            message: "service type ga cocok"
+          });
+        }
+
+        await ProfileModule.deleteById(id);
+
+      } catch (err) {
+        console.error(err);
+        throw err;
+      } finally {
+        if (conn) {
+          try {
+            await conn.close();
+          } catch (e) {
+            console.error("GAGAL CLOSE CONNECTION:", e);
+          }
+        }
+      }
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "module tidak sesuai"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Suksess hapus"
+    });
+
   }
 
 }

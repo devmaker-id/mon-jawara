@@ -9,6 +9,25 @@ class PPPHelper {
         return res && res.length > 0 ? res[0] : null;
     }
 
+    static async findByName(conn, name) {
+        const res = await conn.write("/ppp/profile/print", [
+            `?name=${name}`
+        ]);
+
+        return res && res.length > 0 ? res[0] : null;
+    }
+
+    static async deleteByName(conn, name) {
+        const data = await this.findByName(conn, name);
+        if (!data) return false;
+
+        await conn.write("/ppp/profile/remove", [
+            `=.id=${data['.id']}`
+        ]);
+
+        return true;
+    }
+
     static async createProfile(conn, name, localIp, poolName, dns, comment) {
         return conn.write("/ppp/profile/add", [
             `=name=${name}`,
