@@ -96,14 +96,22 @@
           <div class="col-md-6">
             <label>Router Client</label>
             <select class="form-select" name="nasclient">
-              <option value="">Router Nas ...</option>
+                <option value="">Router Nas ...</option>
+              <% if (nas && nas.length > 0) { nas.forEach(n => { %>
+                <option value="<%= n.id %>"><%= n.shortname %> - <%= n.nasname %></option>
+              <% }) } else {%>
+                <option value="">- Tidak Ada Nas -</option>
+              <% } %>
             </select>
           </div>
 
           <div class="col-md-6">
             <label>Owner</label>
             <select class="form-select" name="owner">
-              <option value="">Pilih owner ...</option>
+                <option value="">Owner ...</option>
+              <% owners.forEach(own => { %>
+                <option value="<%= own.id %>"><%= own.username %> - <%= own.akun_type %></option>
+              <% })%>
             </select>
           </div>
           

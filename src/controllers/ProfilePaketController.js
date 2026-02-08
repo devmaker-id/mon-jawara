@@ -2,12 +2,17 @@ const ProfileHotspotModel = require("../models/profileHotspotModel");
 const BandwidthModel = require("../models/banwithModel");
 const UserModel = require("../models/userModel");
 const ProfileModule = require("../models/profilegroup/profile.model");
-const NasModel = require('../models/radiusd/nasModel');
+const NasModel = require("../models/radiusd/nasModel");
+const MikrotikModel = require("../models/admin/mikrotikModel");
 
 const groupModel = require("../models/radiusd/profileGroupModel");
 const formatRateLimit = require("../utils/rateLimitFormatter");
-const { formatLimitasi, parseLimitasi } = require('../utils/formatLimitasi');
+const { formatLimitasi, parseLimitasi } = require("../utils/formatLimitasi");
 
+const MikrotikConnection = require("../helpers/mikrotik/MikrotikConnection");
+const PoolHelper = require("../helpers/mikrotik/Pool.helper");
+const HotspotHelper = require("../helpers/mikrotik/Hotspot.helper");
+const PPPHelper = require("../helpers/mikrotik/PPP.helper");
 
 class ProfilePaketController {
   // ================= PROFILE GROUP =================
@@ -216,12 +221,142 @@ class ProfilePaketController {
     });
   }
 
-  //add group profile
   static async profileGroupAdd(req, res) {
-    const data = req.body;
-    return res.status(200).json({
-      data
-    });
+      try {
+          const {
+              dns,
+              endip,
+              groupname,
+              grouptype,
+              ipgw,
+              nasclient,
+              owner,
+              startip
+          } = req.body;
+          const poolmodule = String(req.body.poolmodule).toLowerCase();
+
+          if (!groupname || !grouptype || !nasclient || !owner || !poolmodule) {
+              return res.status(400).json({
+                  success: false,
+                  message: "semua field wajib di isi"
+              });
+          }
+
+          const group = await ProfileModule.getByName(groupname);
+          if (group) {
+              return res.status(403).json({
+                  success: false,
+                  message: "profile udah ada"
+              });
+          }
+
+          const nas = await NasModel.getById(nasclient);
+          if (!nas) {
+              return res.status(404).json({
+                  success: false,
+                  message: "nas ga ada"
+              });
+          }
+
+          const user = await UserModel.findById(owner);
+
+          const mikrotik = await MikrotikModel.getByHost(nas.nasname);
+          const mk = {
+            host: mikrotik.host,
+            user: mikrotik.username,
+            password: mikrotik.password,
+            port: mikrotik.port_api
+          }
+
+          if (poolmodule !== "onlyhotspot" && poolmodule !== "poolmikrotik") {
+            return res.status(403).json({
+              status: false,
+              message: "pool model hanya boleh onlyhotspot(GLOBAL) pool mikrotik (Local Pool)"
+            });
+          }
+
+          if (poolmodule === "poolmikrotik") {
+              let conn;
+              try {
+                  const result = await MikrotikConnection.connect(mk);
+                  conn = result.conn;
+
+                  const poolName = `pool_${groupname}`;
+
+                  // 1. buat pool
+                  await PoolHelper.create(conn, poolName, startip, endip);
+
+                  // 2. buat profile sesuai type
+                  if (grouptype === "hotspot") {
+                      await HotspotHelper.createProfile(
+                          conn,
+                          groupname,
+                          ipgw
+                      );
+                  } else if (grouptype === "ppp") {
+                      await PPPHelper.createProfile(
+                          conn,
+                          groupname,
+                          ipgw,
+                          poolName,
+                          dns || "8.8.8.8,8.8.4.4"
+                      );
+                  } else {
+                      return res.status(400).json({
+                          success: false,
+                          message: "type ga cocok"
+                      });
+                  }
+
+              } catch (err) {
+                  console.error("MIKROTIK ERROR:", err);
+
+                  return res.status(500).json({
+                      success: false,
+                      message: "gagal membuat profile di mikrotik",
+                      error: err.message || err
+                  });
+
+              } finally {
+                  // PASTI ketutup walaupun error
+                  if (conn) {
+                      try {
+                          await conn.close();
+                      } catch (e) {
+                          console.error("GAGAL CLOSE CONNECTION:", e);
+                      }
+                  }
+              }
+          }
+
+          const params = {
+            name: groupname,
+            nas_id: nas.id,
+            nasname: nas.shortname,
+            owner_id: user.id,
+            owner_name: user.username,
+            service_type: grouptype,
+            module_ip: poolmodule,
+            local_ip: ipgw,
+            start_ip: startip,
+            end_ip: endip,
+            dns
+          }
+
+          const created = await ProfileModule.create(params);
+
+          return res.status(200).json({
+              success: true,
+              data: created
+          });
+
+      } catch (err) {
+        console.log(err.message);
+          return res.status(500).json({
+              success: false,
+              message: err.message
+          });
+      }
   }
 
 }
