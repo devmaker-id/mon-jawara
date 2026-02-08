@@ -37,18 +37,26 @@
               <th scope="col"><input type="checkbox" /></th>
               <th class="text-nowrap">Nama Group</th>
               <th>Jenis</th>
-              <th>Limitasi</th>
+              <th class="text-nowrap">Type Module</th>
+              <th class="text-nowrap">Ip local</th>
+              <th class="text-nowrap">Start Ip</th>
+              <th class="text-nowrap">End Ip</th>
+              <th class="text-nowrap">Dns</th>
               <th>Owner</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <% if (groups && groups.length > 0) { groups.forEach(group => { %>
+            <% if (module && module.length > 0) { module.forEach(group => { %>
               <tr>
                 <td><input type="checkbox" value="<%= group.id %>" /></td>
-                <td class="text-nowrap"><%= group.groupname %></td>
+                <td class="text-nowrap"><%= group.name %></td>
                 <td><span class="badge bg-<%= group.service_type === 'HOTSPOT' ? 'info' : 'success' %>"><%= group.service_type %></span></td>
-                <td class="text-nowrap"><%= group.speed_internet %></td>
+                <td class="text-nowrap"><%= group.module_ip %></td>
+                <td><%= group.local_ip ? group.local_ip : "-" %></td>
+                <td><%= group.start_ip ? group.start_ip : "-" %></td>
+                <td><%= group.end_ip ? group.end_ip : "-" %></td>
+                <td><%= group.dns %></td>
                 <td><%= group.owner_name %></td>
                 <td class="text-nowrap">
                   <button class="btn btn-sm btn-warning">

@@ -1,6 +1,8 @@
 const ProfileHotspotModel = require("../models/profileHotspotModel");
 const BandwidthModel = require("../models/banwithModel");
 const UserModel = require("../models/userModel");
+const ProfileModule = require("../models/profilegroup/profile.model");
+const NasModel = require('../models/radiusd/nasModel');
 
 const groupModel = require("../models/radiusd/profileGroupModel");
 const formatRateLimit = require("../utils/rateLimitFormatter");
@@ -13,13 +15,15 @@ class ProfilePaketController {
     const flashData = req.session.flashData;
     delete req.session.flashData;
 
-    const groups = await groupModel.getAll();
+    const module = await ProfileModule.getAll();
+    const nas = await NasModel.findAll();
     const owners = await UserModel.findAll();
 
     res.render("profile-paket/profile-group", {
       title: "Profile Group Manajement",
+      module,
+      nas,
       owners,
-      groups,
       flashData,
     });
   }
