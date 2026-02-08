@@ -4,6 +4,7 @@ const { ensureAuthenticated } = require("../../middleware/auth");
 const ConProfilePaket = require("../../controllers/ProfilePaketController");
 
 router.get("/group", ensureAuthenticated, ConProfilePaket.profileGroup);
+router.post("/group/add", ensureAuthenticated, ConProfilePaket.profileGroupAdd);
 router.get("/hotspot", ensureAuthenticated, ConProfilePaket.profileHotspot);
 router.get("/hotspot/:id", ensureAuthenticated, ConProfilePaket.getProfileHotspot);
 router.post("/hotspot", ensureAuthenticated, ConProfilePaket.storeHotspot);

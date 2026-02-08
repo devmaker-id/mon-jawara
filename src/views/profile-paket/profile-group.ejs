@@ -1,8 +1,10 @@
-<section class="content mt-2">
+<div class="app-content-header">
   <div class="container-fluid">
-    <!-- Header dan tombol aksi -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4><i class="bi bi-diagram-3-fill me-2"></i> Group Profile</h4>
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i><%= title %> </h3>
+        <small class="text-muted">Manajemen profile group hotspot dan pppoe </small>
+      </div>
       <div class="dropdown">
         <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
           <i class="bi bi-plus-circle me-1"></i> Aksi
@@ -20,6 +22,11 @@
         </ul>
       </div>
     </div>
+  </div>
+</div>
+
+<section class="content mt-2">
+  <div class="container-fluid">
 
     <!-- Tabel dummy Group Profile -->
     <div class="card shadow">
@@ -31,24 +38,18 @@
               <th class="text-nowrap">Nama Group</th>
               <th>Jenis</th>
               <th>Limitasi</th>
-              <th>Bandwith</th>
-              <th>Catatan</th>
+              <th>Owner</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <% const dummyGroups = [
-              { id: 1, name: "Premium Hotspot", type: "Hotspot", limit: "30 Hari", bw: "10M/2M", note: "Untuk pelanggan reguler" },
-              { id: 2, name: "Fast PPPoE", type: "PPPoE", limit: "Tidak Terbatas", bw: "20M/5M", note: "Koneksi cepat" },
-            ]; %>
-            <% dummyGroups.forEach(group => { %>
+            <% if (groups && groups.length > 0) { groups.forEach(group => { %>
               <tr>
                 <td><input type="checkbox" value="<%= group.id %>" /></td>
-                <td class="text-nowrap"><%= group.name %></td>
-                <td><span class="badge bg-<%= group.type === 'Hotspot' ? 'info' : 'success' %>"><%= group.type %></span></td>
-                <td class="text-nowrap"><%= group.limit %></td>
-                <td class="text-nowrap"><%= group.bw %></td>
-                <td><%= group.note %></td>
+                <td class="text-nowrap"><%= group.groupname %></td>
+                <td><span class="badge bg-<%= group.service_type === 'HOTSPOT' ? 'info' : 'success' %>"><%= group.service_type %></span></td>
+                <td class="text-nowrap"><%= group.speed_internet %></td>
+                <td><%= group.owner_name %></td>
                 <td class="text-nowrap">
                   <button class="btn btn-sm btn-warning">
                     <i class="bi bi-pencil"></i>
@@ -58,7 +59,10 @@
                   </button>
                 </td>
               </tr>
-            <% }) %>
+            <% }) } else {%>
+              <tr>
+                <td colspan="7" class="text-center text-muted"> Belum ada group yang di-assign </td>
+              </tr><% } %>
           </tbody>
         </table>
       </div>
@@ -68,7 +72,7 @@
 
 <div class="modal fade" id="modalAddGroup" tabindex="-1">
   <div class="modal-dialog modal-lg">
-    <form class="modal-content">
+    <form class="modal-content" id="formAddGroup">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title"><i class="bi bi-folder-plus"></i> Tambah Group Profile</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -76,34 +80,60 @@
 
       <div class="modal-body">
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-12">
             <label>Nama Group</label>
-            <input type="text" class="form-control" required />
+            <input type="text" class="form-control" placeholder="Masukan nama group" name="groupname" required />
           </div>
+
           <div class="col-md-6">
-            <label>Nas Client</label>
-            <select class="form-select">
-              <option value="">List Nas ...</option>
+            <label>Router Client</label>
+            <select class="form-select" name="nasclient">
+              <option value="">Router Nas ...</option>
             </select>
           </div>
+
           <div class="col-md-6">
-            <label>Jenis</label>
-            <select class="form-select">
+            <label>Owner</label>
+            <select class="form-select" name="owner">
+              <option value="">Pilih owner ...</option>
+            </select>
+          </div>
+          
+          <div class="col-md-6">
+            <label>Service Type</label>
+            <select class="form-select" name="grouptype">
               <option value="">Pilih type ...</option>
+              <option value="hotspot">HOTSPOT</option>
               <option value="ppp">PPP</option>
             </select>
           </div>
+
+          <!-- jika yang dipilih service type = hotspot matikan pilihan onlyhotspot -->
           <div class="col-md-6">
+            <label>Module Ip Pool</label>
+            <select class="form-select" name="poolmodule">
+              <option value="onlyhotspot">GROUP ONLY (Hotspot Saja)</option>
+              <option value="poolmikrotik">IP POOL MIKROTIK</option>
+            </select>
+          </div>
+          <!-- jika dalam module ip pool memilih onlyhotspot hilangkan ini -->
+          <div class="col-md-6 ip-pool-field">
             <label>Ip Lokal</label>
-            <input type="text" class="form-control" placeholder="192.168.80.1" />
+            <input type="text" class="form-control" placeholder="192.168.80.1" name="ipgw" />
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6 ip-pool-field">
             <label>Ip Awal</label>
-            <input type="text" class="form-control" placeholder="192.168.80.2" />
+            <input type="text" class="form-control" placeholder="192.168.80.2" name="startip"/>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6 ip-pool-field">
             <label>Ip Terakhir</label>
-            <input type="text" class="form-control" placeholder="192.168.80.254" />
+            <input type="text" class="form-control" placeholder="192.168.80.254" name="endip"/>
+          </div>
+          <!-- sampai ini -->
+
+          <div class="col-md-6">
+            <label>Dns</label>
+            <input type="text" class="form-control" value="8.8.8.8,8.8.4.4" name="dns"/>
           </div>
         </div>
       </div>
@@ -119,3 +149,107 @@
     </form>
   </div>
 </div>
+
+<script>
+$(document).ready(function () {
+
+  const ipPoolField = $('.ip-pool-field');
+  const serviceType = $('select[name="grouptype"]');
+  const poolModule  = $('select[name="poolmodule"]');
+
+  // default
+  ipPoolField.hide();
+
+  // SERVICE TYPE CHANGE
+  serviceType.on('change', function () {
+    const val = $(this).val();
+
+    if (val === 'ppp') {
+      // PPP TIDAK BOLEH onlyhotspot
+      poolModule.val('poolmikrotik');
+      poolModule.find('option[value="onlyhotspot"]').prop('disabled', true);
+      ipPoolField.slideDown();
+    } 
+    else if (val === 'hotspot') {
+      // HOTSPOT BOLEH KEDUANYA
+      poolModule.find('option').prop('disabled', false);
+
+      if (poolModule.val() === 'onlyhotspot') {
+        ipPoolField.hide();
+      } else {
+        ipPoolField.show();
+      }
+    } 
+    else {
+      poolModule.find('option').prop('disabled', false);
+      ipPoolField.hide();
+    }
+  });
+
+  // POOL MODULE CHANGE
+  poolModule.on('change', function () {
+    if ($(this).val() === 'poolmikrotik') {
+      ipPoolField.slideDown();
+    } else {
+      ipPoolField.slideUp();
+    }
+  });
+
+  // SUBMIT FORM
+  $('#formAddGroup').on('submit', function (e) {
+    e.preventDefault();
+
+    // VALIDASI
+    if (!serviceType.val()) {
+      Swal.fire('Oops!', 'Service type wajib dipilih', 'warning');
+      return;
+    }
+
+    if (serviceType.val() === 'ppp' && poolModule.val() === 'onlyhotspot') {
+      Swal.fire('Tidak valid!', 'PPP tidak boleh menggunakan module onlyhotspot', 'error');
+      return;
+    }
+
+    if (poolModule.val() === 'poolmikrotik') {
+      if (
+        !$('input[name="ipgw"]').val() ||
+        !$('input[name="startip"]').val() ||
+        !$('input[name="endip"]').val()
+      ) {
+        Swal.fire('Oops!', 'IP Pool wajib diisi', 'warning');
+        return;
+      }
+    }
+
+    $.ajax({
+      url: '/admin/profile/group/add',
+      type: 'POST',
+      data: $(this).serialize(),
+      beforeSend() {
+        Swal.fire({
+          title: 'Menyimpan...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+      },
+      success(res) {
+        console.log(res);
+        Swal.fire('Berhasil', res.message || 'Data tersimpan', 'success')
+          .then(() => {
+            $('#modalAddGroup').modal('hide');
+            $('#formAddGroup')[0].reset();
+            ipPoolField.hide();
+          });
+      },
+      error(xhr) {
+        Swal.fire(
+          'Gagal',
+          xhr.responseJSON?.message || 'Server error',
+          'error'
+        );
+      }
+    });
+  });
+
+});
+</script>

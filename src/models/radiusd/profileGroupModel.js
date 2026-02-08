@@ -1,6 +1,11 @@
 const db = require("../../config/db");
 
 class ProfileGroup {
+
+  static async getAll() {
+    const [rows] = await db.query(`SELECT * FROM tbl_profile_group`);
+    return rows;
+  }
   
   static async findByServiceType(type, owner_id) {
     const sql = "SELECT * FROM tbl_profile_group WHERE service_type = ? AND owner_id = ?";

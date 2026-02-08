@@ -13,8 +13,13 @@ class ProfilePaketController {
     const flashData = req.session.flashData;
     delete req.session.flashData;
 
+    const groups = await groupModel.getAll();
+    const owners = await UserModel.findAll();
+
     res.render("profile-paket/profile-group", {
       title: "Profile Group Manajement",
+      owners,
+      groups,
       flashData,
     });
   }
@@ -206,6 +211,15 @@ class ProfilePaketController {
       flashData,
     });
   }
+
+  //add group profile
+  static async profileGroupAdd(req, res) {
+    const data = req.body;
+    return res.status(200).json({
+      data
+    });
+  }
+
 }
 
 module.exports = ProfilePaketController;
