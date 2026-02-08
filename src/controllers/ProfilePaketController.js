@@ -274,7 +274,8 @@ class ProfilePaketController {
               message: "pool model hanya boleh onlyhotspot(GLOBAL) pool mikrotik (Local Pool)"
             });
           }
-
+          
+          const COMMENT = "added by mon-jawara";
           if (poolmodule === "poolmikrotik") {
               let conn;
               try {
@@ -284,7 +285,7 @@ class ProfilePaketController {
                   const poolName = `pool_${groupname}`;
 
                   // 1. buat pool
-                  await PoolHelper.create(conn, poolName, startip, endip);
+                  await PoolHelper.create(conn, poolName, startip, endip, COMMENT);
 
                   // 2. buat profile sesuai type
                   if (grouptype === "hotspot") {
@@ -299,7 +300,8 @@ class ProfilePaketController {
                           groupname,
                           ipgw,
                           poolName,
-                          dns || "8.8.8.8,8.8.4.4"
+                          dns || "8.8.8.8,8.8.4.4",
+                          COMMENT
                       );
                   } else {
                       return res.status(400).json({
