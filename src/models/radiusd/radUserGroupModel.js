@@ -2,6 +2,14 @@ const db = require("../../config/db");
 
 class RadUserGroupMoel {
 
+  static async create({ username, groupname, priority = 1 }, conn = db) {
+    const sql = `
+      INSERT INTO radusergroup (username, groupname, priority)
+      VALUES (?, ?, ?)
+    `;
+    return conn.query(sql, [username, groupname, priority]);
+  }
+
   static async findByName(groupname) {
     const sql = "SELECT * FROM radusergroup WHERE groupname = ?";
     const values = [groupname];
@@ -31,6 +39,13 @@ class RadUserGroupMoel {
     } catch (err) {
       throw err;
     }
+  }
+
+  static async deleteByUsername(username) {
+    const sql = `
+      DELETE FROM radusergroup WHERE username = ?
+    `;
+    return db.query(sql, [username]);
   }
 
   

@@ -44,7 +44,7 @@ class VcrModel {
   static async bulkCreate(dataArray) {
     try {
       const sql = `
-        INSERT INTO tbl_vouchers (code, secret, type, service_type, profilegroup, harga_beli, price, owner_id, owner_username, created_at, updated_at)
+        INSERT INTO tbl_vouchers (code, secret, type, service_type, profilegroup, harga_beli, price, durasi, owner_id, owner_username, created_at, updated_at)
         VALUES ?
       `;
       const values = dataArray.map(item => [
@@ -55,6 +55,7 @@ class VcrModel {
         item.profilegroup,
         item.harga_beli,
         item.price,
+        item.durasi,
         item.owner_id,
         item.owner_username,
         item.created_at,

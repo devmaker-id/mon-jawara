@@ -16,6 +16,7 @@ function prepareVoucherData({
   profilegroup,
   harga_beli,
   price,
+  durasi,
   prefix = "",
   serviceType = "HOTSPOT"
 }) {
@@ -44,6 +45,7 @@ function prepareVoucherData({
     profilegroup,
     harga_beli,
     price,
+    durasi,
     created_at: timestamp,
     updated_at: timestamp,
   }));

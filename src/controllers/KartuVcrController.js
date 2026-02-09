@@ -4,6 +4,8 @@ const userModel = require("../models/userModel");
 const vcrModel = require("../models/voucherModel");
 const profileGroup = require("../models/radiusd/profileGroupModel");
 const tplModel = require("../models/tplModel");
+const RadCheck = require("../models/radiusd/radcheck.model");
+const RadUserGroup = require("../models/radiusd/radUserGroupModel");
 
 class KartuVcrController {
   static async index(req, res) {
@@ -33,7 +35,12 @@ class KartuVcrController {
   }
 
   static async generateBulkVouchers(req, res) {
+    const db = require("../config/db");
+    const conn = await db.getConnection();
+
     try {
+      await conn.beginTransaction();
+
       const {
         jumlah,
         panjang,
@@ -41,50 +48,82 @@ class KartuVcrController {
         type,
         owner_id,
         profile,
-        prefix = ""
+        prefix = "",
       } = req.body;
-  
+
       if (!jumlah || !panjang || !kombinasi || !type || !owner_id || !profile) {
-        return res.status(400).json({ success: false, message: "Data tidak lengkap." });
+        return res.status(400).json({
+          success: false,
+          message: "Data tidak lengkap.",
+        });
       }
-      
+
+      // ===== OWNER =====
       let owner;
-      if(req.user.akun_type === "admin") {
+      if (req.user.akun_type === "admin") {
         owner = await userModel.findById(owner_id);
       } else {
-        owner = [req.user];
+        owner = req.user;
       }
-      
-      const dbProf = await profileGroup.findById(profile)
-  
-      // 1. Buat voucher dengan helper
+
+      // ===== PROFILE =====
+      const dbProf = await profileGroup.findById(profile);
+
+      // ===== GENERATE VOUCHER =====
       const vouchers = prepareVoucherData({
-        total: parseInt(jumlah),
-        codeLength: parseInt(panjang),
-        passLength: parseInt(panjang),
-        kombinasi: parseInt(kombinasi),
+        total: Number(jumlah),
+        codeLength: Number(panjang),
+        passLength: Number(panjang),
+        kombinasi: Number(kombinasi),
         type,
         prefix,
         serviceType: dbProf.service_type,
         profilegroup: dbProf.groupname,
         harga_beli: dbProf.harga_modal,
         price: dbProf.harga_jual,
+        durasi: dbProf.durasi,
         owner_id: owner.id,
-        owner_username: owner.username
+        owner_username: owner.username,
       });
-      
-      //console.log(vouchers);
-  
-      // 2. Simpan ke database
-      const result = await vcrModel.bulkCreate(vouchers);
-  
+
+      // ===== INSERT VOUCHER (BUSINESS DB) =====
+      await vcrModel.bulkCreate(vouchers, conn);
+
+      // ===== INSERT KE RADIUS =====
+      for (const v of vouchers) {
+        // radcheck (password)
+        await RadCheck.setPassword(
+          v.code,
+          v.secret,
+          conn
+        );
+
+        // radusergroup (profile)
+        await RadUserGroup.create(
+          {
+            username: v.code,
+            groupname: v.profilegroup,
+          },
+          conn
+        );
+      }
+
+      await conn.commit();
+
       return res.status(200).json({
         success: true,
-        message: `${vouchers.length} voucher berhasil dibuat.`
+        message: `${vouchers.length} voucher berhasil dibuat.`,
       });
     } catch (error) {
-      console.error("Gagal generate voucher C:", error.message);
-      return res.status(500).json({ success: false, message: "Terjadi kesalahan server." });
+      await conn.rollback();
+      console.error("Gagal generate voucher:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Gagal generate voucher (rollback).",
+      });
+    } finally {
+      conn.release();
     }
   }
   

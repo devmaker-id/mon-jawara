@@ -1,19 +1,3 @@
-<style>
-  /* Tambahkan jarak sekitar 3px ke input pencarian DataTables */
-  div.dataTables_filter input {
-    padding: 6px 10px;
-    margin-left: 5px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    height: auto;
-  }
-
-  /* Tambahkan jarak antar elemen agar lebih rapi */
-  div.dataTables_filter {
-    margin-bottom: 10px;
-  }
-</style>
 
 <section class="content mt-2">
   <div class="container-fluid">
@@ -118,30 +102,29 @@ $(document).ready(function() {
 <!-- MODAL GENERATE VOUCHER -->
 <div class="modal fade" id="modalGenerateVoucher" tabindex="-1">
   <div class="modal-dialog">
-    <form class="modal-content">
+    <form class="modal-content" id="formGenerateVoucher">
+      
       <div class="modal-header bg-success text-white">
-        <h5 class="modal-title"><i class="bi bi-stars"></i> Hasilkan Voucher</h5>
+        <h5 class="modal-title">
+          <i class="bi bi-stars"></i> Hasilkan Voucher
+        </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
 
+      <div class="modal-body">
         <div class="mb-3">
           <label>Jumlah Voucher</label>
-          <input type="number" class="form-control" placeholder="Contoh: 10" id="qty" name="qty">
+          <input type="number" class="form-control" id="qty" name="qty" min="1">
         </div>
 
         <div class="mb-3">
           <label>Profile Hotspot</label>
           <select class="form-select" id="profile" name="profile">
-            <% if(profiles && profiles.length > 0) { %>
             <option value="">pilih profile</option>
-            <% profiles.forEach(profile => { %>
-              <option value="<%= profile.id %>">
-                <%= profile.groupname %>
-              </option>
-            <% }) %>
-            <% } else { %>
-            <option value="">...ga ada profile...</option>
+            <% if (profiles && profiles.length > 0) { %>
+              <% profiles.forEach(profile => { %>
+                <option value="<%= profile.id %>"><%= profile.groupname %></option>
+              <% }) %>
             <% } %>
           </select>
         </div>
@@ -149,16 +132,15 @@ $(document).ready(function() {
         <div class="mb-3">
           <label>Seller / Agen</label>
           <select class="form-select" id="owner_id" name="owner_id">
+            <option value="">— pilih agen —</option>
             <% owner.forEach(u => { %>
-              <option value="<%= u.id %>">
-                <%= u.username %>
-              </option>
+              <option value="<%= u.id %>"><%= u.username %></option>
             <% }) %>
           </select>
         </div>
-        
+
         <div class="mb-3">
-          <label>Type Random</label>
+          <label>Jenis Akun</label>
           <select class="form-select" id="type" name="type">
             <option value="VOUCHER">VOUCHER</option>
             <option value="MEMBER">MEMBER</option>
@@ -166,102 +148,98 @@ $(document).ready(function() {
         </div>
 
         <div class="mb-3">
-          <label>Type Random</label>
+          <label>Tipe Karakter</label>
           <select class="form-select" id="salt" name="salt">
             <option value="1">huruf kecil</option>
             <option value="2">huruf besar</option>
-            <option value="3">huruf kecil & Number</option>
-            <option value="4">huruf besar & number</option>
-            <option value="5">huruf kecil & besar & number</option>
-            <option value="6">hanya number</option>
+            <option value="3">huruf kecil & angka</option>
+            <option value="4">huruf besar & angka</option>
+            <option value="5">huruf kecil, besar & angka</option>
+            <option value="6">hanya angka</option>
           </select>
         </div>
-        
+
         <div class="mb-3">
           <label>Panjang Kode</label>
           <select class="form-select" id="code_length" name="code_length">
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
+            <% for (let i = 4; i <= 10; i++) { %>
+              <option value="<%= i %>"><%= i %></option>
+            <% } %>
           </select>
         </div>
-        
+
         <div class="mb-3">
           <label>Prefix (Opsional)</label>
-          <input type="text" class="form-control" id="prefix" name="prefix" placeholder="Contoh: MBR">
-          <small class="text-muted">Hanya huruf/angka. Tidak boleh spasi atau simbol aneh.</small>
+          <input type="text" class="form-control" id="prefix" name="prefix">
+          <small class="text-muted">Hanya huruf & angka</small>
         </div>
-
-
       </div>
+
       <div class="modal-footer bg-light">
-        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Buat Sekarang</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Buat Sekarang
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Tutup
+        </button>
       </div>
+
     </form>
   </div>
 </div>
+
 <script>
 $(document).ready(function () {
   $('#voucherTable_filter input').attr('placeholder', 'Cari minimal 2 huruf...');
   
-  $('#modalGenerateVoucher form').on('submit', function (e) {
-    e.preventDefault();
-    
-    const prefix = $('#prefix').val()?.trim();
-    const isPrefixValid = !prefix || /^[a-zA-Z0-9]+$/.test(prefix);
-    
-    if (!isPrefixValid) {
-      Swal.fire("Oops!", "Prefix hanya boleh berisi huruf, angka.", "warning");
-      return;
-    }
+  $(function () {
 
-    const data = {
-      jumlah: parseInt($('#qty').val()),
-      profile: $('#profile').val(),
-      owner_id: $('#owner_id').val() || null,
-      type: $('#type').val(),
-      kombinasi: parseInt($('#salt').val()),
-      panjang: parseInt($('#code_length').val()),
-      prefix: prefix || ""
-    };
+    $('#formGenerateVoucher').on('submit', function (e) {
+      e.preventDefault();
 
+      const prefix = $('#prefix').val()?.trim() || "";
 
-    // Validasi sederhana
-    if (!data.jumlah || !data.profile || !data.type || !data.kombinasi || !data.panjang) {
-      Swal.fire("Oops!", "Semua field wajib diisi.", "warning");
-      return;
-    }
-
-
-    // Kirim request
-    $.ajax({
-      url: '/admin/kartu-voucher',
-      method: 'POST',
-      contentType: 'application/json',
-      success: function (res) {
-        if (res.success) {
-          Swal.fire({
-            title: "Success!",
-            text: res.message,
-            icon: "success"
-          }).then(() => {
-            $('#modalGenerateVoucher').modal('hide');
-            location.reload(); // Optional, kalau mau reload
-          });
-        } else {
-          Swal.fire("Gagal", res.message || "Gagal generate voucher", "error");
-        }
-      },
-      error: function (err) {
-        console.error(err);
-        Swal.fire("Error", "Terjadi kesalahan saat request", "error");
+      if (prefix && !/^[a-zA-Z0-9]+$/.test(prefix)) {
+        Swal.fire("Oops!", "Prefix hanya boleh huruf & angka", "warning");
+        return;
       }
+
+      const data = {
+        jumlah: Number($('#qty').val()),
+        profile: $('#profile').val(),
+        owner_id: $('#owner_id').val() || null,
+        type: $('#type').val(),
+        kombinasi: Number($('#salt').val()),
+        panjang: Number($('#code_length').val()),
+        prefix
+      };
+
+      if (!data.jumlah || !data.profile) {
+        Swal.fire("Oops!", "Jumlah & profile wajib diisi", "warning");
+        return;
+      }
+
+      $.ajax({
+        url: '/admin/kartu-voucher',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success(res) {
+          Swal.fire("Success!", res.message, "success").then(() => {
+            $('#modalGenerateVoucher').modal('hide');
+            location.reload();
+          });
+        },
+        error() {
+          Swal.fire("Error", "Gagal generate voucher", "error");
+        }
+      });
     });
+
+    $('#modalGenerateVoucher').on('hidden.bs.modal', function () {
+      $('#formGenerateVoucher')[0].reset();
+    });
+
   });
 
   // Reset form ketika modal ditutup
