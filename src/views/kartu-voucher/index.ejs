@@ -1,17 +1,26 @@
-
-<section class="content mt-2">
+<div class="app-content-header">
   <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4><i class="bi bi-ticket-detailed me-2"></i> Voucher Hotspot</h4>
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0"><%= title %> </h3>
+        <small class="text-muted"> Buat dan tambah kartu voucher </small>
+      </div>
       <div class="dropdown">
         <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
           <i class="bi bi-list-task me-1"></i> Extra
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalGenerateVoucher">
-            <i class="bi bi-stars me-2"></i> Hasilkan Voucher</a></li>
+            <i class="bi bi-stars me-2"></i> Hasilkan Voucher</a>
+          </li>
           <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCetakVoucher">
-            <i class="bi bi-printer-fill me-2"></i> Cetak Voucher</a></li>
+            <i class="bi bi-printer-fill me-2"></i> Cetak Voucher</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#" id="printSelected">
+              <i class="bi bi-printer me-2"></i> Cetak yang Dipilih
+            </a>
+          </li>
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#modalConfirmDelete">
               <i class="bi bi-trash3-fill me-2"></i> Hapus yang Dipilih
@@ -19,12 +28,20 @@
         </ul>
       </div>
     </div>
+  </div>
+</div>
+
+<section class="content mt-2">
+  <div class="container-fluid">
 
     <div class="card shadow">
       <div class="card-body table-responsive">
         <table id="voucherTable" class="table table-hover">
           <thead class="table-dark">
             <tr>
+              <th width="30">
+                <input type="checkbox" id="checkAll">
+              </th>
               <th>No</th>
               <th>Kode</th>
               <th>Secret</th>
@@ -76,13 +93,28 @@
 </section>
 <!-- SCRIPT DATA TABLES -->
 <script>
-$(document).ready(function() {
-  
-  $('#voucherTable').DataTable({
+let voucherTable;
+
+$(document).ready(function () {
+
+  voucherTable = $('#voucherTable').DataTable({
     processing: true,
     serverSide: true,
     ajax: '/api/voucherHotspot',
+    order: [[1, 'asc']],
     columns: [
+      {
+        data: 'id',
+        orderable: false,
+        searchable: false,
+        render: function (data) {
+          return `
+            <input type="checkbox" 
+                   class="row-check" 
+                   value="${data}">
+          `;
+        }
+      },
       { data: 'no' },
       { data: 'code' },
       { data: 'secret' },
@@ -96,6 +128,39 @@ $(document).ready(function() {
     ]
   });
 
+});
+
+$(document).on('change', '#checkAll', function () {
+  $('.row-check').prop('checked', this.checked)
+});
+
+// reset checkAll saat ganti page / search
+$('#voucherTable').on('draw.dt', function () {
+  $('#checkAll').prop('checked', false)
+});
+
+//ambil voucher yang dipilih
+function getSelectedVoucherIds() {
+  return $('.row-check:checked')
+    .map(function () {
+      return this.value
+    })
+    .get()
+}
+
+// cetak yang dipilih
+$('#btnPrintSelected').on('click', function (e) {
+  e.preventDefault()
+
+  const ids = getSelectedVoucherIds()
+
+  if (ids.length === 0) {
+    Swal.fire("Oops!", "Pilih voucher dulu", "warning")
+    return
+  }
+
+  const url = `/admin/kartu-voucher/cetak?mode=selected&ids=${ids.join(',')}`
+  window.open(url, '_blank')
 });
 </script>
 
@@ -340,7 +405,7 @@ $(document).ready(function () {
         <p class="text-muted small">Data yang dihapus tidak dapat dikembalikan.</p>
       </div>
       <div class="modal-footer justify-content-center">
-        <button type="button" class="btn btn-danger">
+        <button type="button" class="btn btn-danger" id="btnConfirmDelete">
           <i class="bi bi-trash3-fill me-1"></i> Ya, Hapus
         </button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -350,3 +415,29 @@ $(document).ready(function () {
     </div>
   </div>
 </div>
+<script>
+//script hapus bulk (yang di ceklis)
+$('#btnConfirmDelete').on('click', function () {
+  const ids = getSelectedVoucherIds()
+
+  if (ids.length === 0) {
+    Swal.fire("Oops!", "Tidak ada voucher yang dipilih", "warning")
+    return
+  }
+
+  $.ajax({
+    url: '/admin/kartu-voucher/bulk-delete',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ ids }),
+    success(res) {
+      Swal.fire("Berhasil!", res.message, "success")
+      $('#modalConfirmDelete').modal('hide')
+      voucherTable.ajax.reload(null, false)
+    },
+    error() {
+      Swal.fire("Error", "Gagal menghapus voucher", "error")
+    }
+  })
+})
+</script>

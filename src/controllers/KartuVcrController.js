@@ -126,6 +126,14 @@ class KartuVcrController {
       conn.release();
     }
   }
+
+  static async printVoucher(req, res) {
+    const data = req.query;
+    return res.status(200).json({
+      success: true,
+      data
+    })
+  }
   
   static async cetakFiltered(req, res) {
     try {
