@@ -1,0 +1,30 @@
+/* ===== Voucher Card ===== */
+.voucher-card {
+  border: 1px dashed #000;
+  padding: 16px;
+  height: 100%;
+}
+
+.voucher-footer {
+  border-top: 1px solid #000;
+  margin-top: 10px;
+  padding-top: 6px;
+}
+
+/* ===== Print Mode ===== */
+@media print {
+  .app-content-header,
+  .btn,
+  .sidebar,
+  .navbar {
+    display: none !important;
+  }
+
+  .content {
+    margin: 0 !important;
+  }
+
+  .voucher-card {
+    page-break-inside: avoid;
+  }
+}

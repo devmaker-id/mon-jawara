@@ -128,11 +128,48 @@ class KartuVcrController {
   }
 
   static async printVoucher(req, res) {
-    const data = req.query;
-    return res.status(200).json({
-      success: true,
-      data
-    })
+    try {
+      const { mode } = req.query;
+      let vouchers = [];
+
+      if (mode === "selected") {
+        const ids = (req.query.ids || "")
+          .split(",")
+          .map(Number)
+          .filter(Boolean);
+
+        vouchers = await vcrModel.findByIds(ids);
+      }
+
+      else if (mode === "latest") {
+        vouchers = await vcrModel.findLatest(req.query.limit);
+      }
+
+      else if (mode === "filter") {
+        vouchers = await vcrModel.findFiltered({
+          tanggal: req.query.tanggal,
+          profile: req.query.profile,
+          owner_id: req.query.owner_id
+        });
+      }
+
+      else {
+        return res.status(400).send("Mode cetak tidak valid");
+      }
+
+      if (!vouchers.length) {
+        return res.send("Tidak ada data voucher");
+      }
+
+      return res.render("kartu-voucher/print", {
+        title: "Cetak Voucher",
+        vouchers
+      });
+
+    } catch (err) {
+      console.error("printVoucher error:", err);
+      return res.status(500).send("Server error");
+    }
   }
   
   static async cetakFiltered(req, res) {

@@ -1,0 +1,65 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0"><%= title %></h3>
+        <small class="text-muted">Print Voucher</small>
+      </div>
+
+      <div>
+        <button onclick="window.print()" class="btn btn-sm btn-primary">
+          🖨️ Cetak
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="content mt-3">
+  <div class="container-fluid">
+
+    <div class="row print-area">
+      <% vouchers.forEach(v => { %>
+        <div class="col-md-6 mb-3">
+          <div class="voucher-card">
+            <h5 class="text-center mb-3">Voucher Internet</h5>
+
+            <table class="table table-borderless table-sm mb-2">
+              <tr>
+                <td width="35%"><strong>Kode</strong></td>
+                <td class="fw-bold fs-5"><%= v.code %></td>
+              </tr>
+
+              <% if (v.type !== 'VOUCHER') { %>
+              <tr>
+                <td><strong>Password</strong></td>
+                <td><%= v.secret %></td>
+              </tr>
+              <% } %>
+
+              <tr>
+                <td><strong>Profile</strong></td>
+                <td><%= v.profilegroup %></td>
+              </tr>
+
+              <tr>
+                <td><strong>Durasi</strong></td>
+                <td><%= v.durasi || '-' %></td>
+              </tr>
+
+              <tr>
+                <td><strong>Harga</strong></td>
+                <td>Rp <%= v.price_format || v.price %></td>
+              </tr>
+            </table>
+
+            <div class="voucher-footer text-center">
+              <small>Berlaku sejak <%= v.created_at_formatted || '' %></small>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+  </div>
+</section>

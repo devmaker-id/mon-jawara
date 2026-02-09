@@ -104,6 +104,42 @@ class VcrModel {
     }
   }
 
+  static async findByIds(ids = []) {
+    try {
+      if (!ids.length) return [];
+
+      const sql = `
+        SELECT * FROM tbl_vouchers
+        WHERE id IN (?)
+        ORDER BY created_at ASC
+      `;
+
+      const [rows] = await db.query(sql, [ids]);
+      return rows;
+    } catch (err) {
+      console.error("findByIds error:", err.message);
+      throw err;
+    }
+  }
+
+  static async findLatest(limit = 20) {
+    try {
+      const safeLimit = Math.min(Number(limit) || 20, 200);
+
+      const sql = `
+        SELECT * FROM tbl_vouchers
+        ORDER BY created_at DESC
+        LIMIT ?
+      `;
+
+      const [rows] = await db.query(sql, [safeLimit]);
+      return rows;
+    } catch (err) {
+      console.error("findLatest error:", err.message);
+      throw err;
+    }
+  }
+
 }
 
 module.exports = VcrModel;
