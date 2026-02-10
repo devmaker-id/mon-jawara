@@ -36,8 +36,13 @@ class NasController {
     const flashData = req.session.flashData;
     delete req.session.flashData;
 
+    const routers = await MikrotikModel.findAll();
+    const stations = await RadStation.getAll();
+
     res.render("nas-client/nas-station", {
       title: "manajement station nas",
+      routers,
+      stations,
       flashData
     });
   }

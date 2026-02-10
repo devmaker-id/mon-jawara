@@ -5,8 +5,200 @@
         <h3 class="mb-0"><%= title %> </h3>
         <small class="text-muted"> Manajemen station client, hotspot ppp sesuai server </small>
       </div>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#accessModal">
-        <i class="bi bi-plus-circle"></i> Assign Akses </button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#stationModal">
+        <i class="bi bi-plus-circle"></i> Tambah Station </button>
     </div>
   </div>
 </div>
+
+<div class="app-content py-3">
+  <div class="container-fluid"><% if (flashData) { %> <div class="alert alert-<%= flashData.type %> alert-dismissible fade show" role="alert"><%= flashData.text %> <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div><% } %> <div class="card shadow-sm border-0 mt-3">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="stationTable" class="table table-bordered table-striped align-middle text-nowrap">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Station</th>
+                <th>Router Nas</th>
+                <th>Tipe</th>
+                <th>Created</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody><% if (stations && stations.length > 0) { %><% stations.forEach((row, index) => { %> <tr>
+                <td><%= index + 1 %> </td>
+                <td>
+                  <strong><%= row.name %> </strong>
+                </td>
+                <td>
+                  <code><%= row.mikrotik_name %> </code>
+                </td>
+                <td>
+                  <%= row.service_type %>
+                </td>
+                <td>
+                  <%= formatDate(row.created_at); %>
+                </td>
+
+                <td>
+                  <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#stationModal" data-action="edit" data-access='<%- JSON.stringify(row) %>'>
+                    <i class="bi bi-pen"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger btn-delete" data-id="<%= row.id %>">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr><% }) %><% } else { %> <tr>
+                <td colspan="5" class="text-center text-muted"> Belum ada station </td>
+              </tr><% } %> </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="stationModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form id="stationForm">
+      <input type="hidden" name="id" id="station_id">
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="stationModalTitle">Tambah Station</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-md-12">
+              <label class="form-label">Nama Station</label>
+              <input type="text" name="name" id="station_name" class="form-control" required>
+              <span class="text-muted">
+                <i class="text-danger">
+                    Sesuaikan alfabet di server hotspot dan ppp, sensitif karakter, jangan ada simbol
+                </i>
+              </span>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Router NAS</label>
+              <select name="router_id" id="router_id" class="form-select" required>
+                <option value="">-- Pilih Router --</option>
+                <% routers.forEach(router => { %>
+                  <option value="<%= router.id %>"><%= router.name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label d-block">Tipe Service</label>
+
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="service_type" value="hotspot">
+                <label class="form-check-label">Hotspot</label>
+              </div>
+
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="service_type" value="ppp">
+                <label class="form-check-label">PPP</label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+$(function () {
+
+  // DataTable + Search
+  $('#stationTable').DataTable({
+    pageLength: 10,
+    lengthChange: false,
+    ordering: false
+  });
+
+  // Reset modal saat buka tambah
+  $('[data-bs-target="#stationModal"]').on('click', function () {
+    let action = $(this).data('action');
+
+    $('#stationForm')[0].reset();
+    $('#station_id').val('');
+
+    if (action === 'edit') {
+      let data = $(this).data('access');
+
+      $('#stationModalTitle').text('Edit Station');
+      $('#station_id').val(data.id);
+      $('#station_name').val(data.name);
+      $('#router_id').val(String(data.mikrotik_id)).trigger('change');
+      $(`input[name="service_type"][value="${data.service_type}"]`).prop('checked', true);
+    } else {
+      $('#stationModalTitle').text('Tambah Station');
+    }
+  });
+
+  // Submit tambah / edit
+  $('#stationForm').on('submit', function (e) {
+    e.preventDefault();
+
+    let id = $('#station_id').val();
+    let url = id
+      ? '/admin/nas-client/station/edit'
+      : '/admin/nas-client/station/add';
+
+    $.ajax({
+      url: url,
+      method: 'POST',
+      data: $(this).serialize(),
+      success: function () {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: 'Data station berhasil disimpan',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => location.reload());
+      },
+      error: function () {
+        Swal.fire('Error', 'Gagal menyimpan data', 'error');
+      }
+    });
+  });
+
+  // Delete
+  $('.btn-delete').on('click', function () {
+    let id = $(this).data('id');
+
+    Swal.fire({
+      title: 'Yakin hapus?',
+      text: 'Data tidak bisa dikembalikan',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Hapus'
+    }).then(result => {
+      if (result.isConfirmed) {
+        $.post('/admin/nas-client/station/delete', { id }, () => {
+          Swal.fire('Terhapus!', 'Data berhasil dihapus', 'success')
+            .then(() => location.reload());
+        });
+      }
+    });
+  });
+
+});
+</script>
