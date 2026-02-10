@@ -70,11 +70,44 @@
     <p>Mikrotik Client</p>
   </a>
 </li>
-<li class="nav-item">
-  <a href="/admin/nas-client" class="nav-link <%= currentUrl.startsWith('/admin/nas-client') ? 'active' : '' %>">
-    <i class="nav-icon bi bi-hdd-rack"></i>
-    <p>Nas Client</p>
+
+<li class="nav-item has-treeview
+  <%= currentUrl.startsWith('/admin/nas-client') ? 'menu-open' : '' %>">
+
+  <a href="#" class="nav-link d-flex align-items-center
+    <%= currentUrl.startsWith('/admin/nas-client') ? 'active' : '' %>">
+    <i class="nav-icon bi bi-hdd-stack"></i>
+    <p class="mb-0 flex-grow-1">Manajement Nas</p>
+    <i class="bi bi-chevron-down ms-auto"></i>
   </a>
+
+  <ul class="nav nav-treeview">
+
+    <li class="nav-item ms-2">
+      <a href="/admin/nas-client" class="nav-link
+        <%= currentUrl === '/admin/nas-client' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>List Nas</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/admin/nas-client/station" class="nav-link
+        <%= currentUrl === '/admin/nas-client/station' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Station</p>
+      </a>
+    </li>
+
+    <li class="nav-item ms-2">
+      <a href="/admin/nas-client/domain" class="nav-link
+        <%= currentUrl === '/admin/nas-client/domain' ? 'active' : '' %>">
+        <i class="bi bi-circle nav-icon"></i>
+        <p>Domain</p>
+      </a>
+    </li>
+
+  </ul>
 </li>
 
 <li class="nav-item has-treeview

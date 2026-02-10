@@ -3,6 +3,8 @@ const MikrotikModel = require("../../models/mikrotikModel");
 const NasModel = require("../../models/radiusd/nasModel");
 const RadServer = require("../../models/radiusd/radServerUserModel");
 const RadiusModel = require("../../models/radiusd/radServerModel");
+const RadStation = require("../../models/radiusd/rad.station.model");
+const RadDomain = require("../../models/radiusd/rad.domain.model");
 
 class NasController {
   
@@ -26,6 +28,26 @@ class NasController {
       mkclient,
       radPort,
       radServer,
+      flashData
+    });
+  }
+
+  static async nasStation(req, res) {
+    const flashData = req.session.flashData;
+    delete req.session.flashData;
+
+    res.render("nas-client/nas-station", {
+      title: "manajement station nas",
+      flashData
+    });
+  }
+
+  static async nasDomain(req, res) {
+    const flashData = req.session.flashData;
+    delete req.session.flashData;
+
+    res.render("nas-client/nas-domain", {
+      title: "manajement station domain",
       flashData
     });
   }
@@ -55,7 +77,7 @@ class NasController {
       throw err;
     }
   }
-
+  
   static async buatRadiusClient(req, res) {
     const COMMENT = "added by mon-jawara";
 
