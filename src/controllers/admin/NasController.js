@@ -57,6 +57,54 @@ class NasController {
     });
   }
 
+  static async addNasStation(req, res) {
+    const data = req.body;
+    return res.status(200).json({
+      success: true,
+      title: "Add station",
+      data
+    });
+  }
+
+  static async editNasStation(req, res) {
+    try {
+      const { id, name, router_id, service_type } = req.body;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID station tidak ditemukan'
+        });
+      }
+
+      const updateData = {
+        name,
+        mikrotik_id: router_id,
+        service_type
+      };
+
+      // await NasStation.update(updateData, {
+      //   where: { id }
+      // });
+
+      return res.status(200).json({
+        success: true,
+        title: 'Edit station',
+        data: {
+          id,
+          ...updateData
+        }
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal mengubah station'
+      });
+    }
+  }
+
   static async getHostMikrotik(req, res) {
     const { id } = req.params;
     const user = req.session.user;
@@ -80,6 +128,50 @@ class NasController {
     } catch (err) {
       console.error(err.message);
       throw err;
+    }
+  }
+
+  static async deleteNasStation(req, res) {
+    try {
+      const { id } = req.body;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID station tidak ditemukan'
+        });
+      }
+
+      // contoh cek data dulu (opsional tapi bagus)
+      const station = []; //await NasStation.findOne({ where: { id } });
+
+      if (!station) {
+        return res.status(404).json({
+          success: false,
+          message: 'Station tidak ditemukan'
+        });
+      }
+
+      // hapus data
+      // await NasStation.destroy({
+      //   where: { id }
+      // });
+
+      return res.status(200).json({
+        success: true,
+        title: 'Terhapus',
+        message: 'Data station berhasil dihapus',
+        data: {
+          id
+        }
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal menghapus station'
+      });
     }
   }
   
