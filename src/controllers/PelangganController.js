@@ -23,6 +23,7 @@ class PelangganController {
   static async addUserHotspot(req, res) {
     try {
       const {
+        nasstation,
         fullname,
         user_type,
         paket,
@@ -31,7 +32,7 @@ class PelangganController {
       } = req.body;
   
       // Validasi wajib
-      if (!fullname || !user_type || !paket || !username) {
+      if (!nasstation || !fullname || !user_type || !paket || !username) {
         return res.status(400).json({ success: false, message: "Data tidak lengkap." });
       }
   

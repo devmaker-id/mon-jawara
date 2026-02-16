@@ -103,6 +103,13 @@ $(document).ready(function () {
 
       <div class="modal-body">
         <div class="row g-3">
+
+          <div class="col-md-6">
+            <label>NAS Server | Station</label>
+            <select class="form-select" id="nas_station" name="nas_station">
+              <option value="all">Semua Nas Server</option>
+            </select>
+          </div>
           
           <div class="col-md-6">
             <label>Nama Lengkap</label>
@@ -177,6 +184,7 @@ $(document).ready(function () {
     e.preventDefault();
 
     const formData = {
+      nasstation: $("nas_station").val(),
       fullname: $("#fullname").val(),
       user_type: $("#user_type").val(),
       username: $("#username").val(),
